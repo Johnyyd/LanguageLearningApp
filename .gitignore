@@ -1,32 +1,86 @@
-# Prerequisites
-*.d
+# =====================================================================
+# 🔒 Git Ignore Configuration (Preventing Secrets & Build Artifacts Leak)
+# =====================================================================
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# --- Secrets & Environment Variables ---
+.env
+.env.local
+.env.*.local
+!.env.example
+*.key
+*.pem
+secrets.json
 
-# Precompiled Headers
-*.gch
-*.pch
+# --- Database & Cache Local Volumes ---
+*.db
+*.sqlite
+*.sqlite3
+app.db
+backend/app.db
+mssql_data/
+redis_data/
+*.log
 
-# Compiled Dynamic libraries
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
 *.so
-*.dylib
-*.dll
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+.venv3/
+venv/
+ENV/
+env/
+.mypy_cache/
+.ruff_cache/
 
-# Fortran module files
-*.mod
-*.smod
+# --- Flutter / Dart ---
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+mobile/build/
+*.flutter-plugins*
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+android/.gradle/
+android/app/build/
+android/local.properties
+android/*.keystore
+android/*.jks
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+# --- IDE & OS ---
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

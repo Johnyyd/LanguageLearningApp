@@ -1,0 +1,29 @@
+{
+  "name": "Language App AI Gateway & SQL Server (Dev Container)",
+  "dockerComposeFile": [
+    "../backend/docker-compose.yml"
+  ],
+  "service": "ai-gateway",
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-mssql.mssql",
+        "charliermarsh.ruff",
+        "tamasfe.even-better-toml"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.formatting.provider": "none",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        }
+      }
+    }
+  },
+  "postCreateCommand": "cp -n .env.example .env || true && echo '🎉 Dev Container environment is ready! Python, SQL Server, and dependencies are pre-installed.'",
+  "forwardPorts": [1111, 1112, 1113],
+  "remoteUser": "root"
+}

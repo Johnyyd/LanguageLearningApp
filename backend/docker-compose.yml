@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: language_app_sqlserver
+    ports:
+      - "1111:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=SuperStrong!Pass2026
+      - MSSQL_PID=Express
+    volumes:
+      - mssql_data:/var/opt/mssql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P SuperStrong!Pass2026 -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  redis:
+    image: redis:7-alpine
+    container_name: language_app_redis
+    ports:
+      - "1113:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: language_app_db_init
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    volumes:
+      - ./sql_scripts:/sql_scripts
+    command: >
+      bash -c "echo '⏳ Waiting for SQL Server to be ready...' &&
+               sleep 5 &&
+               /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'SuperStrong!Pass2026' -C -i /sql_scripts/init_mssql.sql &&
+               echo '✅ SQL Server DB initialization script executed successfully.'"
+
+  ai-gateway:
+    build: .
+    container_name: language_app_ai_gateway
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "1112:1112"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-demo_api_key_portfolio_2026}
+      - JWT_SECRET_KEY=super_secret_portfolio_key_2026
+      - DATABASE_URL=mssql+pymssql://sa:SuperStrong!Pass2026@sqlserver:1433/LanguageAppDB
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+volumes:
+  mssql_data:
+  redis_data:
