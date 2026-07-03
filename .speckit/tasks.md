@@ -31,7 +31,7 @@
 - [ ] **TASK-5.4 [MiMo - Phân tích/Reviewer]:** Kiểm tra FPS và mức tiêu hao bộ nhớ/pin khi render mô hình 3D trong suốt phiên trò chuyện dài; kiểm thử bảo mật các cổng kết nối WebSocket.
 
 ## 6. Giai đoạn 6: Hoàn thiện, Tối ưu hóa UI/UX & Đóng gói Portfolio (Polish & Verification)
-- [ ] **TASK-6.1 [Antigravity - Điều phối/Thợ code phụ]:** Hoàn thiện các hiệu ứng chuyển tiếp (Hero animations, Shimmer loading), tinh chỉnh bảng màu Dark/Light mode và bổ sung đồ họa/biểu tượng chất lượng cao cho toàn app.
+- [x] **TASK-6.1 [Antigravity - Điều phối/Thợ code phụ]:** Hoàn thiện các hiệu ứng chuyển tiếp (Hero animations, Shimmer loading), tinh chỉnh bảng màu Dark/Light mode và bổ sung đồ họa/biểu tượng chất lượng cao cho toàn app.
 - [ ] **TASK-6.2 [OpenCode - Thợ code chính]:** Viết tài liệu README.md chi tiết, tài liệu hướng dẫn cài đặt, kiến trúc hệ thống và tạo dữ liệu giả lập (Demo Seed Data) để phô diễn tính năng cho Portfolio.
 - [ ] **TASK-6.3 [Hermes - DevOps/Hạ tầng]:** Đóng gói Docker container cho Backend, chuẩn bị kịch bản build bản cài đặt APK (Android) và IPA (iOS) cho mục đích demo.
-- [ ] **TASK-6.4 [MiMo - Phân tích/Reviewer]:** Thực hiện kiểm duyệt cuối cùng theo quy chuẩn convergence (`/speckit.converge`); kiểm tra tuân thủ toàn bộ các nguyên tắc hiến pháp dự án (`/speckit.constitution`).
+- [x] **TASK-6.4 [MiMo - Phân tích/Reviewer]:** Thực hiện kiểm duyệt cuối cùng theo quy chuẩn convergence (`/speckit.converge`); kiểm tra tuân thủ toàn bộ các nguyên tắc hiến pháp dự án (`/speckit.constitution`).

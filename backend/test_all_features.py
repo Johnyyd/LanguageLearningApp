@@ -30,12 +30,20 @@ def test_vocab_cache():
     assert r1.status_code == 200
     data1 = r1.json()
     assert len(data1) > 0
-    print(f"✅ Fetched {len(data1)} N5 vocabulary items successfully.")
+    print(f"✅ Fetched {len(data1)} N5 vocabulary items (Lesson 1) successfully.")
 
     # Test cache hit on second request
     r2 = client.get("/api/v1/vocab/n5")
     assert r2.status_code == 200
     print("✅ Cache hit verified for N5 vocabulary.")
+
+    # Test fetching Lesson 2
+    r3 = client.get("/api/v1/vocab/n5?lesson=2")
+    assert r3.status_code == 200
+    data2 = r3.json()
+    assert len(data2) > 0
+    assert data2[0]["id"] == "jap_201"
+    print(f"✅ Fetched {len(data2)} N5 vocabulary items (Lesson 2) successfully.")
 
 def test_ielts_prompts_and_eval():
     print("\n--- 🟢 [Test 3] IELTS Writing Prompts & AI Evaluation ---")
