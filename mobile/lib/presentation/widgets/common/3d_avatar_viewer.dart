@@ -10,16 +10,22 @@ class Avatar3dViewer extends StatelessWidget {
     final String emotion; // idle, talking, thinking, happy, cheering
     final double height;
     final VoidCallback? onTap;
+    final VoidCallback? onUploadTap;
     final bool isVoiceCloned;
     final String voiceActorName;
+    final String? customAvatarUrl;
+    final List<Map<String, dynamic>>? visemes;
 
     const Avatar3dViewer({
         super.key,
         this.emotion = "idle",
-        this.height = 240,
+        this.height = 320,
         this.onTap,
+        this.onUploadTap,
         this.isVoiceCloned = true,
         this.voiceActorName = "Kana Hanazawa (VA)",
+        this.customAvatarUrl,
+        this.visemes,
     });
 
     bool get _isWebViewSupported {
@@ -33,6 +39,10 @@ class Avatar3dViewer extends StatelessWidget {
 
     @override
     Widget build(BuildContext context) {
+        final String effectiveModelUrl = (customAvatarUrl != null && customAvatarUrl!.isNotEmpty)
+            ? customAvatarUrl!
+            : AppConstants.avatar3dUrl;
+
         return GestureDetector(
             onTap: onTap,
             child: Container(
@@ -41,43 +51,81 @@ class Avatar3dViewer extends StatelessWidget {
                 decoration: BoxDecoration(
                     gradient: LinearGradient(
                         colors: [
-                            AppColors.deepIndigo.withValues(alpha: 0.9),
-                            AppColors.softIndigo.withValues(alpha: 0.7),
+                            AppColors.deepIndigo.withValues(alpha: 0.95),
+                            const Color(0xFF1E1035), // Dark Gothic Violet (Grok Ani style)
+                            AppColors.softIndigo.withValues(alpha: 0.85),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.6), width: 2),
                     boxShadow: [
                         BoxShadow(
-                            color: AppColors.deepIndigo.withValues(alpha: 0.2),
+                            color: AppColors.sakuraPink.withValues(alpha: 0.25),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                        ),
+                        BoxShadow(
+                            color: AppColors.deepIndigo.withValues(alpha: 0.4),
                             blurRadius: 12,
-                            offset: const Offset(0, 6),
+                            offset: const Offset(0, 4),
                         ),
                     ],
                 ),
                 child: Stack(
                     children: [
-                        // Model Viewer Plus for 3D GLB rendering (or Desktop fallback)
+                        // Universal 3D Avatar Loader (GLB/VRM or Desktop fallback)
                         ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
+                            borderRadius: BorderRadius.circular(26),
                             child: _isWebViewSupported
                                 ? ModelViewer(
                                     backgroundColor: const Color.fromARGB(0, 0, 0, 0),
-                                    src: AppConstants.avatar3dUrl,
-                                    alt: "3D Sensei AI Tutor",
+                                    src: effectiveModelUrl,
+                                    alt: "Grok Ani style 3D Sensei AI Tutor",
                                     ar: false,
                                     autoRotate: emotion == "thinking" || emotion == "idle",
                                     autoPlay: true,
                                     cameraControls: true,
                                     animationName: _getAnimationName(emotion),
                                 )
-                                : _buildDesktopFallbackAvatar(),
+                                : _buildDesktopFallbackAvatar(effectiveModelUrl),
                         ),
-                        // Emotion Badge / Lip-sync indicator
+                        // Grok Ani VTuber Mode Header Badge (Top Left)
                         Positioned(
-                            top: 12,
-                            right: 12,
+                            top: 14,
+                            left: 14,
+                            child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.6),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.5)),
+                                ),
+                                child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                        Container(
+                                            width: 8,
+                                            height: 8,
+                                            decoration: const BoxDecoration(
+                                                color: AppColors.successGreen,
+                                                shape: BoxShape.circle,
+                                            ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        const Text(
+                                            "✨ GROK ANI COMPANION",
+                                            style: TextStyle(color: AppColors.sakuraPink, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                                        ),
+                                    ],
+                                ),
+                            ),
+                        ),
+                        // Emotion Badge / Lip-sync indicator (Top Right)
+                        Positioned(
+                            top: 14,
+                            right: 14,
                             child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
@@ -85,8 +133,8 @@ class Avatar3dViewer extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                         BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.2),
-                                            blurRadius: 4,
+                                            color: Colors.black.withValues(alpha: 0.3),
+                                            blurRadius: 6,
                                         )
                                     ],
                                 ),
@@ -96,14 +144,14 @@ class Avatar3dViewer extends StatelessWidget {
                                         Icon(
                                             _getBadgeIcon(emotion),
                                             color: Colors.white,
-                                            size: 16,
+                                            size: 14,
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
                                             _getBadgeText(emotion),
                                             style: const TextStyle(
                                                 color: Colors.white,
-                                                fontSize: 12,
+                                                fontSize: 11,
                                                 fontWeight: FontWeight.bold,
                                             ),
                                         ),
@@ -111,36 +159,104 @@ class Avatar3dViewer extends StatelessWidget {
                                 ),
                             ),
                         ),
-                        // Tutor Name tag
+                        // Real-time Lip-Sync Audio Waveform Indicator when talking
+                        if (emotion == "talking" || emotion == "thinking")
+                            Positioned(
+                                top: 48,
+                                left: 16,
+                                child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.5),
+                                        borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                        children: [
+                                            _buildWaveBar(12, 300),
+                                            const SizedBox(width: 3),
+                                            _buildWaveBar(18, 200),
+                                            const SizedBox(width: 3),
+                                            _buildWaveBar(10, 400),
+                                            const SizedBox(width: 3),
+                                            _buildWaveBar(16, 250),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                                emotion == "talking" ? "🎙️ Lip-Sync Active" : "🧠 AI Reasoning...",
+                                                style: const TextStyle(color: AppColors.sakuraPink, fontSize: 11, fontWeight: FontWeight.bold),
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            ),
+                        // Tutor Name tag (Bottom Left)
                         Positioned(
-                            bottom: 12,
-                            left: 16,
+                            bottom: 14,
+                            left: 14,
                             child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
-                                    color: AppColors.deepIndigo.withValues(alpha: 0.8),
+                                    color: AppColors.deepIndigo.withValues(alpha: 0.85),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.5)),
                                 ),
                                 child: Row(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                         const Icon(Icons.auto_awesome, color: AppColors.sakuraPink, size: 16),
                                         const SizedBox(width: 6),
                                         Text(
-                                            isVoiceCloned ? "Sensei 3D (🎙️ VA: $voiceActorName)" : "Sensei AI (3D Tutor)",
-                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
+                                            isVoiceCloned ? "Sensei (🎙️ VA: $voiceActorName)" : "Sensei AI (3D Tutor)",
+                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12),
                                         ),
                                     ],
                                 ),
                             ),
                         ),
+                        // Quick Action: Upload 3D Model File button (Bottom Right)
+                        if (onUploadTap != null)
+                            Positioned(
+                                bottom: 14,
+                                right: 14,
+                                child: ElevatedButton.icon(
+                                    onPressed: onUploadTap,
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.sakuraPink,
+                                        foregroundColor: Colors.white,
+                                        elevation: 6,
+                                        shadowColor: AppColors.sakuraPink.withValues(alpha: 0.6),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    ),
+                                    icon: const Icon(Icons.folder_open, size: 16),
+                                    label: const Text("📁 Tải File 3D", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                ),
+                            ),
                     ],
                 ),
             ),
         );
     }
 
-    Widget _buildDesktopFallbackAvatar() {
+    Widget _buildWaveBar(double maxH, int speedMs) {
+        return TweenAnimationBuilder<double>(
+            tween: Tween(begin: 4.0, end: emotion == "talking" ? maxH : 6.0),
+            duration: Duration(milliseconds: speedMs),
+            curve: Curves.easeInOut,
+            builder: (context, val, _) {
+                return Container(
+                    width: 3,
+                    height: val,
+                    decoration: BoxDecoration(
+                        color: emotion == "talking" ? AppColors.sakuraPink : AppColors.warningOrange,
+                        borderRadius: BorderRadius.circular(2),
+                    ),
+                );
+            },
+        );
+    }
+
+    Widget _buildDesktopFallbackAvatar(String modelUrl) {
+        final String modelName = modelUrl.split('/').last.replaceAll(RegExp(r'(\?.*|#.*)'), '');
         return Center(
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -179,9 +295,18 @@ class Avatar3dViewer extends StatelessWidget {
                             letterSpacing: 0.5,
                         ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
-                        "Sensei AI 3D (Desktop Mode)",
+                        "Mô hình 3D: $modelName",
+                        style: TextStyle(
+                            color: AppColors.sakuraPink.withValues(alpha: 0.95),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                        ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                        "Sensei AI 3D (Desktop Mode / Engine Ready)",
                         style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.7),
                             fontSize: 11,

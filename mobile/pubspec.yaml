@@ -41,6 +41,7 @@ dependencies:
 
   # OCR & Image Processing (Mock/Interface ready)
   image_picker: ^1.0.7
+  file_picker: ^11.0.2
 
 dev_dependencies:
   flutter_test:

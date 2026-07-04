@@ -1,0 +1,11 @@
+Model Information:
+* title:	Zero Two
+* source:	https://sketchfab.com/3d-models/zero-two-9117416b98ec4acda2b2ba109e3096d9
+* author:	Bagus Sujiwa (https://sketchfab.com/hobianimasi)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Zero Two" (https://sketchfab.com/3d-models/zero-two-9117416b98ec4acda2b2ba109e3096d9) by Bagus Sujiwa (https://sketchfab.com/hobianimasi) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

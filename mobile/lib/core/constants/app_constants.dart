@@ -27,5 +27,5 @@ class AppConstants {
     static const String animCheering = "cheering";
     
     // Mock 3D Model GLB Assets (We use ModelViewer with web GLB url or local asset)
-    static const String avatar3dUrl = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
+    static const String avatar3dUrl = "assets/models/zero_two/scene.gltf";
 }
