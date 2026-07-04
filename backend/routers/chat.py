@@ -23,7 +23,7 @@ def get_db():
 @router.post("/ask")
 def ask_tutor(request: ChatRequest, db: Session = Depends(get_db)):
     msg_hash = hashlib.md5(f"{request.module_context}:{request.message.strip().lower()}".encode('utf-8')).hexdigest()
-    cache_key = f"chat:qa:{msg_hash}"
+    cache_key = f"chat:qa:v5:{msg_hash}"
     cached_res = cache_service.get(cache_key)
     if cached_res:
         print(f"🎯 [Redis Hit] Returning cached chat response for {request.message[:20]}...")
@@ -57,3 +57,10 @@ def ask_tutor(request: ChatRequest, db: Session = Depends(get_db)):
     cache_service.set(cache_key, response_payload, ttl=1800)
     
     return response_payload
+
+@router.delete("/clear-cache")
+@router.post("/clear-cache")
+def clear_chat_cache():
+    cache_service.flush_all()
+    return {"status": "success", "message": "All chat cache flushed successfully."}
+

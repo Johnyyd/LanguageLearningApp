@@ -64,7 +64,7 @@ class LanguageLearningApp extends StatelessWidget {
                 ),
             ],
             child: MaterialApp(
-                title: 'Language & IELTS AI Coach (3D Avatar)',
+                title: 'Japanese N5 AI Coach (3D Avatar)',
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,

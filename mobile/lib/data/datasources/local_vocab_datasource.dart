@@ -29,7 +29,7 @@ class LocalVocabDataSource {
             srsEfactor: (e['srsEfactor'] ?? 2.5).toDouble(),
         )).toList();
 
-        final prefix = 'jap_${lessonId}';
+        final prefix = 'jap_$lessonId';
         final lessonItems = allItems.where((item) => item.id.startsWith(prefix) || (lessonId == 1 && item.id.startsWith('jap_0'))).toList();
         return lessonItems;
     }

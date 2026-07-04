@@ -44,7 +44,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
                 currentAvatarEmotion: aiReply.avatarEmotion,
                 currentSuggestions: aiReply.suggestedQuestions.isNotEmpty 
                     ? aiReply.suggestedQuestions 
-                    : ["Làm sao học từ vựng nhanh?", "Phân tích Task 1 Bar Chart?"],
+                    : ["Làm sao học từ vựng nhanh?", "Phân biệt trợ từ Wa và Ga?"],
             ));
         } catch (e) {
             String errorMsg = "⚠️ Trợ lý AI gặp gián đoạn phản hồi.";

@@ -17,7 +17,7 @@ class ChatTutorScreen extends StatefulWidget {
 class _ChatTutorScreenState extends State<ChatTutorScreen> {
     final TextEditingController _msgController = TextEditingController();
     final FlutterTts _flutterTts = FlutterTts();
-    String _moduleContext = "japanese_n5";
+    final String _moduleContext = "japanese_n5";
     bool _isSpeaking = false;
     bool _isListening = false;
     String? _lastSpokenMessageId;
@@ -112,9 +112,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                 if (mounted && _isListening) {
                     setState(() {
                         _isListening = false;
-                        _msgController.text = _moduleContext == "japanese_n5"
-                            ? "Thầy ơi, giải thích giúp em cách dùng mẫu câu ~te imasu với ạ?"
-                            : "Làm thế nào để viết mở bài Paraphrase cho biểu đồ Line Graph trong IELTS Writing Task 1?";
+                        _msgController.text = "Thầy ơi, giải thích giúp em cách dùng mẫu câu ~te imasu với ạ?";
                     });
                     context.read<ChatBloc>().add(const UpdateAvatarEmotion("happy"));
                 }
@@ -135,17 +133,21 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
             appBar: AppBar(
                 title: const Text("🤖 Sensei AI 3D Tutor Q&A"),
                 actions: [
-                    DropdownButton<String>(
-                        value: _moduleContext,
-                        underline: const SizedBox(),
-                        icon: const Icon(Icons.school, color: AppColors.sakuraPink),
-                        items: const [
-                            DropdownMenuItem(value: "japanese_n5", child: Text("🎌 Tiếng Nhật N5", style: TextStyle(fontSize: 13))),
-                            DropdownMenuItem(value: "ielts_writing", child: Text("📝 IELTS Writing", style: TextStyle(fontSize: 13))),
-                        ],
-                        onChanged: (val) {
-                            if (val != null) setState(() => _moduleContext = val);
-                        },
+                    Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                            color: AppColors.sakuraPink.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.4)),
+                        ),
+                        child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                                Icon(Icons.school, size: 16, color: AppColors.sakuraPink),
+                                SizedBox(width: 4),
+                                Text("🎌 Tiếng Nhật N5", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sakuraPink)),
+                            ],
+                        ),
                     ),
                     const SizedBox(width: 12),
                 ],

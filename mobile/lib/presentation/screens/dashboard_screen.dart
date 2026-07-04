@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/vocab/vocab_bloc.dart';
+import '../blocs/vocab/vocab_state.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -107,7 +110,7 @@ class DashboardScreen extends StatelessWidget {
                                         ),
                                         const SizedBox(height: 12),
                                         Text(
-                                            "\"Chào mừng quay trở lại! Sensei đã chuẩn bị sẵn các từ vựng N5 theo lịch ôn tập SRS SuperMemo-2 và đề IELTS mới nhất cho hôm nay.\"",
+                                            "\"Chào mừng quay trở lại! Sensei đã chuẩn bị sẵn các từ vựng N5 theo lịch ôn tập SRS SuperMemo-2 cho hôm nay.\"",
                                             style: TextStyle(
                                                 fontSize: 14,
                                                 fontStyle: FontStyle.italic,
@@ -132,169 +135,188 @@ class DashboardScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 12),
 
-                            // Streak Card
-                            Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                    color: Theme.of(context).cardColor,
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
-                                    ],
-                                    border: Border.all(color: AppColors.goldAccent.withValues(alpha: 0.2)),
-                                ),
-                                child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                        Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                                Expanded(
-                                                    child: Row(
-                                                        children: [
-                                                            const Icon(Icons.local_fire_department, color: AppColors.goldAccent, size: 24),
-                                                            const SizedBox(width: 8),
-                                                            Expanded(
-                                                                child: Text(
-                                                                    "Chuỗi Ngày Học Liên Tục (Streak)",
-                                                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                ),
-                                                            ),
-                                                        ],
-                                                    ),
+                            // Streak Card & N5 Vocabulary Progress Cards with dynamic data
+                            BlocBuilder<VocabBloc, VocabState>(
+                                builder: (context, state) {
+                                    int streak = 7;
+                                    int totalWords = 12;
+                                    int masteredWords = 5;
+                                    if (state is VocabLoaded) {
+                                        streak = state.streakCount;
+                                        totalWords = state.vocabList.isNotEmpty ? state.vocabList.length : 12;
+                                        masteredWords = state.vocabList.where((item) => item.srsRepetition > 0).length;
+                                    }
+                                    final double vocabProgress = totalWords > 0 ? (masteredWords / totalWords).clamp(0.0, 1.0) : 0.0;
+
+                                    return Column(
+                                        children: [
+                                            // Streak Card
+                                            Container(
+                                                padding: const EdgeInsets.all(16),
+                                                decoration: BoxDecoration(
+                                                    color: Theme.of(context).cardColor,
+                                                    borderRadius: BorderRadius.circular(20),
+                                                    boxShadow: [
+                                                        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
+                                                    ],
+                                                    border: Border.all(color: AppColors.goldAccent.withValues(alpha: 0.2)),
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                        color: AppColors.goldAccent.withValues(alpha: 0.15),
-                                                        borderRadius: BorderRadius.circular(12),
-                                                    ),
-                                                    child: const Text(
-                                                        "7 Ngày 🔥",
-                                                        style: TextStyle(color: AppColors.goldAccent, fontWeight: FontWeight.bold),
-                                                    ),
-                                                ),
-                                            ],
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                            children: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((day) {
-                                                final isToday = day == "CN";
-                                                return Column(
+                                                child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
-                                                        Text(day, style: TextStyle(fontSize: 12, color: AppColors.slateGray.withValues(alpha: 0.8))),
-                                                        const SizedBox(height: 6),
-                                                        Container(
-                                                            width: 32,
-                                                            height: 32,
-                                                            decoration: BoxDecoration(
-                                                                color: isToday
-                                                                    ? AppColors.goldAccent
-                                                                    : AppColors.successGreen.withValues(alpha: 0.2),
-                                                                shape: BoxShape.circle,
-                                                                boxShadow: isToday
-                                                                    ? [BoxShadow(color: AppColors.goldAccent.withValues(alpha: 0.4), blurRadius: 8)]
-                                                                    : [],
-                                                            ),
-                                                            child: Icon(
-                                                                isToday ? Icons.star : Icons.check,
-                                                                size: 16,
-                                                                color: isToday ? Colors.white : AppColors.successGreen,
-                                                            ),
+                                                        Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                            children: [
+                                                                const Expanded(
+                                                                    child: Row(
+                                                                        children: [
+                                                                            Icon(Icons.local_fire_department, color: AppColors.goldAccent, size: 24),
+                                                                            SizedBox(width: 8),
+                                                                            Expanded(
+                                                                                child: Text(
+                                                                                    "Chuỗi Ngày Học Liên Tục (Streak)",
+                                                                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                                                                    overflow: TextOverflow.ellipsis,
+                                                                                ),
+                                                                            ),
+                                                                        ],
+                                                                    ),
+                                                                ),
+                                                                const SizedBox(width: 8),
+                                                                Container(
+                                                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                                    decoration: BoxDecoration(
+                                                                        color: AppColors.goldAccent.withValues(alpha: 0.15),
+                                                                        borderRadius: BorderRadius.circular(12),
+                                                                    ),
+                                                                    child: Text(
+                                                                        "$streak Ngày 🔥",
+                                                                        style: const TextStyle(color: AppColors.goldAccent, fontWeight: FontWeight.bold),
+                                                                    ),
+                                                                ),
+                                                            ],
+                                                        ),
+                                                        const SizedBox(height: 16),
+                                                        Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                            children: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((day) {
+                                                                final isToday = day == "CN";
+                                                                return Column(
+                                                                    children: [
+                                                                        Text(day, style: TextStyle(fontSize: 12, color: AppColors.slateGray.withValues(alpha: 0.8))),
+                                                                        const SizedBox(height: 6),
+                                                                        Container(
+                                                                            width: 32,
+                                                                            height: 32,
+                                                                            decoration: BoxDecoration(
+                                                                                color: isToday
+                                                                                    ? AppColors.goldAccent
+                                                                                    : AppColors.successGreen.withValues(alpha: 0.2),
+                                                                                shape: BoxShape.circle,
+                                                                                boxShadow: isToday
+                                                                                    ? [BoxShadow(color: AppColors.goldAccent.withValues(alpha: 0.4), blurRadius: 8)]
+                                                                                    : [],
+                                                                            ),
+                                                                            child: Icon(
+                                                                                isToday ? Icons.star : Icons.check,
+                                                                                size: 16,
+                                                                                color: isToday ? Colors.white : AppColors.successGreen,
+                                                                            ),
+                                                                        ),
+                                                                    ],
+                                                                );
+                                                            }).toList(),
                                                         ),
                                                     ],
-                                                );
-                                            }).toList(),
-                                        ),
-                                    ],
-                                ),
-                            ),
-                            const SizedBox(height: 16),
+                                                ),
+                                            ),
+                                            const SizedBox(height: 16),
 
-                            // N5 Vocabulary SRS Mastery & IELTS Score Row
-                            Row(
-                                children: [
-                                    // N5 SRS Progress
-                                    Expanded(
-                                        child: Container(
-                                            padding: const EdgeInsets.all(16),
-                                            decoration: BoxDecoration(
-                                                color: Theme.of(context).cardColor,
-                                                borderRadius: BorderRadius.circular(20),
-                                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
-                                                border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.2)),
-                                            ),
-                                            child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                            // N5 Vocabulary SRS Mastery & Kana/Kanji Writing Mastery Row
+                                            Row(
                                                 children: [
-                                                    const Row(
-                                                        children: [
-                                                            Icon(Icons.style, color: AppColors.sakuraPink, size: 20),
-                                                            SizedBox(width: 6),
-                                                            Text("Từ Vựng N5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                                        ],
+                                                    // N5 SRS Progress
+                                                    Expanded(
+                                                        child: Container(
+                                                            padding: const EdgeInsets.all(16),
+                                                            decoration: BoxDecoration(
+                                                                color: Theme.of(context).cardColor,
+                                                                borderRadius: BorderRadius.circular(20),
+                                                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+                                                                border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.2)),
+                                                            ),
+                                                            child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                    const Row(
+                                                                        children: [
+                                                                            Icon(Icons.style, color: AppColors.sakuraPink, size: 20),
+                                                                            SizedBox(width: 6),
+                                                                            Text("Từ Vựng N5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                                                        ],
+                                                                    ),
+                                                                    const SizedBox(height: 12),
+                                                                    Text("$masteredWords / $totalWords từ", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                                                    const SizedBox(height: 4),
+                                                                    Text("Đã thuộc (SM-2 SRS)", style: TextStyle(fontSize: 11, color: AppColors.slateGray.withValues(alpha: 0.9))),
+                                                                    const SizedBox(height: 10),
+                                                                    ClipRRect(
+                                                                        borderRadius: BorderRadius.circular(6),
+                                                                        child: LinearProgressIndicator(
+                                                                            value: vocabProgress,
+                                                                            backgroundColor: AppColors.sakuraPink.withValues(alpha: 0.15),
+                                                                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.sakuraPink),
+                                                                            minHeight: 6,
+                                                                        ),
+                                                                    ),
+                                                                ],
+                                                            ),
+                                                        ),
                                                     ),
-                                                    const SizedBox(height: 12),
-                                                    const Text("45 / 120 từ", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                                                    const SizedBox(height: 4),
-                                                    Text("Đã thuộc (SM-2 SRS)", style: TextStyle(fontSize: 11, color: AppColors.slateGray.withValues(alpha: 0.9))),
-                                                    const SizedBox(height: 10),
-                                                    ClipRRect(
-                                                        borderRadius: BorderRadius.circular(6),
-                                                        child: LinearProgressIndicator(
-                                                            value: 45 / 120,
-                                                            backgroundColor: AppColors.sakuraPink.withValues(alpha: 0.15),
-                                                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.sakuraPink),
-                                                            minHeight: 6,
+                                                    const SizedBox(width: 16),
+                                                    // Kana / Kanji Writing Mastery (Thay thế IELTS theo yêu cầu)
+                                                    Expanded(
+                                                        child: Container(
+                                                            padding: const EdgeInsets.all(16),
+                                                            decoration: BoxDecoration(
+                                                                color: Theme.of(context).cardColor,
+                                                                borderRadius: BorderRadius.circular(20),
+                                                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+                                                                border: Border.all(color: AppColors.softIndigo.withValues(alpha: 0.2)),
+                                                            ),
+                                                            child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                    const Row(
+                                                                        children: [
+                                                                            Icon(Icons.draw, color: AppColors.softIndigo, size: 20),
+                                                                            SizedBox(width: 6),
+                                                                            Text("Luyện Viết Kana", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                                                        ],
+                                                                    ),
+                                                                    const SizedBox(height: 12),
+                                                                    const Text("46 / 46 nét", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.softIndigo)),
+                                                                    const SizedBox(height: 4),
+                                                                    Text("Độ chính xác nét chữ", style: TextStyle(fontSize: 11, color: AppColors.slateGray.withValues(alpha: 0.9))),
+                                                                    const SizedBox(height: 10),
+                                                                    ClipRRect(
+                                                                        borderRadius: BorderRadius.circular(6),
+                                                                        child: LinearProgressIndicator(
+                                                                            value: 1.0,
+                                                                            backgroundColor: AppColors.softIndigo.withValues(alpha: 0.15),
+                                                                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.softIndigo),
+                                                                            minHeight: 6,
+                                                                        ),
+                                                                    ),
+                                                                ],
+                                                            ),
                                                         ),
                                                     ),
                                                 ],
                                             ),
-                                        ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    // Kana / Kanji Writing Mastery (Thay thế IELTS theo yêu cầu)
-                                    Expanded(
-                                        child: Container(
-                                            padding: const EdgeInsets.all(16),
-                                            decoration: BoxDecoration(
-                                                color: Theme.of(context).cardColor,
-                                                borderRadius: BorderRadius.circular(20),
-                                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
-                                                border: Border.all(color: AppColors.softIndigo.withValues(alpha: 0.2)),
-                                            ),
-                                            child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                    const Row(
-                                                        children: [
-                                                            Icon(Icons.draw, color: AppColors.softIndigo, size: 20),
-                                                            SizedBox(width: 6),
-                                                            Text("Luyện Viết Kana", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                                        ],
-                                                    ),
-                                                    const SizedBox(height: 12),
-                                                    const Text("46 / 46 nét", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.softIndigo)),
-                                                    const SizedBox(height: 4),
-                                                    Text("Độ chính xác nét chữ", style: TextStyle(fontSize: 11, color: AppColors.slateGray.withValues(alpha: 0.9))),
-                                                    const SizedBox(height: 10),
-                                                    ClipRRect(
-                                                        borderRadius: BorderRadius.circular(6),
-                                                        child: LinearProgressIndicator(
-                                                            value: 1.0,
-                                                            backgroundColor: AppColors.softIndigo.withValues(alpha: 0.15),
-                                                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.softIndigo),
-                                                            minHeight: 6,
-                                                        ),
-                                                    ),
-                                                ],
-                                            ),
-                                        ),
-                                    ),
-                                ],
+                                        ],
+                                    );
+                                },
                             ),
                             const SizedBox(height: 24),
 

@@ -51,6 +51,8 @@ services:
   ai-gateway:
     build: .
     container_name: language_app_ai_gateway
+    env_file:
+      - .env
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -59,7 +61,6 @@ services:
     ports:
       - "1112:1112"
     environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-demo_api_key_portfolio_2026}
       - JWT_SECRET_KEY=super_secret_portfolio_key_2026
       - DATABASE_URL=mssql+pymssql://sa:SuperStrong!Pass2026@sqlserver:1433/LanguageAppDB
       - REDIS_URL=redis://redis:6379/0

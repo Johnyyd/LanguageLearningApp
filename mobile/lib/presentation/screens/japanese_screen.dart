@@ -48,7 +48,7 @@ class _JapaneseScreenState extends State<JapaneseScreen> with SingleTickerProvid
             _switchLesson(_currentLesson + 1);
             ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                    content: Text("🎉 Chào mừng đến với Bài ${_currentLesson}! Hãy chinh phục từ vựng mới nào!"),
+                    content: Text("🎉 Chào mừng đến với Bài $_currentLesson! Hãy chinh phục từ vựng mới nào!"),
                     backgroundColor: AppColors.successGreen,
                 ),
             );

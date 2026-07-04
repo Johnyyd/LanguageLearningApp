@@ -25,7 +25,7 @@ class ChatActive extends ChatState {
         required this.messages,
         this.isAiThinking = false,
         this.currentAvatarEmotion = "idle",
-        this.currentSuggestions = const ["Làm sao nhớ trợ từ Ni và De?", "Cách viết Paraphrase IELTS?"],
+        this.currentSuggestions = const ["Làm sao nhớ trợ từ Ni và De?", "Cách nhớ Kanji hiệu quả?"],
     });
 
     @override
