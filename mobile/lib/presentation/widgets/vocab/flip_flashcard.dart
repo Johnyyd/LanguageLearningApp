@@ -85,14 +85,11 @@ class _FlipFlashcardState extends State<FlipFlashcard> with SingleTickerProvider
             height: 300,
             width: double.infinity,
             decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    colors: [AppColors.deepIndigo, AppColors.softIndigo],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                ),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: AppColors.duoBlue, width: 2),
                 boxShadow: [
-                    BoxShadow(color: AppColors.deepIndigo.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8)),
+                    BoxShadow(color: AppColors.duoBlue.withValues(alpha: 0.15), blurRadius: 15, offset: const Offset(0, 8)),
                 ],
             ),
             child: Stack(
@@ -104,12 +101,12 @@ class _FlipFlashcardState extends State<FlipFlashcard> with SingleTickerProvider
                         child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                             decoration: BoxDecoration(
-                                color: AppColors.sakuraPink,
+                                color: AppColors.duoBlue.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
                                 widget.item.type,
-                                style: const TextStyle(color: AppColors.deepIndigo, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: AppColors.duoBlue, fontWeight: FontWeight.bold),
                             ),
                         ),
                     ),
@@ -119,7 +116,7 @@ class _FlipFlashcardState extends State<FlipFlashcard> with SingleTickerProvider
                             Text(
                                 widget.item.character,
                                 style: const TextStyle(
-                                    color: Colors.white,
+                                    color: Color(0xFF3C3C3C),
                                     fontSize: 80,
                                     fontWeight: FontWeight.bold,
                                 ),
@@ -127,7 +124,7 @@ class _FlipFlashcardState extends State<FlipFlashcard> with SingleTickerProvider
                             const SizedBox(height: 12),
                             const Text(
                                 "Chạm để lật & xem nghĩa",
-                                style: TextStyle(color: Colors.white54, fontSize: 14),
+                                style: TextStyle(color: Color(0xFF777777), fontSize: 14),
                             ),
                         ],
                     ),
@@ -144,9 +141,9 @@ class _FlipFlashcardState extends State<FlipFlashcard> with SingleTickerProvider
             decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: AppColors.sakuraPink, width: 2),
+                border: Border.all(color: AppColors.duoGreen, width: 2),
                 boxShadow: [
-                    BoxShadow(color: AppColors.sakuraPink.withValues(alpha: 0.2), blurRadius: 15, offset: const Offset(0, 8)),
+                    BoxShadow(color: AppColors.duoGreen.withValues(alpha: 0.15), blurRadius: 15, offset: const Offset(0, 8)),
                 ],
             ),
             child: Column(
@@ -155,7 +152,7 @@ class _FlipFlashcardState extends State<FlipFlashcard> with SingleTickerProvider
                     Text(
                         widget.item.romaji,
                         style: const TextStyle(
-                            color: AppColors.sakuraPink,
+                            color: AppColors.duoGreen,
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                         ),
@@ -199,7 +196,7 @@ class _FlipFlashcardState extends State<FlipFlashcard> with SingleTickerProvider
                     const SizedBox(width: 8),
                     Expanded(child: _buildQualityBtn("Nhớ\n(Good)", AppColors.successGreen, 4)),
                     const SizedBox(width: 8),
-                    Expanded(child: _buildQualityBtn("Dễ\n(Easy)", AppColors.sakuraPink, 5, isLightText: false)),
+                    Expanded(child: _buildQualityBtn("Dễ\n(Easy)", AppColors.duoBlue, 5, isLightText: true)),
                 ],
             ),
         );

@@ -49,17 +49,17 @@ class Avatar3dViewer extends StatelessWidget {
                 height: height,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient(
                         colors: [
-                            AppColors.deepIndigo.withValues(alpha: 0.95),
-                            const Color(0xFF1E1035), // Dark Gothic Violet (Grok Ani style)
-                            AppColors.softIndigo.withValues(alpha: 0.85),
+                            Color(0xFFE8F6FF), // Soft Sky Blue
+                            Color(0xFFF0F9FF), // Bright White Blue
+                            Color(0xFFE6F8E8), // Soft Mint Green
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.6), width: 2),
+                    border: Border.all(color: const Color(0xFFE5E5E5), width: 2),
                     boxShadow: [
                         BoxShadow(
                             color: AppColors.sakuraPink.withValues(alpha: 0.25),
@@ -98,9 +98,9 @@ class Avatar3dViewer extends StatelessWidget {
                             child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.6),
+                                    color: Colors.white,
                                     borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.5)),
+                                    border: Border.all(color: const Color(0xFFE5E5E5), width: 2),
                                 ),
                                 child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -167,8 +167,9 @@ class Avatar3dViewer extends StatelessWidget {
                                 child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.5),
+                                        color: Colors.white,
                                         borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: const Color(0xFFE5E5E5), width: 1.5),
                                     ),
                                     child: Row(
                                         children: [
@@ -181,8 +182,8 @@ class Avatar3dViewer extends StatelessWidget {
                                             _buildWaveBar(16, 250),
                                             const SizedBox(width: 6),
                                             Text(
-                                                emotion == "talking" ? "🎙️ Lip-Sync Active" : "🧠 AI Reasoning...",
-                                                style: const TextStyle(color: AppColors.sakuraPink, fontSize: 11, fontWeight: FontWeight.bold),
+                                                emotion == "talking" ? "Lip-Sync Active" : "AI Reasoning...",
+                                                style: const TextStyle(color: AppColors.duoGreen, fontSize: 11, fontWeight: FontWeight.bold),
                                             ),
                                         ],
                                     ),
@@ -195,18 +196,18 @@ class Avatar3dViewer extends StatelessWidget {
                             child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
-                                    color: AppColors.deepIndigo.withValues(alpha: 0.85),
+                                    color: Colors.white,
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.5)),
+                                    border: Border.all(color: const Color(0xFFE5E5E5), width: 2),
                                 ),
                                 child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                        const Icon(Icons.auto_awesome, color: AppColors.sakuraPink, size: 16),
+                                        const Icon(Icons.auto_awesome, color: AppColors.duoYellow, size: 16),
                                         const SizedBox(width: 6),
                                         Text(
-                                            isVoiceCloned ? "Sensei (🎙️ VA: $voiceActorName)" : "Sensei AI (3D Tutor)",
-                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12),
+                                            isVoiceCloned ? "Sensei (VA: $voiceActorName)" : "Sensei AI (3D Tutor)",
+                                            style: const TextStyle(color: Color(0xFF3C3C3C), fontWeight: FontWeight.w600, fontSize: 12),
                                         ),
                                     ],
                                 ),
@@ -273,8 +274,8 @@ class Avatar3dViewer extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(
                                     colors: [
-                                        _getBadgeColor(emotion).withValues(alpha: 0.4),
-                                        AppColors.deepIndigo.withValues(alpha: 0.8),
+                                        _getBadgeColor(emotion).withValues(alpha: 0.2),
+                                        Colors.white,
                                     ],
                                 ),
                                 border: Border.all(
@@ -292,14 +293,14 @@ class Avatar3dViewer extends StatelessWidget {
                             child: Icon(
                                 _getBadgeIcon(emotion),
                                 size: 32,
-                                color: Colors.white,
+                                color: _getBadgeColor(emotion),
                             ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                            "🤖 3D Engine Ready ($modelName)",
+                            "Trợ Lý 3D Sẵn Sàng ($modelName)",
                             style: TextStyle(
-                                color: AppColors.sakuraPink.withValues(alpha: 0.95),
+                                color: AppColors.duoGreen,
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.3,

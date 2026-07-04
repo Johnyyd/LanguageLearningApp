@@ -124,9 +124,10 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
 
         return Scaffold(
             appBar: AppBar(
-                title: const Text("🧩 Trạm Luyện Ngữ Pháp N5"),
-                backgroundColor: AppColors.academicNavy,
-                foregroundColor: Colors.white,
+                title: const Text("Trạm Luyện Ngữ Pháp N5"),
+                backgroundColor: AppColors.surfaceWhite,
+                foregroundColor: const Color(0xFF3C3C3C),
+                elevation: 0,
             ),
             body: Column(
                 children: [
@@ -135,11 +136,8 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                         height: 140,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                                colors: [AppColors.academicNavy, AppColors.deepIndigo.withValues(alpha: 0.85)],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                            ),
+                            color: const Color(0xFFE5F6DF),
+                            border: const Border(bottom: BorderSide(color: Color(0xFFE5E5E5), width: 2)),
                         ),
                         child: Avatar3dViewer(
                             emotion: _isCorrect == true ? "happy" : (_isCorrect == false ? "thinking" : "idle"),
@@ -159,12 +157,12 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                             Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                                 decoration: BoxDecoration(
-                                                    color: AppColors.sakuraPink.withValues(alpha: 0.15),
+                                                    color: AppColors.duoBlue.withValues(alpha: 0.15),
                                                     borderRadius: BorderRadius.circular(8),
                                                 ),
                                                 child: Text(
                                                     currentEx.grammarPoint,
-                                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.sakuraPink),
+                                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.duoBlue),
                                                 ),
                                             ),
                                             Text(
@@ -180,12 +178,15 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                         decoration: BoxDecoration(
                                             color: Theme.of(context).cardColor,
                                             borderRadius: BorderRadius.circular(16),
-                                            border: Border.all(color: AppColors.goldAccent.withValues(alpha: 0.4)),
+                                            border: Border.all(color: AppColors.duoBlue, width: 2),
+                                            boxShadow: [
+                                                const BoxShadow(color: AppColors.duoBlueShadow, blurRadius: 0, offset: Offset(0, 4)),
+                                            ],
                                         ),
                                         child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                                const Text("🇻🇳 Hãy sắp xếp câu tiếng Nhật tương ứng:", style: TextStyle(fontSize: 13, color: AppColors.goldAccent, fontWeight: FontWeight.bold)),
+                                                const Text("Hãy sắp xếp câu tiếng Nhật tương ứng:", style: TextStyle(fontSize: 13, color: AppColors.duoBlue, fontWeight: FontWeight.bold)),
                                                 const SizedBox(height: 8),
                                                 Text(
                                                     currentEx.vietnamesePrompt,
@@ -196,7 +197,7 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                     ),
                                     const SizedBox(height: 20),
                                     // Target Drop Box
-                                    const Text("👉 Câu trả lời của bạn (Bấm vào từ bên dưới để điền):", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.slateGray)),
+                                    const Text("Câu trả lời của bạn (Bấm vào từ bên dưới để điền):", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.slateGray)),
                                     const SizedBox(height: 8),
                                     Container(
                                         constraints: const BoxConstraints(minHeight: 80),
@@ -228,9 +229,9 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                                         child: Container(
                                                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                                             decoration: BoxDecoration(
-                                                                color: AppColors.softIndigo,
+                                                                color: AppColors.duoBlue,
                                                                 borderRadius: BorderRadius.circular(10),
-                                                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2))],
+                                                                boxShadow: [const BoxShadow(color: AppColors.duoBlueShadow, blurRadius: 0, offset: Offset(0, 3))],
                                                             ),
                                                             child: Row(
                                                                 mainAxisSize: MainAxisSize.min,
@@ -247,7 +248,7 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                     ),
                                     const SizedBox(height: 24),
                                     // Available Shuffled Words
-                                    const Text("🔀 Các từ gợi ý:", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.slateGray)),
+                                    const Text("Các từ gợi ý:", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.slateGray)),
                                     const SizedBox(height: 8),
                                     Wrap(
                                         spacing: 10,
@@ -263,8 +264,8 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                                     decoration: BoxDecoration(
                                                         color: Theme.of(context).cardColor,
                                                         borderRadius: BorderRadius.circular(12),
-                                                        border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.5), width: 1.5),
-                                                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 3))],
+                                                        border: Border.all(color: const Color(0xFFE5E5E5), width: 2),
+                                                        boxShadow: [const BoxShadow(color: Color(0xFFCCCCCC), blurRadius: 0, offset: Offset(0, 3))],
                                                     ),
                                                     child: Text(word, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                                 ),
@@ -289,8 +290,8 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                                             Icon(_isCorrect == true ? Icons.check_circle : Icons.lightbulb, color: _isCorrect == true ? AppColors.successGreen : AppColors.warningOrange),
                                                             const SizedBox(width: 8),
                                                             Text(
-                                                                _isCorrect == true ? "🎉 Chính xác! Bạn rất tuyệt!" : "💡 Sensei Giải thích Ngữ pháp:",
-                                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: _isCorrect == true ? AppColors.successGreen : AppColors.warningOrange),
+                                                                _isCorrect == true ? "Chính xác! Bạn rất tuyệt!" : "Sensei Giải thích Ngữ pháp:",
+                                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: _isCorrect == true ? AppColors.duoGreen : AppColors.warningOrange),
                                                             ),
                                                         ],
                                                     ),
@@ -307,8 +308,12 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                                 child: OutlinedButton.icon(
                                                     onPressed: () => _loadExercise(_currentExerciseIndex),
                                                     icon: const Icon(Icons.refresh),
-                                                    label: const Text("Làm lại"),
-                                                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                                                    label: const Text("Làm lại", style: TextStyle(fontWeight: FontWeight.bold)),
+                                                    style: OutlinedButton.styleFrom(
+                                                        padding: const EdgeInsets.symmetric(vertical: 14),
+                                                        side: const BorderSide(color: Color(0xFFE5E5E5), width: 2),
+                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                                    ),
                                                 ),
                                             ),
                                             const SizedBox(width: 12),
@@ -323,19 +328,23 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                                                     _loadExercise(_currentExerciseIndex + 1);
                                                                 } else {
                                                                     ScaffoldMessenger.of(context).showSnackBar(
-                                                                        const SnackBar(content: Text("🏆 Chúc mừng bạn đã hoàn thành toàn bộ chuyên đề ngữ pháp N5!"), backgroundColor: AppColors.goldAccent),
+                                                                        const SnackBar(content: Text("Chúc mừng bạn đã hoàn thành toàn bộ chuyên đề ngữ pháp N5!"), backgroundColor: AppColors.duoGreen),
                                                                     );
                                                                     _loadExercise(0);
                                                                 }
                                                             }
                                                             : _checkAnswer),
                                                     icon: Icon(_isCorrect == true ? Icons.arrow_forward : Icons.auto_awesome),
-                                                    label: Text(_isCorrect == true ? "Bài tiếp theo ➡️" : "Kiểm tra với Sensei"),
+                                                    label: Text(_isCorrect == true ? "Bài tiếp theo" : "Kiểm tra với Sensei"),
                                                     style: ElevatedButton.styleFrom(
-                                                        backgroundColor: _isCorrect == true ? AppColors.successGreen : AppColors.goldAccent,
-                                                        foregroundColor: AppColors.academicNavy,
+                                                        backgroundColor: _isCorrect == true ? AppColors.duoGreen : AppColors.duoYellow,
+                                                        foregroundColor: _isCorrect == true ? Colors.white : const Color(0xFF3C3C3C),
                                                         padding: const EdgeInsets.symmetric(vertical: 14),
-                                                        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                        textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                                                        shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(16),
+                                                            side: BorderSide(color: _isCorrect == true ? AppColors.duoGreenShadow : AppColors.duoYellowShadow, width: 2),
+                                                        ),
                                                     ),
                                                 ),
                                             ),

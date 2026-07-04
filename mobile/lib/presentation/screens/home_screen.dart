@@ -39,24 +39,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     onDestinationSelected: (idx) => setState(() => _selectedIndex = idx),
                     backgroundColor: Theme.of(context).colorScheme.surface,
                     indicatorColor: _selectedIndex == 0
-                        ? AppColors.successGreen.withValues(alpha: 0.25)
+                        ? AppColors.duoGreen.withValues(alpha: 0.25)
                         : (_selectedIndex == 1
-                            ? AppColors.sakuraPink.withValues(alpha: 0.25)
-                            : AppColors.softIndigo.withValues(alpha: 0.25)),
+                            ? AppColors.duoBlue.withValues(alpha: 0.25)
+                            : AppColors.duoYellow.withValues(alpha: 0.25)),
                     destinations: [
                         NavigationDestination(
                             icon: const Icon(Icons.dashboard_outlined),
-                            selectedIcon: Icon(Icons.dashboard, color: Theme.of(context).brightness == Brightness.dark ? AppColors.successGreen : AppColors.successGreen),
+                            selectedIcon: const Icon(Icons.dashboard, color: AppColors.duoGreen),
                             label: "Tổng quan",
                         ),
                         NavigationDestination(
                             icon: const Icon(Icons.language_outlined),
-                            selectedIcon: Icon(Icons.language, color: Theme.of(context).brightness == Brightness.dark ? AppColors.sakuraPink : AppColors.deepIndigo),
+                            selectedIcon: const Icon(Icons.language, color: AppColors.duoBlue),
                             label: "Tiếng Nhật N5",
                         ),
                         NavigationDestination(
                             icon: const Icon(Icons.smart_toy_outlined),
-                            selectedIcon: Icon(Icons.smart_toy, color: Theme.of(context).brightness == Brightness.dark ? AppColors.sakuraPink : AppColors.sakuraPink),
+                            selectedIcon: const Icon(Icons.smart_toy, color: AppColors.duoYellow),
                             label: "3D AI Tutor",
                         ),
                     ],

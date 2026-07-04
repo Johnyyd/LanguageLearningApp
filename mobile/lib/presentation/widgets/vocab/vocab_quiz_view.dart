@@ -133,16 +133,16 @@ class _VocabQuizViewState extends State<VocabQuizView> {
                                 ),
                                 child: Text(
                                     percentage >= 80
-                                        ? "🎉 Xuất sắc! Bạn đã nắm vững các từ vựng N5 trong bài học này!"
-                                        : "💪 Hãy cố gắng ôn tập lại Flashcard SRS để đạt kết quả tốt hơn ở lần sau nhé!",
+                                        ? "Xuất sắc! Bạn đã nắm vững các từ vựng N5 trong bài học này!"
+                                        : "Hãy cố gắng ôn tập lại Flashcard SRS để đạt kết quả tốt hơn ở lần sau nhé!",
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.deepIndigo),
+                                    style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.duoBlue),
                                 ),
                             ),
                             const SizedBox(height: 32),
                             if (widget.onNextLesson != null) ...[
                                 DuoButton(
-                                    text: "🚀 Chuyển sang Bài học tiếp theo",
+                                    text: "Chuyển sang Bài học tiếp theo",
                                     onPressed: widget.onNextLesson,
                                     color: DuoButtonColor.green,
                                 ),
@@ -181,7 +181,7 @@ class _VocabQuizViewState extends State<VocabQuizView> {
                                     borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                    "🏆 Điểm: $_score",
+                                    "Điểm số: $_score",
                                     style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ?? AppColors.academicNavy, fontWeight: FontWeight.bold),
                                 ),
                             ),
@@ -202,15 +202,12 @@ class _VocabQuizViewState extends State<VocabQuizView> {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
                         decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                                colors: [AppColors.deepIndigo, AppColors.softIndigo],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                            ),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: AppColors.duoBlue, width: 2),
                             boxShadow: [
                                 BoxShadow(
-                                    color: AppColors.deepIndigo.withValues(alpha: 0.3),
+                                    color: AppColors.duoBlue.withValues(alpha: 0.15),
                                     blurRadius: 15,
                                     offset: const Offset(0, 8),
                                 ),
@@ -220,13 +217,13 @@ class _VocabQuizViewState extends State<VocabQuizView> {
                             children: [
                                 const Text(
                                     "Nghĩa của từ tiếng Nhật này là gì?",
-                                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                                    style: TextStyle(color: Color(0xFF777777), fontSize: 14),
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
                                     currentItem.character,
                                     style: const TextStyle(
-                                        color: Colors.white,
+                                        color: Color(0xFF3C3C3C),
                                         fontSize: 56,
                                         fontWeight: FontWeight.bold,
                                     ),
@@ -234,7 +231,7 @@ class _VocabQuizViewState extends State<VocabQuizView> {
                                 const SizedBox(height: 8),
                                 Text(
                                     "[ ${currentItem.romaji} ]",
-                                    style: const TextStyle(color: AppColors.sakuraPink, fontSize: 18, fontStyle: FontStyle.italic),
+                                    style: const TextStyle(color: AppColors.duoBlue, fontSize: 18, fontStyle: FontStyle.italic),
                                 ),
                             ],
                         ),

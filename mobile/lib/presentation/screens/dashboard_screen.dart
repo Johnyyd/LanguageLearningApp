@@ -15,7 +15,6 @@ class DashboardScreen extends StatelessWidget {
 
     @override
     Widget build(BuildContext context) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
         final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? AppColors.deepIndigo;
 
         return Scaffold(
@@ -34,10 +33,10 @@ class DashboardScreen extends StatelessWidget {
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                                 Text(
-                                                    "🌟 AI Study Dashboard",
+                                                    "Trang Chủ Học Tập",
                                                     style: TextStyle(
                                                         fontSize: 24,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight: FontWeight.w800,
                                                         color: textColor,
                                                     ),
                                                 ),
@@ -86,20 +85,18 @@ class DashboardScreen extends StatelessWidget {
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
                                     gradient: LinearGradient(
-                                        colors: isDark
-                                            ? [AppColors.deepIndigo, AppColors.softIndigo]
-                                            : [AppColors.sakuraPink.withValues(alpha: 0.15), Colors.white],
+                                        colors: [AppColors.duoGreen.withValues(alpha: 0.1), Colors.white],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                     ),
                                     borderRadius: BorderRadius.circular(24),
                                     border: Border.all(
-                                        color: AppColors.sakuraPink.withValues(alpha: 0.3),
+                                        color: AppColors.duoGreen.withValues(alpha: 0.3),
                                         width: 1.5,
                                     ),
                                     boxShadow: [
                                         BoxShadow(
-                                            color: AppColors.sakuraPink.withValues(alpha: 0.1),
+                                            color: AppColors.duoGreen.withValues(alpha: 0.1),
                                             blurRadius: 15,
                                             offset: const Offset(0, 6),
                                         ),
@@ -117,7 +114,7 @@ class DashboardScreen extends StatelessWidget {
                                             style: TextStyle(
                                                 fontSize: 14,
                                                 fontStyle: FontStyle.italic,
-                                                color: isDark ? Colors.white70 : AppColors.deepIndigo,
+                                                color: const Color(0xFF3C3C3C),
                                                 height: 1.4,
                                             ),
                                             textAlign: TextAlign.center,
@@ -129,10 +126,10 @@ class DashboardScreen extends StatelessWidget {
 
                             // Section Title: Progress Stats (REQ-SEC-02)
                             Text(
-                                "🔥 Thống Kê Tiến Độ Học Tập",
+                                "Thống Kê Tiến Độ Học Tập",
                                 style: TextStyle(
                                     fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w800,
                                     color: textColor,
                                 ),
                             ),
@@ -193,7 +190,7 @@ class DashboardScreen extends StatelessWidget {
                                                                         borderRadius: BorderRadius.circular(12),
                                                                     ),
                                                                     child: Text(
-                                                                        "$streak Ngày 🔥",
+                                                                        "$streak Ngày",
                                                                         style: const TextStyle(color: AppColors.goldAccent, fontWeight: FontWeight.bold),
                                                                     ),
                                                                 ),
@@ -325,10 +322,10 @@ class DashboardScreen extends StatelessWidget {
 
                             // Section Title: N5 Advanced Modules
                             Text(
-                                "🌟 Chuyên Đề Năng Lực N5 (Khóa Học Mới)",
+                                "Chuyên Đề Năng Lực N5",
                                 style: TextStyle(
                                     fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w800,
                                     color: textColor,
                                 ),
                             ),
@@ -336,9 +333,9 @@ class DashboardScreen extends StatelessWidget {
                             _buildQuickActionCard(
                                 context: context,
                                 title: "Luyện Nghe & Đàm Thoại Ngữ Cảnh",
-                                subtitle: "Hội thoại thực tế Konbini, Eki, Ramen với AI Sensei",
+                                subtitle: "Hội thoại thực tế Konbini, Eki, Ramen với Sensei",
                                 icon: Icons.record_voice_over,
-                                color: AppColors.sakuraPink,
+                                color: AppColors.duoGreen,
                                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const N5DialogueRoleplayScreen())),
                             ),
                             const SizedBox(height: 12),
@@ -347,7 +344,7 @@ class DashboardScreen extends StatelessWidget {
                                 title: "Trạm Ngữ Pháp & Sắp Xếp Câu N5",
                                 subtitle: "Kéo thả từ vựng, luyện trợ từ & cấu trúc ngữ pháp",
                                 icon: Icons.extension,
-                                color: AppColors.goldAccent,
+                                color: AppColors.duoBlue,
                                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const N5GrammarBuilderScreen())),
                             ),
                             const SizedBox(height: 12),
@@ -356,17 +353,17 @@ class DashboardScreen extends StatelessWidget {
                                 title: "Đề Thi Thử JLPT N5 Tổng Hợp",
                                 subtitle: "Đồng hồ bấm giờ 30 phút, chấm điểm thực chiến & lời giải",
                                 icon: Icons.assignment_turned_in,
-                                color: AppColors.softIndigo,
+                                color: AppColors.duoYellow,
                                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const N5JlptMockExamScreen())),
                             ),
                             const SizedBox(height: 24),
 
                             // Section Title: Quick Actions
                             Text(
-                                "🚀 Lối Tắt Học Tập Nhanh",
+                                "Lối Tắt Học Tập Nhanh",
                                 style: TextStyle(
                                     fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w800,
                                     color: textColor,
                                 ),
                             ),
@@ -407,7 +404,12 @@ class DashboardScreen extends StatelessWidget {
         required Color color,
         required VoidCallback onTap,
     }) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
+        // Tham chiếu thiết kế Duolingo: Viền rõ ràng và shadow viền đáy dày 4px tạo hiệu ứng 3D
+        final shadowColor = color == AppColors.duoGreen ? AppColors.duoGreenShadow
+                          : color == AppColors.duoBlue ? AppColors.duoBlueShadow
+                          : color == AppColors.duoYellow ? AppColors.duoYellowShadow
+                          : color.withValues(alpha: 0.6);
+
         return InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(20),
@@ -416,9 +418,13 @@ class DashboardScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+                    border: Border.all(color: color, width: 2),
                     boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 4)),
+                        BoxShadow(
+                            color: shadowColor,
+                            blurRadius: 0,
+                            offset: const Offset(0, 4),
+                        ),
                     ],
                 ),
                 child: Row(
@@ -439,9 +445,9 @@ class DashboardScreen extends StatelessWidget {
                                     Text(
                                         title,
                                         style: TextStyle(
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w800,
                                             fontSize: 16,
-                                            color: isDark ? Colors.white : AppColors.deepIndigo,
+                                            color: const Color(0xFF3C3C3C),
                                         ),
                                     ),
                                     const SizedBox(height: 4),
@@ -449,13 +455,14 @@ class DashboardScreen extends StatelessWidget {
                                         subtitle,
                                         style: TextStyle(
                                             fontSize: 13,
-                                            color: AppColors.slateGray.withValues(alpha: 0.9),
+                                            fontWeight: FontWeight.w500,
+                                            color: const Color(0xFF777777),
                                         ),
                                     ),
                                 ],
                             ),
                         ),
-                        const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.slateGray),
+                        Icon(Icons.arrow_forward_ios, size: 16, color: color),
                     ],
                 ),
             ),

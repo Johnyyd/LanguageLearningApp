@@ -106,8 +106,8 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
             context.read<ChatBloc>().add(const UpdateAvatarEmotion("thinking"));
             ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                    content: Text("🎙️ Đang lắng nghe... Hãy nói câu hỏi của bạn!"),
-                    backgroundColor: AppColors.sakuraPink,
+                    content: Text("Đang lắng nghe... Hãy nói câu hỏi của bạn!"),
+                    backgroundColor: AppColors.duoGreen,
                     duration: Duration(seconds: 2),
                 ),
             );
@@ -136,26 +136,26 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
     Widget build(BuildContext context) {
         return Scaffold(
             appBar: AppBar(
-                title: const Text("🤖 Sensei AI 3D Tutor Q&A"),
+                title: const Text("Sensei 3D Tutor Q&A"),
                 actions: [
                     IconButton(
-                        icon: const Icon(Icons.palette, color: AppColors.sakuraPink),
+                        icon: const Icon(Icons.palette, color: AppColors.duoGreen),
                         onPressed: _showAvatarAndVoiceSelector,
                         tooltip: "Đổi Avatar & Giọng nói VA",
                     ),
                     Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                            color: AppColors.sakuraPink.withValues(alpha: 0.15),
+                            color: AppColors.duoGreen.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.4)),
+                            border: Border.all(color: AppColors.duoGreen.withValues(alpha: 0.4)),
                         ),
                         child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                                Icon(Icons.school, size: 16, color: AppColors.sakuraPink),
+                                Icon(Icons.school, size: 16, color: AppColors.duoGreen),
                                 SizedBox(width: 4),
-                                Text("🎌 Tiếng Nhật N5", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sakuraPink)),
+                                Text("Tiếng Nhật N5", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.duoGreen)),
                             ],
                         ),
                     ),
@@ -204,17 +204,19 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                 child: ElevatedButton.icon(
                                     onPressed: _showAvatarAndVoiceSelector,
                                     style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.sakuraPink,
+                                        backgroundColor: AppColors.duoGreen,
                                         foregroundColor: Colors.white,
-                                        elevation: 3,
-                                        shadowColor: AppColors.sakuraPink.withValues(alpha: 0.4),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(16),
+                                            side: const BorderSide(color: AppColors.duoGreenShadow, width: 2),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                     ),
                                     icon: const Icon(Icons.auto_awesome, size: 16),
                                     label: Text(
-                                        "🎨 Đổi Avatar & Giọng VA ($_currentVoiceActor)",
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                        "Đổi Avatar & Giọng VA ($_currentVoiceActor)",
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                     ),
                                 ),
                             ),
@@ -231,7 +233,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                             return Padding(
                                                 padding: const EdgeInsets.only(right: 8),
                                                 child: ActionChip(
-                                                    avatar: const Icon(Icons.lightbulb_outline, size: 16, color: AppColors.sakuraPink),
+                                                    avatar: const Icon(Icons.lightbulb_outline, size: 16, color: AppColors.duoGreen),
                                                     label: Text(suggestions[index], style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyLarge?.color)),
                                                     backgroundColor: Theme.of(context).cardColor,
                                                     onPressed: () {
@@ -299,7 +301,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                                                             child: Icon(
                                                                                 _isSpeaking ? Icons.volume_up : Icons.volume_up_outlined,
                                                                                 size: 18,
-                                                                                color: AppColors.sakuraPink,
+                                                                                color: AppColors.duoGreen,
                                                                             ),
                                                                         ),
                                                                         const SizedBox(width: 4),
@@ -321,9 +323,9 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                     child: Row(
                                         children: [
-                                            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.sakuraPink)),
+                                            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.duoGreen)),
                                             SizedBox(width: 10),
-                                            Text("Sensei AI đang suy nghĩ câu trả lời...", style: TextStyle(color: AppColors.slateGray, fontStyle: FontStyle.italic, fontSize: 13)),
+                                            Text("Sensei đang suy nghĩ câu trả lời...", style: TextStyle(color: AppColors.slateGray, fontStyle: FontStyle.italic, fontSize: 13)),
                                         ],
                                     ),
                                 )
@@ -334,7 +336,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                         children: [
                                             Icon(Icons.mic, size: 18, color: AppColors.errorRed),
                                             SizedBox(width: 8),
-                                            Text("🎙️ Đang thu âm giọng nói (Speech-to-Text)...", style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold, fontSize: 13)),
+                                            Text("Đang thu âm giọng nói (Speech-to-Text)...", style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold, fontSize: 13)),
                                         ],
                                     ),
                                 ),
@@ -350,7 +352,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                                 controller: _msgController,
                                                 style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 15),
                                                 decoration: InputDecoration(
-                                                    hintText: "Hỏi Sensei AI (VD: Trợ từ Wa vs Ga?)...",
+                                                    hintText: "Hỏi Sensei (VD: Trợ từ Wa vs Ga?)...",
                                                     hintStyle: const TextStyle(color: AppColors.slateGray),
                                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
                                                     filled: true,
@@ -370,7 +372,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                             tooltip: "Nhập bằng giọng nói",
                                         ),
                                         IconButton(
-                                            icon: const Icon(Icons.send, color: AppColors.sakuraPink),
+                                            icon: const Icon(Icons.send, color: AppColors.duoGreen),
                                             onPressed: _send,
                                         ),
                                     ],
@@ -409,10 +411,10 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                 children: [
                                     const Row(
                                         children: [
-                                            Icon(Icons.auto_awesome, color: AppColors.sakuraPink),
+                                            Icon(Icons.auto_awesome, color: AppColors.duoGreen),
                                             SizedBox(width: 8),
                                             Text(
-                                                "🎨 Cấu hình 3D Avatar & Giọng Anime VA",
+                                                "Cấu hình 3D Avatar & Giọng VA",
                                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                             ),
                                         ],
@@ -458,7 +460,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                                     const SizedBox(height: 12),
                                                     ListTile(
                                                         leading: const CircleAvatar(backgroundColor: AppColors.deepIndigo, child: Icon(Icons.folder_open, color: Colors.white)),
-                                                        title: const Text("📂 Tải file mô hình 3D (.VRM/.GLB) từ máy", style: TextStyle(fontWeight: FontWeight.bold)),
+                                                        title: const Text("Tải file mô hình 3D (.VRM/.GLB) từ máy", style: TextStyle(fontWeight: FontWeight.bold)),
                                                         subtitle: const Text("Tự động nhận diện xương (Auto-Rigging) & đồng bộ Lip-Sync", style: TextStyle(fontSize: 12)),
                                                         onTap: () {
                                                             Navigator.pop(ctx);
@@ -467,7 +469,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                                     ),
                                                     ListTile(
                                                         leading: const CircleAvatar(backgroundColor: AppColors.slateGray, child: Icon(Icons.link, color: Colors.white)),
-                                                        title: const Text("🔗 Hoặc nhập URL mô hình trực tuyến", style: TextStyle(fontWeight: FontWeight.bold)),
+                                                        title: const Text("Hoặc nhập URL mô hình trực tuyến", style: TextStyle(fontWeight: FontWeight.bold)),
                                                         subtitle: const Text("Dành cho các file lưu trên Server/Cloud", style: TextStyle(fontSize: 12)),
                                                         onTap: () {
                                                             Navigator.pop(ctx);
@@ -491,20 +493,20 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
     Widget _buildPresetOption(String title, String vaName, String speakerId, String? modelUrl, BuildContext ctx) {
         final isSelected = _currentSpeakerId == speakerId && _customAvatarUrl == modelUrl;
         return Card(
-            color: isSelected ? AppColors.sakuraPink.withValues(alpha: 0.15) : Theme.of(context).cardColor,
+            color: isSelected ? AppColors.duoGreen.withValues(alpha: 0.15) : Theme.of(context).cardColor,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: isSelected ? AppColors.sakuraPink : Colors.transparent, width: 2),
+                side: BorderSide(color: isSelected ? AppColors.duoGreen : Colors.transparent, width: 2),
             ),
             margin: const EdgeInsets.only(bottom: 8),
             child: ListTile(
                 leading: CircleAvatar(
-                    backgroundColor: isSelected ? AppColors.sakuraPink : AppColors.slateGray.withValues(alpha: 0.2),
+                    backgroundColor: isSelected ? AppColors.duoGreen : AppColors.slateGray.withValues(alpha: 0.2),
                     child: Icon(Icons.person, color: isSelected ? Colors.white : AppColors.slateGray),
                 ),
-                title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? AppColors.sakuraPink : null)),
-                subtitle: Text("🎙️ VA: $vaName", style: const TextStyle(fontSize: 12)),
-                trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.sakuraPink) : null,
+                title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? AppColors.duoGreen : null)),
+                subtitle: Text("VA: $vaName", style: const TextStyle(fontSize: 12)),
+                trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.duoGreen) : null,
                 onTap: () {
                     setState(() {
                         _currentSpeakerId = speakerId;
@@ -513,7 +515,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                     });
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("✅ Đã chuyển sang $title ($vaName)!"), backgroundColor: AppColors.successGreen),
+                        SnackBar(content: Text("Đã chuyển sang $title ($vaName)!"), backgroundColor: AppColors.duoGreen),
                     );
                     _speak("Konnichiwa! Mình là $title với chất giọng lồng tiếng của $vaName. Hãy cùng học tiếng Nhật nhé!");
                 },
@@ -538,8 +540,8 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                 if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content: Text("🎉 Đã tải file '${result.files.single.name}' lên khung hình GrokAni và gắn xương thành công!"),
-                            backgroundColor: AppColors.successGreen,
+                            content: Text("Đã tải file '${result.files.single.name}' lên thành công!"),
+                            backgroundColor: AppColors.duoGreen,
                         ),
                     );
                     _speak("Konnichiwa! Mình đã tải mô hình 3D từ máy của bạn thành công. Hãy bắt đầu trò chuyện nhé!");
@@ -559,7 +561,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
         showDialog(
             context: context,
             builder: (ctx) => AlertDialog(
-                title: const Text("🔗 Nhập URL Avatar (.VRM/.GLB)"),
+                title: const Text("Nhập URL Avatar (.VRM/.GLB)"),
                 content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -585,7 +587,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                 });
                                 Navigator.pop(ctx);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text("🎉 Đã tải URL và gắn xương Avatar tuỳ chỉnh thành công!"), backgroundColor: AppColors.successGreen),
+                                    const SnackBar(content: Text("Đã tải URL Avatar tuỳ chỉnh thành công!"), backgroundColor: AppColors.duoGreen),
                                 );
                             }
                         },

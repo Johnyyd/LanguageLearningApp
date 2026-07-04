@@ -151,12 +151,12 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                 child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                        Icon(isPass ? Icons.emoji_events : Icons.refresh, size: 64, color: isPass ? AppColors.goldAccent : AppColors.warningOrange),
+                        Icon(isPass ? Icons.emoji_events : Icons.refresh, size: 64, color: isPass ? AppColors.duoYellow : AppColors.duoYellow),
                         const SizedBox(height: 16),
                         Text(
-                            isPass ? "🎉 CHÚC MỪNG! BẠN ĐÃ ĐỖ ĐỀ THI THỬ JLPT N5" : "💪 HÃY CỐ GẮNG HƠN Ở LẦN THI TỚI!",
+                            isPass ? "CHÚC MỪNG! BẠN ĐÃ ĐỖ ĐỀ THI THỬ JLPT N5" : "HÃY CỐ GẮNG HƠN Ở LẦN THI TỚI!",
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isPass ? AppColors.successGreen : AppColors.warningOrange),
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isPass ? AppColors.duoGreen : AppColors.duoYellow),
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -173,8 +173,8 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                             ),
                             child: Text(
                                 isPass
-                                    ? "🤖 AI Sensei Nhận Xét: Nền tảng Từ vựng & Ngữ pháp của bạn rất vững chắc! Bạn đã sẵn sàng chinh phục kỳ thi JLPT N5 thực tế với mục tiêu điểm cao!"
-                                    : "🤖 AI Sensei Nhận Xét: Hãy dành thêm thời gian ôn luyện lại Trạm Ngữ pháp và Đàm thoại nhé, Sensei sẽ luôn đồng hành cùng bạn!",
+                                    ? "AI Sensei Nhận Xét: Nền tảng Từ vựng & Ngữ pháp của bạn rất vững chắc! Bạn đã sẵn sàng chinh phục kỳ thi JLPT N5 thực tế với mục tiêu điểm cao!"
+                                    : "AI Sensei Nhận Xét: Hãy dành thêm thời gian ôn luyện lại Trạm Ngữ pháp và Đàm thoại nhé, Sensei sẽ luôn đồng hành cùng bạn!",
                                 style: const TextStyle(fontSize: 14, height: 1.4),
                             ),
                         ),
@@ -186,10 +186,14 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                                     Navigator.pop(context);
                                 },
                                 style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.sakuraPink,
+                                    backgroundColor: AppColors.duoGreen,
                                     foregroundColor: Colors.white,
+                                    elevation: 0,
                                     padding: const EdgeInsets.symmetric(vertical: 16),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        side: const BorderSide(color: AppColors.duoGreenShadow, width: 2),
+                                    ),
                                 ),
                                 child: const Text("Xem Chi Tiết Đáp Án & Lời Giải AI", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                             ),
@@ -210,24 +214,24 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
     Widget build(BuildContext context) {
         return Scaffold(
             appBar: AppBar(
-                title: const Text("🏆 Đề Thi Thử JLPT N5"),
-                backgroundColor: AppColors.academicNavy,
+                title: const Text("Đề Thi Thử JLPT N5"),
+                backgroundColor: AppColors.duoBlue,
                 foregroundColor: Colors.white,
                 actions: [
                     Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
-                            color: _remainingSeconds <= 300 ? AppColors.errorRed : AppColors.goldAccent,
+                            color: _remainingSeconds <= 300 ? AppColors.errorRed : AppColors.duoYellow,
                             borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
                             children: [
-                                const Icon(Icons.timer, size: 18, color: AppColors.academicNavy),
+                                const Icon(Icons.timer, size: 18, color: AppColors.duoBlue),
                                 const SizedBox(width: 6),
                                 Text(
                                     _formatTime(_remainingSeconds),
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.academicNavy, fontSize: 15),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.duoBlue, fontSize: 15),
                                 ),
                             ],
                         ),
@@ -247,8 +251,8 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                                 Expanded(
                                     child: Text(
                                         _isSubmitted
-                                            ? "✅ Bạn đã nộp bài. Hãy kiểm tra các đáp án và lời giải chi tiết bên dưới!"
-                                            : "📌 Thời gian làm bài 30 phút. Bạn có thể thay đổi đáp án trước khi bấm Nộp Bài.",
+                                            ? "Bạn đã nộp bài. Hãy kiểm tra các đáp án và lời giải chi tiết bên dưới!"
+                                            : "Thời gian làm bài 30 phút. Bạn có thể thay đổi đáp án trước khi bấm Nộp Bài.",
                                         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                     ),
                                 ),
@@ -273,8 +277,8 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                                         borderRadius: BorderRadius.circular(20),
                                         border: Border.all(
                                             color: _isSubmitted
-                                                ? (isCorrectOpt ? AppColors.successGreen : AppColors.errorRed)
-                                                : (isSelected ? AppColors.sakuraPink : Colors.transparent),
+                                                ? (isCorrectOpt ? AppColors.duoGreen : AppColors.errorRed)
+                                                : (isSelected ? AppColors.duoBlue : Colors.transparent),
                                             width: 2,
                                         ),
                                         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
@@ -309,15 +313,15 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                                                 Color borderColor = AppColors.slateGray.withValues(alpha: 0.3);
                                                 if (_isSubmitted) {
                                                     if (isThisCorrect) {
-                                                        btnColor = AppColors.successGreen.withValues(alpha: 0.2);
-                                                        borderColor = AppColors.successGreen;
+                                                        btnColor = AppColors.duoGreen.withValues(alpha: 0.2);
+                                                        borderColor = AppColors.duoGreen;
                                                     } else if (isThisSelected && !isThisCorrect) {
                                                         btnColor = AppColors.errorRed.withValues(alpha: 0.2);
                                                         borderColor = AppColors.errorRed;
                                                     }
                                                 } else if (isThisSelected) {
-                                                    btnColor = AppColors.sakuraPink.withValues(alpha: 0.15);
-                                                    borderColor = AppColors.sakuraPink;
+                                                    btnColor = AppColors.duoBlue.withValues(alpha: 0.15);
+                                                    borderColor = AppColors.duoBlue;
                                                 }
 
                                                 return Padding(
@@ -345,8 +349,8 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                                                                             ? (isThisCorrect ? Icons.check_circle : (isThisSelected ? Icons.cancel : Icons.radio_button_unchecked))
                                                                             : (isThisSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked),
                                                                         color: _isSubmitted
-                                                                            ? (isThisCorrect ? AppColors.successGreen : (isThisSelected ? AppColors.errorRed : AppColors.slateGray))
-                                                                            : (isThisSelected ? AppColors.sakuraPink : AppColors.slateGray),
+                                                                            ? (isThisCorrect ? AppColors.duoGreen : (isThisSelected ? AppColors.errorRed : AppColors.slateGray))
+                                                                            : (isThisSelected ? AppColors.duoBlue : AppColors.slateGray),
                                                                     ),
                                                                     const SizedBox(width: 12),
                                                                     Expanded(
@@ -369,13 +373,13 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                                                 Container(
                                                     padding: const EdgeInsets.all(12),
                                                     decoration: BoxDecoration(
-                                                        color: AppColors.goldAccent.withValues(alpha: 0.15),
+                                                        color: AppColors.duoYellow.withValues(alpha: 0.15),
                                                         borderRadius: BorderRadius.circular(12),
                                                     ),
                                                     child: Row(
                                                         crossAxisAlignment: CrossAxisAlignment.start,
                                                         children: [
-                                                            const Icon(Icons.lightbulb, color: AppColors.goldAccent, size: 20),
+                                                            const Icon(Icons.lightbulb, color: AppColors.duoYellow, size: 20),
                                                             const SizedBox(width: 8),
                                                             Expanded(
                                                                 child: Text(
@@ -407,10 +411,17 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                         icon: Icon(_isSubmitted ? Icons.check : Icons.send),
                         label: Text(_isSubmitted ? "ĐÃ NỘP BÀI" : "NỘP BÀI THI & CHẤM ĐIỂM AI", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: _isSubmitted ? AppColors.slateGray : AppColors.successGreen,
+                            backgroundColor: _isSubmitted ? AppColors.slateGray : AppColors.duoGreen,
                             foregroundColor: Colors.white,
+                            elevation: _isSubmitted ? 0 : 0,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                side: BorderSide(
+                                    color: _isSubmitted ? Colors.transparent : AppColors.duoGreenShadow,
+                                    width: _isSubmitted ? 0 : 4,
+                                ),
+                            ),
                         ),
                     ),
                 ),

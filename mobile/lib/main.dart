@@ -67,8 +67,8 @@ class LanguageLearningApp extends StatelessWidget {
                 title: 'Japanese N5 AI Coach (3D Avatar)',
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.lightTheme,
-                darkTheme: AppTheme.darkTheme,
-                themeMode: ThemeMode.system,
+                darkTheme: AppTheme.lightTheme,
+                themeMode: ThemeMode.light,
                 home: const HomeScreen(),
             ),
         );

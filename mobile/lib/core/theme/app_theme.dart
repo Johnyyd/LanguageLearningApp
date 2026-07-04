@@ -39,13 +39,13 @@ class AppTheme {
         return ThemeData(
             useMaterial3: true,
             brightness: Brightness.light,
-            primaryColor: AppColors.sakuraPink,
-            scaffoldBackgroundColor: AppColors.backgroundLight,
+            primaryColor: AppColors.duoGreen,
+            scaffoldBackgroundColor: Colors.white, // Nền trắng sáng tuyệt đối theo yêu cầu Duolingo
             colorScheme: const ColorScheme.light(
-                primary: AppColors.sakuraPink,
-                secondary: AppColors.goldAccent,
+                primary: AppColors.duoGreen,
+                secondary: AppColors.duoBlue,
                 surface: AppColors.surfaceWhite,
-                error: AppColors.errorRed,
+                error: AppColors.duoRed,
             ),
             textTheme: GoogleFonts.outfitTextTheme(),
             appBarTheme: AppBarTheme(
@@ -53,133 +53,69 @@ class AppTheme {
                 elevation: 0,
                 centerTitle: true,
                 titleTextStyle: GoogleFonts.outfit(
-                    color: AppColors.deepIndigo,
+                    color: const Color(0xFF3C3C3C),
                     fontSize: 20,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                 ),
-                iconTheme: const IconThemeData(color: AppColors.deepIndigo),
+                iconTheme: const IconThemeData(color: Color(0xFF3C3C3C)),
             ),
             elevatedButtonTheme: ElevatedButtonThemeData(
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.deepIndigo,
+                    backgroundColor: AppColors.duoGreen,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    textStyle: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: AppColors.duoGreenShadow, width: 2),
+                    ),
+                    textStyle: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
             ),
             cardTheme: CardThemeData(
                 color: AppColors.surfaceWhite,
-                elevation: 4,
-                shadowColor: Colors.black.withValues(alpha: 0.06),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: const BorderSide(color: Color(0xFFE5E5E5), width: 2),
+                ),
             ),
             inputDecorationTheme: InputDecorationTheme(
                 filled: true,
                 fillColor: Colors.white,
-                hintStyle: GoogleFonts.outfit(color: AppColors.slateGray),
-                labelStyle: GoogleFonts.outfit(color: AppColors.deepIndigo),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.slateGray.withValues(alpha: 0.3))),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.slateGray.withValues(alpha: 0.3))),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.deepIndigo, width: 2)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                hintStyle: GoogleFonts.outfit(color: const Color(0xFFAFAFAF)),
+                labelStyle: GoogleFonts.outfit(color: const Color(0xFF3C3C3C), fontWeight: FontWeight.w600),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE5E5E5), width: 2)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE5E5E5), width: 2)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.duoBlue, width: 2)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             ),
             chipTheme: ChipThemeData(
                 backgroundColor: Colors.white,
-                labelStyle: GoogleFonts.outfit(color: AppColors.deepIndigo, fontSize: 13, fontWeight: FontWeight.w600),
-                secondaryLabelStyle: GoogleFonts.outfit(color: AppColors.sakuraPink),
+                labelStyle: GoogleFonts.outfit(color: const Color(0xFF3C3C3C), fontSize: 13, fontWeight: FontWeight.bold),
+                secondaryLabelStyle: GoogleFonts.outfit(color: AppColors.duoGreen),
                 brightness: Brightness.light,
             ),
             navigationBarTheme: NavigationBarThemeData(
                 backgroundColor: Colors.white,
-                indicatorColor: AppColors.sakuraPink.withValues(alpha: 0.25),
+                indicatorColor: AppColors.duoGreen.withValues(alpha: 0.2),
                 labelTextStyle: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
-                        return GoogleFonts.outfit(color: AppColors.deepIndigo, fontWeight: FontWeight.bold, fontSize: 12);
+                        return GoogleFonts.outfit(color: AppColors.duoGreen, fontWeight: FontWeight.bold, fontSize: 13);
                     }
-                    return GoogleFonts.outfit(color: AppColors.slateGray, fontSize: 12);
+                    return GoogleFonts.outfit(color: const Color(0xFFAFAFAF), fontWeight: FontWeight.w600, fontSize: 12);
                 }),
                 iconTheme: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
-                        return const IconThemeData(color: AppColors.deepIndigo);
+                        return const IconThemeData(color: AppColors.duoGreen);
                     }
-                    return const IconThemeData(color: AppColors.slateGray);
+                    return const IconThemeData(color: Color(0xFFAFAFAF));
                 }),
             ),
         );
     }
 
     static ThemeData get darkTheme {
-        return ThemeData(
-            useMaterial3: true,
-            brightness: Brightness.dark,
-            primaryColor: AppColors.sakuraPink,
-            scaffoldBackgroundColor: AppColors.backgroundDark,
-            colorScheme: const ColorScheme.dark(
-                primary: AppColors.sakuraPink,
-                secondary: AppColors.goldAccent,
-                surface: AppColors.surfaceDark,
-                error: AppColors.errorRed,
-            ),
-            textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
-            appBarTheme: AppBarTheme(
-                backgroundColor: AppColors.surfaceDark,
-                elevation: 0,
-                centerTitle: true,
-                titleTextStyle: GoogleFonts.outfit(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                ),
-                iconTheme: const IconThemeData(color: Colors.white),
-            ),
-            elevatedButtonTheme: ElevatedButtonThemeData(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.sakuraPink,
-                    foregroundColor: AppColors.deepIndigo,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    textStyle: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-            ),
-            cardTheme: CardThemeData(
-                color: AppColors.surfaceDark,
-                elevation: 4,
-                shadowColor: Colors.black.withValues(alpha: 0.3),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            ),
-            inputDecorationTheme: InputDecorationTheme(
-                filled: true,
-                fillColor: AppColors.surfaceDark,
-                hintStyle: GoogleFonts.outfit(color: AppColors.slateGray),
-                labelStyle: GoogleFonts.outfit(color: AppColors.goldAccent),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.slateGray.withValues(alpha: 0.3))),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.slateGray.withValues(alpha: 0.3))),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.sakuraPink, width: 2)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            ),
-            chipTheme: ChipThemeData(
-                backgroundColor: AppColors.surfaceDark,
-                labelStyle: GoogleFonts.outfit(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                secondaryLabelStyle: GoogleFonts.outfit(color: AppColors.sakuraPink),
-                brightness: Brightness.dark,
-            ),
-            navigationBarTheme: NavigationBarThemeData(
-                backgroundColor: AppColors.surfaceDark,
-                indicatorColor: AppColors.sakuraPink.withValues(alpha: 0.25),
-                labelTextStyle: WidgetStateProperty.resolveWith((states) {
-                    if (states.contains(WidgetState.selected)) {
-                        return GoogleFonts.outfit(color: AppColors.sakuraPink, fontWeight: FontWeight.bold, fontSize: 12);
-                    }
-                    return GoogleFonts.outfit(color: AppColors.slateGray, fontSize: 12);
-                }),
-                iconTheme: WidgetStateProperty.resolveWith((states) {
-                    if (states.contains(WidgetState.selected)) {
-                        return const IconThemeData(color: AppColors.sakuraPink);
-                    }
-                    return const IconThemeData(color: AppColors.slateGray);
-                }),
-            ),
-        );
+        return lightTheme; // Luôn sử dụng giao diện trắng sáng, không dùng màu tối
     }
 }
