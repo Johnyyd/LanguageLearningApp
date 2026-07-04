@@ -257,62 +257,56 @@ class Avatar3dViewer extends StatelessWidget {
 
     Widget _buildDesktopFallbackAvatar(String modelUrl) {
         final String modelName = modelUrl.split('/').last.replaceAll(RegExp(r'(\?.*|#.*)'), '');
-        return Center(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                    AnimatedContainer(
-                        duration: const Duration(milliseconds: 500),
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _getBadgeColor(emotion).withValues(alpha: 0.25),
-                            border: Border.all(
-                                color: _getBadgeColor(emotion),
-                                width: emotion == "talking" || emotion == "thinking" ? 3 : 1.5,
-                            ),
-                            boxShadow: [
-                                BoxShadow(
-                                    color: _getBadgeColor(emotion).withValues(alpha: 0.4),
-                                    blurRadius: emotion == "talking" || emotion == "thinking" ? 20 : 10,
-                                    spreadRadius: emotion == "talking" ? 4 : 0,
+        return Align(
+            alignment: const Alignment(0, -0.25),
+            child: SingleChildScrollView(
+                padding: const EdgeInsets.only(top: 28, bottom: 28, left: 16, right: 16),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                        // Compact VTuber AI Glowing Avatar Icon
+                        AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: RadialGradient(
+                                    colors: [
+                                        _getBadgeColor(emotion).withValues(alpha: 0.4),
+                                        AppColors.deepIndigo.withValues(alpha: 0.8),
+                                    ],
                                 ),
-                            ],
+                                border: Border.all(
+                                    color: _getBadgeColor(emotion),
+                                    width: emotion == "talking" || emotion == "thinking" ? 2.5 : 1.5,
+                                ),
+                                boxShadow: [
+                                    BoxShadow(
+                                        color: _getBadgeColor(emotion).withValues(alpha: 0.4),
+                                        blurRadius: emotion == "talking" || emotion == "thinking" ? 16 : 8,
+                                        spreadRadius: emotion == "talking" ? 3 : 0,
+                                    ),
+                                ],
+                            ),
+                            child: Icon(
+                                _getBadgeIcon(emotion),
+                                size: 32,
+                                color: Colors.white,
+                            ),
                         ),
-                        child: Icon(
-                            _getBadgeIcon(emotion),
-                            size: 48,
-                            color: Colors.white,
+                        const SizedBox(height: 8),
+                        Text(
+                            "🤖 3D Engine Ready ($modelName)",
+                            style: TextStyle(
+                                color: AppColors.sakuraPink.withValues(alpha: 0.95),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.3,
+                            ),
                         ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                        _getBadgeText(emotion),
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                        ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                        "Mô hình 3D: $modelName",
-                        style: TextStyle(
-                            color: AppColors.sakuraPink.withValues(alpha: 0.95),
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                        ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                        "Sensei AI 3D (Desktop Mode / Engine Ready)",
-                        style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: 11,
-                        ),
-                    ),
-                ],
+                    ],
+                ),
             ),
         );
     }
