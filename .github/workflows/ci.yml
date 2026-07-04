@@ -8,7 +8,7 @@ on:
 
 jobs:
   backend-test:
-    name: [Hermes/MiMo] Backend AI Gateway CI
+    name: '[Hermes/MiMo] Backend AI Gateway CI'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +25,7 @@ jobs:
           python -m py_compile backend/main.py
 
   mobile-analyze:
-    name: [Hermes/MiMo] Flutter Mobile App CI
+    name: '[Hermes/MiMo] Flutter Mobile App CI'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
