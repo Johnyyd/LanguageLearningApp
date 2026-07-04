@@ -256,7 +256,7 @@ class DashboardScreen extends StatelessWidget {
                                         ),
                                     ),
                                     const SizedBox(width: 16),
-                                    // IELTS Band Score
+                                    // Kana / Kanji Writing Mastery (Thay thế IELTS theo yêu cầu)
                                     Expanded(
                                         child: Container(
                                             padding: const EdgeInsets.all(16),
@@ -264,29 +264,29 @@ class DashboardScreen extends StatelessWidget {
                                                 color: Theme.of(context).cardColor,
                                                 borderRadius: BorderRadius.circular(20),
                                                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
-                                                border: Border.all(color: AppColors.warningOrange.withValues(alpha: 0.2)),
+                                                border: Border.all(color: AppColors.softIndigo.withValues(alpha: 0.2)),
                                             ),
                                             child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
                                                     const Row(
                                                         children: [
-                                                            Icon(Icons.assessment, color: AppColors.warningOrange, size: 20),
+                                                            Icon(Icons.draw, color: AppColors.softIndigo, size: 20),
                                                             SizedBox(width: 6),
-                                                            Text("IELTS Task 1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                                            Text("Luyện Viết Kana", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                                         ],
                                                     ),
                                                     const SizedBox(height: 12),
-                                                    const Text("Band 6.5", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.warningOrange)),
+                                                    const Text("46 / 46 nét", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.softIndigo)),
                                                     const SizedBox(height: 4),
-                                                    Text("Mức điểm trung bình", style: TextStyle(fontSize: 11, color: AppColors.slateGray.withValues(alpha: 0.9))),
+                                                    Text("Độ chính xác nét chữ", style: TextStyle(fontSize: 11, color: AppColors.slateGray.withValues(alpha: 0.9))),
                                                     const SizedBox(height: 10),
                                                     ClipRRect(
                                                         borderRadius: BorderRadius.circular(6),
                                                         child: LinearProgressIndicator(
-                                                            value: 6.5 / 9.0,
-                                                            backgroundColor: AppColors.warningOrange.withValues(alpha: 0.15),
-                                                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.warningOrange),
+                                                            value: 1.0,
+                                                            backgroundColor: AppColors.softIndigo.withValues(alpha: 0.15),
+                                                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.softIndigo),
                                                             minHeight: 6,
                                                         ),
                                                     ),
@@ -319,22 +319,14 @@ class DashboardScreen extends StatelessWidget {
                                 onTap: () => onNavigate(1),
                             ),
                             const SizedBox(height: 12),
-                            _buildQuickActionCard(
-                                context: context,
-                                title: "Chấm Điểm IELTS Writing Task 1",
-                                subtitle: "Phân tích 4 tiêu chí AI, OCR camera chữ viết tay",
-                                icon: Icons.edit_document,
-                                color: AppColors.goldAccent,
-                                onTap: () => onNavigate(2),
-                            ),
-                            const SizedBox(height: 12),
+                            // Ẩn Chấm Điểm IELTS Writing Task 1 theo yêu cầu tập trung Tiếng Nhật
                             _buildQuickActionCard(
                                 context: context,
                                 title: "Hỏi Đáp Cùng Trợ Lý 3D Sensei",
                                 subtitle: "Trò chuyện giọng nói (Speech-to-Text & TTS)",
                                 icon: Icons.smart_toy,
                                 color: AppColors.successGreen,
-                                onTap: () => onNavigate(3),
+                                onTap: () => onNavigate(2),
                             ),
                             const SizedBox(height: 20),
                         ],

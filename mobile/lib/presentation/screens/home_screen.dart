@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'japanese_screen.dart';
-import 'ielts_screen.dart';
+// import 'ielts_screen.dart'; // Ẩn tab IELTS theo yêu cầu tập trung vào Tiếng Nhật
 import 'chat_tutor_screen.dart';
 import 'dashboard_screen.dart';
 import '../../core/theme/app_theme.dart';
@@ -18,7 +18,6 @@ class _HomeScreenState extends State<HomeScreen> {
     late final List<Widget> _screens = [
         DashboardScreen(onNavigate: (idx) => setState(() => _selectedIndex = idx)),
         const JapaneseScreen(),
-        const IeltsScreen(),
         const ChatTutorScreen(),
     ];
 
@@ -43,9 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? AppColors.successGreen.withValues(alpha: 0.25)
                         : (_selectedIndex == 1
                             ? AppColors.sakuraPink.withValues(alpha: 0.25)
-                            : (_selectedIndex == 2
-                                ? AppColors.goldAccent.withValues(alpha: 0.25)
-                                : AppColors.softIndigo.withValues(alpha: 0.25))),
+                            : AppColors.softIndigo.withValues(alpha: 0.25)),
                     destinations: [
                         NavigationDestination(
                             icon: const Icon(Icons.dashboard_outlined),
@@ -56,11 +53,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             icon: const Icon(Icons.language_outlined),
                             selectedIcon: Icon(Icons.language, color: Theme.of(context).brightness == Brightness.dark ? AppColors.sakuraPink : AppColors.deepIndigo),
                             label: "Tiếng Nhật N5",
-                        ),
-                        NavigationDestination(
-                            icon: const Icon(Icons.edit_document),
-                            selectedIcon: Icon(Icons.edit, color: Theme.of(context).brightness == Brightness.dark ? AppColors.goldAccent : AppColors.academicNavy),
-                            label: "IELTS Writing",
                         ),
                         NavigationDestination(
                             icon: const Icon(Icons.smart_toy_outlined),
