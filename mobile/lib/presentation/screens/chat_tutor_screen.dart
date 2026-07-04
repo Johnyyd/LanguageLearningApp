@@ -174,13 +174,15 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
 
                     return Column(
                         children: [
-                            // Top 3D Avatar Viewer (Animated Sensei AI)
+                            // Top 3D Avatar Viewer (Animated Sensei AI with Anime VA Voice Cloning)
                             Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 child: Avatar3dViewer(
                                     emotion: _isSpeaking ? "talking" : (_isListening ? "thinking" : emotion),
                                     height: 200,
-                                    onTap: () => _speak("Xin chào! Mình là Sensei AI đây. Bạn hãy đặt câu hỏi nhé!"),
+                                    isVoiceCloned: true,
+                                    voiceActorName: "Kana Hanazawa (VA)",
+                                    onTap: () => _speak("Konnichiwa! Mình là Sensei với chất giọng lồng tiếng Anime đây. Bạn hãy đặt câu hỏi nhé!"),
                                 ),
                             ),
 

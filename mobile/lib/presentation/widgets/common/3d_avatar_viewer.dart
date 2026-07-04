@@ -10,12 +10,16 @@ class Avatar3dViewer extends StatelessWidget {
     final String emotion; // idle, talking, thinking, happy, cheering
     final double height;
     final VoidCallback? onTap;
+    final bool isVoiceCloned;
+    final String voiceActorName;
 
     const Avatar3dViewer({
         super.key,
         this.emotion = "idle",
         this.height = 240,
         this.onTap,
+        this.isVoiceCloned = true,
+        this.voiceActorName = "Kana Hanazawa (VA)",
     });
 
     bool get _isWebViewSupported {
@@ -118,13 +122,13 @@ class Avatar3dViewer extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.5)),
                                 ),
-                                child: const Row(
+                                child: Row(
                                     children: [
-                                        Icon(Icons.auto_awesome, color: AppColors.sakuraPink, size: 16),
-                                        SizedBox(width: 6),
+                                        const Icon(Icons.auto_awesome, color: AppColors.sakuraPink, size: 16),
+                                        const SizedBox(width: 6),
                                         Text(
-                                            "Sensei AI (3D Tutor)",
-                                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                                            isVoiceCloned ? "Sensei 3D (🎙️ VA: $voiceActorName)" : "Sensei AI (3D Tutor)",
+                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
                                         ),
                                     ],
                                 ),
@@ -220,11 +224,11 @@ class Avatar3dViewer extends StatelessWidget {
 
     String _getBadgeText(String em) {
         switch (em) {
-            case "talking": return "Đang nói...";
+            case "talking": return isVoiceCloned ? "🎙️ Anime VA Lip-Sync..." : "Đang nói...";
             case "thinking": return "Đang suy nghĩ...";
             case "happy": return "Vui mừng!";
             case "cheering": return "Tuyệt vời!";
-            default: return "Sẵn sàng";
+            default: return isVoiceCloned ? "Sẵn sàng (Anime VA)" : "Sẵn sàng";
         }
     }
 }

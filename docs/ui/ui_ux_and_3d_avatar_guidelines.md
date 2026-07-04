@@ -97,6 +97,48 @@ stateDiagram-v2
 | `talking` | `Talk_LipSync` / `Explain_Gesture`| Đồng bộ chính xác với thời điểm luồng âm thanh TTS đang phát ra loa/tai nghe. |
 | `cheering` | `Clap_Hands` / `Happy_Jump` | Khi người dùng hoàn thành xuất sắc bài kiểm tra hoặc đạt Band IELTS từ 7.0 trở lên. |
 
+### 3.3. Kiến trúc Clone Giọng nói Anime VA & Biểu cảm 3D Chuẩn VTuber (Open-Source Anime Voice Cloning & Real-Time Facial Expressions)
+Để mang lại trải nghiệm tương tác giọng nói (Voice Chat) sống động như người thật – nơi Sensei đóng vai trò là một nhân vật Anime đồng hành với chất giọng của một diễn viên lồng tiếng (Voice Actor - VA) chuyên nghiệp, hệ thống áp dụng tiêu chuẩn kiến trúc kỹ thuật sau:
+
+#### A. Các Repository Mã nguồn mở Hàng đầu trên GitHub (Top Open-Source Voice Cloning Engines)
+Thay vì sử dụng System TTS cơ học, hệ thống tích hợp các bộ engine mã nguồn mở hàng đầu thế giới về clone giọng nhân vật Anime:
+1. **Style-Bert-VITS2 (Đề xuất Số 1 cho Tiếng Nhật & Anime VA):**
+   - *Repository:* `https://github.com/litagin02/Style-Bert-VITS2`
+   - *Đặc điểm:* Tiêu chuẩn vàng trong cộng đồng VTuber Nhật Bản. Có khả năng kiểm soát xuất sắc ngữ điệu và cao độ tiếng Nhật (Pitch Accent), đảm bảo phát âm mẫu câu N5 chuẩn xác 100% không bị ngọng hay sai dấu. Hỗ trợ clone giọng VA chỉ với 5-10 phút audio mẫu sạch, kiểm soát cảm xúc đa dạng (`Happy`, `Sad`, `Angry`, `Explaining`).
+2. **GPT-SoVITS (Top 1 Trending Zero-Shot Voice Cloning):**
+   - *Repository:* `https://github.com/RVC-Boss/GPT-SoVITS`
+   - *Đặc điểm:* Engine Zero-Shot Voice Cloning mạnh mẽ nhất thế giới hiện nay. Chỉ cần **5 giây đến 1 phút** audio tham chiếu của nhân vật Anime (ví dụ: chất giọng ấm áp của VA *Kana Hanazawa* hoặc sự năng động của *Rie Takahashi*) để tái tạo giọng đọc mới với độ tự nhiên lên tới 95%. Tích hợp sẵn REST API Server (FastAPI), dễ dàng triển khai thành microservice trong Docker.
+3. **Fish-Speech / XTTS-v2:**
+   - Các mô hình TTS mã nguồn mở xuất sắc hỗ trợ đa ngôn ngữ với chi phí tính toán tối ưu cho môi trường edge/cloud hybrid.
+
+#### B. Luồng Kỹ thuật Tích hợp Giọng nói & Biểu cảm (End-to-End Voice & Expression Flow)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Learner as Học viên (Mobile App)
+    participant Gateway as AI Gateway (Gemini 1.5 Pro)
+    participant VoiceEngine as Voice Microservice (Style-Bert-VITS2 / GPT-SoVITS)
+    participant Avatar3D as 3D Sensei Avatar (VRM / GLTF Blendshapes)
+
+    Learner->>Gateway: Gửi câu hỏi bằng giọng nói / tin nhắn (Q&A Ngữ pháp N5)
+    Gateway->>Gateway: Phân tích ngữ cảnh -> Sinh lời giải đáp + xác định Emotion (happy/explaining)
+    Gateway->>VoiceEngine: Gửi Text tiếng Nhật + Emotion Parameter + VA Voice Profile
+    VoiceEngine-->>Gateway: Trả về Audio Stream (WAV 24kHz) + Viseme Timestamps (Thời gian âm vị)
+    Gateway-->>Learner: Truyền đồng thời Audio + Text + Viseme Metadata
+    Learner->>Avatar3D: Kích hoạt phát Audio Anime VA + Điều khiển Morph Targets theo thời gian thực
+```
+
+#### C. Tiêu chuẩn Mô hình 3D VRM & Cờ Blendshape (VTuber Blendshapes & Lip-Sync)
+Để nhân vật Sensei có biểu cảm khuôn mặt và nhấp nháy môi khớp từng chữ với giọng đọc Anime VA, mô hình 3D tuân thủ tiêu chuẩn **VRM (VTuber Avatar Standard)** hoặc GLTF có tích hợp **Morph Targets (Blendshapes)**:
+- **1. Khớp khẩu hình môi theo âm vị Tiếng Nhật (Lip-sync Visemes):**
+  - Sử dụng 5 morph targets cơ bản tương ứng với 5 nguyên âm tiếng Nhật: `mouth_a` (あ), `mouth_i` (い), `mouth_u` (う), `mouth_e` (え), `mouth_o` (お).
+  - Khi luồng âm thanh phát ra, Javascript Bridge trong `ModelViewer` / Flutter cập nhật độ mở môi (`morphTargetInfluences` từ `0.0` đến `1.0`) liên tục theo từng mili-giây của âm thanh.
+- **2. Biểu cảm cảm xúc sống động (Micro-Facial Expressions):**
+  - `Joy` / `Happy`: Đôi mắt cong lên thành hình trăng khuyết, nụ cười rạng rỡ khi khen ngợi học viên.
+  - `Angry` / `Serious`: Hơi chau mày, ánh mắt tập trung khi sửa lỗi sai ngữ pháp cho học viên.
+  - `Thinking` / `Pondering`: Nghiêng đầu, mắt nhìn lên trên hoặc chớp nhẹ khi xử lý câu hỏi phức tạp.
+  - `Blink`: Chớp mắt tự nhiên 3-5 giây một lần ở chế độ nghỉ (`Idle`), tạo cảm giác nhân vật hoàn toàn có sự sống!
+
 ---
 
 ## 4. Tối ưu Hóa Hiệu năng & Micro-animations (Performance & Polish)
