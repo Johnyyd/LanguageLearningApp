@@ -4,6 +4,9 @@ import '../blocs/vocab/vocab_bloc.dart';
 import '../blocs/vocab/vocab_state.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
 import '../../core/theme/app_theme.dart';
+import 'n5_dialogue_roleplay_screen.dart';
+import 'n5_grammar_builder_screen.dart';
+import 'n5_jlpt_mock_exam_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
     final Function(int) onNavigate;
@@ -317,6 +320,44 @@ class DashboardScreen extends StatelessWidget {
                                         ],
                                     );
                                 },
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Section Title: N5 Advanced Modules
+                            Text(
+                                "🌟 Chuyên Đề Năng Lực N5 (Khóa Học Mới)",
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildQuickActionCard(
+                                context: context,
+                                title: "Luyện Nghe & Đàm Thoại Ngữ Cảnh",
+                                subtitle: "Hội thoại thực tế Konbini, Eki, Ramen với AI Sensei",
+                                icon: Icons.record_voice_over,
+                                color: AppColors.sakuraPink,
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const N5DialogueRoleplayScreen())),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildQuickActionCard(
+                                context: context,
+                                title: "Trạm Ngữ Pháp & Sắp Xếp Câu N5",
+                                subtitle: "Kéo thả từ vựng, luyện trợ từ & cấu trúc ngữ pháp",
+                                icon: Icons.extension,
+                                color: AppColors.goldAccent,
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const N5GrammarBuilderScreen())),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildQuickActionCard(
+                                context: context,
+                                title: "Đề Thi Thử JLPT N5 Tổng Hợp",
+                                subtitle: "Đồng hồ bấm giờ 30 phút, chấm điểm thực chiến & lời giải",
+                                icon: Icons.assignment_turned_in,
+                                color: AppColors.softIndigo,
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const N5JlptMockExamScreen())),
                             ),
                             const SizedBox(height: 24),
 
