@@ -22,6 +22,16 @@ class AppColors {
     static const Color successGreen = Color(0xFF10B981);
     static const Color errorRed = Color(0xFFEF4444);
     static const Color warningOrange = Color(0xFFF97316);
+
+    // Duolingo-Inspired Gamified & Clean UI Colors (Tham chiếu Duolingo)
+    static const Color duoGreen = Color(0xFF58CC02);       // Feather Green (Primary Success & Continue)
+    static const Color duoGreenShadow = Color(0xFF58A700); // Chunky 3D Button Bottom Shadow
+    static const Color duoBlue = Color(0xFF1CB0F6);        // Macaw Blue (Grammar & Tips)
+    static const Color duoBlueShadow = Color(0xFF1899D6);  // Blue Button Bottom Shadow
+    static const Color duoYellow = Color(0xFFFFC800);      // Bee Yellow (Streaks, Stars, Rewards)
+    static const Color duoYellowShadow = Color(0xFFE5B400);// Yellow Button Bottom Shadow
+    static const Color duoRed = Color(0xFFFF4B4B);         // Cardinal Red (Errors & Heart Loss)
+    static const Color duoRedShadow = Color(0xFFD03838);   // Red Button Bottom Shadow
 }
 
 class AppTheme {

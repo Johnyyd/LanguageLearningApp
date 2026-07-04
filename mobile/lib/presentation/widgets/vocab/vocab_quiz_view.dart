@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../domain/entities/vocab_item.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../common/duo_button.dart';
 
 class VocabQuizView extends StatefulWidget {
     final List<VocabItem> vocabList;
@@ -140,36 +141,17 @@ class _VocabQuizViewState extends State<VocabQuizView> {
                             ),
                             const SizedBox(height: 32),
                             if (widget.onNextLesson != null) ...[
-                                SizedBox(
-                                    width: double.infinity,
-                                    height: 52,
-                                    child: ElevatedButton.icon(
-                                        onPressed: widget.onNextLesson,
-                                        icon: const Icon(Icons.auto_awesome),
-                                        label: const Text("🚀 Chuyển sang Bài học tiếp theo (Học từ mới)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor: AppColors.successGreen,
-                                            foregroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                            elevation: 4,
-                                        ),
-                                    ),
+                                DuoButton(
+                                    text: "🚀 Chuyển sang Bài học tiếp theo",
+                                    onPressed: widget.onNextLesson,
+                                    color: DuoButtonColor.green,
                                 ),
                                 const SizedBox(height: 12),
                             ],
-                            SizedBox(
-                                width: double.infinity,
-                                height: 50,
-                                child: ElevatedButton.icon(
-                                    onPressed: _resetQuiz,
-                                    icon: const Icon(Icons.replay),
-                                    label: const Text("Làm lại Quiz Trắc nghiệm", style: TextStyle(fontSize: 16)),
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.sakuraPink,
-                                        foregroundColor: AppColors.deepIndigo,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                    ),
-                                ),
+                            DuoButton(
+                                text: "Làm lại Quiz Trắc nghiệm",
+                                onPressed: _resetQuiz,
+                                color: DuoButtonColor.indigo,
                             ),
                         ],
                     ),
@@ -322,22 +304,10 @@ class _VocabQuizViewState extends State<VocabQuizView> {
 
                     // Next Question Button
                     if (_isAnswered)
-                        SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: ElevatedButton.icon(
-                                onPressed: _nextQuestion,
-                                icon: const Icon(Icons.arrow_forward),
-                                label: Text(
-                                    _currentQuestionIndex < widget.vocabList.length - 1 ? "Câu tiếp theo" : "Xem kết quả Quiz",
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.sakuraPink,
-                                    foregroundColor: AppColors.deepIndigo,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                ),
-                            ),
+                        DuoButton(
+                            text: _currentQuestionIndex < widget.vocabList.length - 1 ? "Câu tiếp theo" : "Xem kết quả Quiz",
+                            onPressed: _nextQuestion,
+                            color: DuoButtonColor.green,
                         ),
                 ],
             ),

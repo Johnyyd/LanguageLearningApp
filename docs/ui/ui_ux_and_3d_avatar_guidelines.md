@@ -27,6 +27,25 @@ Hệ thống sử dụng hai bảng màu riêng biệt được tinh chỉnh cho
 - **Font chính (UI & English/IELTS):** `Inter` hoặc `Outfit` – hiện đại, dễ đọc trên màn hình di động ở mọi kích thước.
 - **Font tiếng Nhật (Kana & Kanji):** `Noto Sans JP` hoặc `Kosugi Maru` – đảm bảo hiển thị rõ ràng từng nét khắc của chữ Hán và Kana, hỗ trợ tốt cho việc hướng dẫn thứ tự nét vẽ (Stroke Order).
 
+### 1.3. Tham chiếu Thiết kế từ Duolingo (Duolingo-Inspired Gamified & Clean UI System)
+Để đạt tiêu chí **"Hiện đại & Gọn gàng" (Modern & Clean)** mang phong cách Duolingo, hệ thống giao diện cần áp dụng các nguyên tắc cốt lõi sau:
+
+- **1. Triết lý "Gọn gàng & Rõ ràng" (Clean & Uncluttered Card Layouts):**
+  - Thẻ bài (Cards) có độ bo tròn lớn (`BorderRadius.circular(16)` đến `20`), khoảng trắng thoáng đãng (Generous Whitespace).
+  - Loại bỏ các đường viền mảnh rắc rối hoặc bóng đổ quá gắt; tập trung sự chú ý tuyệt đối vào nội dung câu hỏi và linh vật 3D Sensei.
+- **2. Nút bấm 3D phản hồi cơ học (Chunky 3D Tactile Buttons):**
+  - Nút bấm chính (Call-to-Action) luôn đi kèm viền bóng đổ dưới màu đậm hơn (Bottom Shadow Offset từ `4px` đến `6px`).
+  - Khi chạm vào, nút bấm bị lún xuống nhẹ (tạo cảm giác nhấn vật lý sống động, giống hệt nút bấm trên máy chơi game Arcade hoặc app Duolingo).
+- **3. Bảng màu năng lượng cao (Vibrant Gamified Tokens):**
+  - `Duolingo Feather Green` (`#58CC02` | Shadow `#58A700`): Dành cho nút **Tiếp tục / Kiểm tra**, các đáp án đúng và thanh tiến độ bài học.
+  - `Macaw Sky Blue` (`#1CB0F6` | Shadow `#1899D6`): Dành cho các thẻ gợi ý ngữ pháp, tip học tập nhanh từ Sensei.
+  - `Bee Golden Yellow` (`#FFC800` | Shadow `#E5B400`): Dành cho biểu tượng chuỗi ngày học (Streak), huy chương, sao thưởng SRS.
+  - `Cardinal Coral Red` (`#FF4B4B` | Shadow `#D03838`): Dành cho cảnh báo lỗi sai, điểm yếu ngữ pháp cần ôn tập lại.
+- **4. Lộ trình học tập kiểu bản đồ (Step-by-Step Path / Node Map):**
+  - Các bài học N5 được hiển thị theo chuỗi bước nối tiếp nhau theo trục dọc (Lesson Path), tạo cảm giác chinh phục từng chặng rõ ràng, hoàn thành bước trước mới mở khóa bước sau kèm hiệu ứng ăn mừng (Confetti).
+- **5. Đồng hành cùng Linh vật AI 3D (3D Mascot Companion):**
+  - Giống như cú Duo, nhân vật 3D Sensei xuất hiện bên cạnh các câu hỏi khó để làm mẫu giải thích (`explaining`), vỗ tay chúc mừng khi học viên chọn đúng (`cheering`), và chớp mắt/nghiêng đầu lắng nghe khi học viên đang tương tác (`idle`/`thinking`).
+
 ---
 
 ## 2. Chuẩn hóa Các Thành phần Giao diện Cốt lõi (Core Components)
