@@ -6,13 +6,32 @@ class SttHelper {
   static final SpeechToText _speech = SpeechToText();
   static bool _isInitialized = false;
   static Timer? _silenceTimer;
+  static Function(String text, bool isFinal)? _activeCallback;
+  static String _lastRecognizedWords = "";
+  static bool _isSessionActive = false;
 
   static Future<bool> init() async {
     if (_isInitialized) return true;
     try {
       _isInitialized = await _speech.initialize(
-        onStatus: (status) => debugPrint("STT Status: $status"),
-        onError: (errorNotification) => debugPrint("STT Error: $errorNotification"),
+        onStatus: (status) {
+          debugPrint("STT Status: $status");
+          if (status == "done" || status == "notListening") {
+            _silenceTimer?.cancel();
+            if (_isSessionActive) {
+              _isSessionActive = false;
+              _activeCallback?.call(_lastRecognizedWords, true);
+            }
+          }
+        },
+        onError: (errorNotification) {
+          debugPrint("STT Error: $errorNotification");
+          _silenceTimer?.cancel();
+          if (_isSessionActive) {
+            _isSessionActive = false;
+            _activeCallback?.call(_lastRecognizedWords, true);
+          }
+        },
       );
     } catch (e) {
       debugPrint("STT init exception: $e");
@@ -41,25 +60,36 @@ class SttHelper {
         targetLocale = systemLocale?.localeId ?? "vi_VN";
       }
 
-      String lastRecognizedWords = "";
+      _lastRecognizedWords = "";
+      _activeCallback = onResult;
+      _isSessionActive = true;
+
+      // Timer mặc định: nếu bật mic mà không nói gì trong 4 giây thì tự tắt
+      _silenceTimer = Timer(const Duration(seconds: 4), () async {
+        if (_isSessionActive) {
+          await stopListening();
+        }
+      });
 
       await _speech.listen(
         onResult: (result) {
-          lastRecognizedWords = result.recognizedWords;
+          _lastRecognizedWords = result.recognizedWords;
           
           if (result.finalResult) {
             _silenceTimer?.cancel();
-            onResult(lastRecognizedWords, true);
-          } else {
-            onResult(lastRecognizedWords, false);
-            // Reset timer tự động kết thúc sau khi im lặng
-            _silenceTimer?.cancel();
-            if (lastRecognizedWords.trim().isNotEmpty) {
-              _silenceTimer = Timer(pauseDuration, () async {
-                await stopListening();
-                onResult(lastRecognizedWords, true);
-              });
+            if (_isSessionActive) {
+              _isSessionActive = false;
+              onResult(_lastRecognizedWords, true);
             }
+          } else {
+            onResult(_lastRecognizedWords, false);
+            // Reset timer tự động kết thúc sau 2 giây im lặng
+            _silenceTimer?.cancel();
+            _silenceTimer = Timer(pauseDuration, () async {
+              if (_isSessionActive) {
+                await stopListening();
+              }
+            });
           }
         },
         localeId: targetLocale,
@@ -71,6 +101,7 @@ class SttHelper {
       return true;
     } catch (e) {
       debugPrint("STT listen error: $e");
+      _isSessionActive = false;
       return false;
     }
   }
@@ -78,6 +109,8 @@ class SttHelper {
   static Future<void> stopListening() async {
     _silenceTimer?.cancel();
     _silenceTimer = null;
+    final wasActive = _isSessionActive;
+    _isSessionActive = false;
     try {
       if (_speech.isListening) {
         await _speech.stop();
@@ -85,7 +118,10 @@ class SttHelper {
     } catch (e) {
       debugPrint("STT stop error: $e");
     }
+    if (wasActive) {
+      _activeCallback?.call(_lastRecognizedWords, true);
+    }
   }
 
-  static bool get isListening => _speech.isListening;
+  static bool get isListening => _isSessionActive || _speech.isListening;
 }

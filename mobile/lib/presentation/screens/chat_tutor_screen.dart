@@ -202,7 +202,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                             Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 child: Avatar3dViewer(
-                                    emotion: _isSpeaking ? "talking" : (_isListening ? "thinking" : emotion),
+                                    emotion: _isSpeaking ? "talking" : (_isListening ? "listening" : emotion),
                                     height: 320,
                                     isVoiceCloned: _enableVoiceCloning,
                                     voiceActorName: _currentVoiceActor,
