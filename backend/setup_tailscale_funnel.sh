@@ -11,7 +11,7 @@ sleep 5
 # Bước 6 trong repo: Tạo Public URL cho Tunnel
 echo "🌐 Đang tạo cấu hình Tailscale Funnel cho cổng 1112 (AI Gateway)..."
 docker exec tunnel-ai-gateway tailscale serve reset
-docker exec tunnel-ai-gateway tailscale funnel --bg http://127.0.0.1:1112
+docker exec tunnel-ai-gateway tailscale funnel --bg http://localhost:1112
 
 echo ""
 echo "============================================================"

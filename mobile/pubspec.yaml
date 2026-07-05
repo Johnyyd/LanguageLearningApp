@@ -52,5 +52,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/models/
+    - assets/models/zero_two/
+    - assets/models/zero_two/textures/
     - assets/animations/
     - assets/images/

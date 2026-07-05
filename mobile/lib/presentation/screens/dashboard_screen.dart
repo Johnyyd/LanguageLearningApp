@@ -252,7 +252,7 @@ class DashboardScreen extends StatelessWidget {
                                                                         children: [
                                                                             Icon(Icons.style, color: AppColors.sakuraPink, size: 20),
                                                                             SizedBox(width: 6),
-                                                                            Text("Từ Vựng N5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                                                            Expanded(child: Text("Từ Vựng N5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis)),
                                                                         ],
                                                                     ),
                                                                     const SizedBox(height: 12),
@@ -291,7 +291,7 @@ class DashboardScreen extends StatelessWidget {
                                                                         children: [
                                                                             Icon(Icons.draw, color: AppColors.softIndigo, size: 20),
                                                                             SizedBox(width: 6),
-                                                                            Text("Luyện Viết Kana", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                                                            Expanded(child: Text("Luyện Viết Kana", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis)),
                                                                         ],
                                                                     ),
                                                                     const SizedBox(height: 12),

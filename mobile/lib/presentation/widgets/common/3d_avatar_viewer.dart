@@ -1,12 +1,14 @@
 // ignore_for_file: file_names
-import 'dart:io' show Platform;
+import 'dart:convert' show base64Encode, jsonDecode, jsonEncode, utf8;
+import 'dart:io' show File, Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:model_viewer_plus/model_viewer_plus.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 
-class Avatar3dViewer extends StatelessWidget {
+class Avatar3dViewer extends StatefulWidget {
     final String emotion; // idle, talking, thinking, happy, cheering
     final double height;
     final VoidCallback? onTap;
@@ -28,6 +30,15 @@ class Avatar3dViewer extends StatelessWidget {
         this.visemes,
     });
 
+    @override
+    State<Avatar3dViewer> createState() => _Avatar3dViewerState();
+}
+
+class _Avatar3dViewerState extends State<Avatar3dViewer> {
+    String? _preparedModelUrl;
+    bool _isPreparing = false;
+    String _lastInputUrl = "";
+
     bool get _isWebViewSupported {
         if (kIsWeb) return true;
         try {
@@ -38,15 +49,174 @@ class Avatar3dViewer extends StatelessWidget {
     }
 
     @override
+    void initState() {
+        super.initState();
+        _prepareModel();
+    }
+
+    @override
+    void didUpdateWidget(covariant Avatar3dViewer oldWidget) {
+        super.didUpdateWidget(oldWidget);
+        final String effectiveUrl = (widget.customAvatarUrl != null && widget.customAvatarUrl!.isNotEmpty)
+            ? widget.customAvatarUrl!
+            : AppConstants.avatar3dUrl;
+        if (effectiveUrl != _lastInputUrl) {
+            _prepareModel();
+        }
+    }
+
+    Future<void> _prepareModel() async {
+        final String inputUrl = (widget.customAvatarUrl != null && widget.customAvatarUrl!.isNotEmpty)
+            ? widget.customAvatarUrl!
+            : AppConstants.avatar3dUrl;
+        
+        if (inputUrl == _lastInputUrl && _preparedModelUrl != null) return;
+        _lastInputUrl = inputUrl;
+
+        // Nếu là URL web hoặc đã là Data URI thì sử dụng trực tiếp
+        if (inputUrl.startsWith("http://") || inputUrl.startsWith("https://") || inputUrl.startsWith("data:")) {
+            if (mounted) {
+                setState(() {
+                    _preparedModelUrl = inputUrl;
+                    _isPreparing = false;
+                });
+            }
+            return;
+        }
+
+        if (mounted) {
+            setState(() {
+                _isPreparing = true;
+            });
+        }
+
+        try {
+            String cleanPath = inputUrl.startsWith("file://") ? inputUrl.replaceFirst("file://", "") : inputUrl;
+            String resultUrl = inputUrl;
+
+            // 1. Xử lý mô hình từ Assets (Built-in Zero Two hoặc assets khác)
+            if (cleanPath.startsWith("assets/")) {
+                if (cleanPath.endsWith(".gltf")) {
+                    final gltfString = await rootBundle.loadString(cleanPath);
+                    final Map<String, dynamic> gltfJson = jsonDecode(gltfString);
+                    final baseDir = cleanPath.substring(0, cleanPath.lastIndexOf('/') + 1);
+
+                    // Nhúng buffer geometry (.bin) thành Base64
+                    if (gltfJson['buffers'] != null && gltfJson['buffers'] is List) {
+                        for (var buffer in gltfJson['buffers']) {
+                            final String? uri = buffer['uri'];
+                            if (uri != null && !uri.startsWith('data:') && !uri.startsWith('http')) {
+                                final binBytes = await rootBundle.load('$baseDir$uri');
+                                final base64String = base64Encode(binBytes.buffer.asUint8List());
+                                buffer['uri'] = 'data:application/octet-stream;base64,$base64String';
+                            }
+                        }
+                    }
+
+                    // Nhúng texture images (.png/.jpg) thành Base64
+                    if (gltfJson['images'] != null && gltfJson['images'] is List) {
+                        for (var img in gltfJson['images']) {
+                            final String? uri = img['uri'];
+                            if (uri != null && !uri.startsWith('data:') && !uri.startsWith('http')) {
+                                final imgBytes = await rootBundle.load('$baseDir$uri');
+                                final base64String = base64Encode(imgBytes.buffer.asUint8List());
+                                String mimeType = 'image/png';
+                                if (uri.endsWith('.jpg') || uri.endsWith('.jpeg')) mimeType = 'image/jpeg';
+                                img['uri'] = 'data:$mimeType;base64,$base64String';
+                            }
+                        }
+                    }
+
+                    final modifiedGltfString = jsonEncode(gltfJson);
+                    final base64Gltf = base64Encode(utf8.encode(modifiedGltfString));
+                    resultUrl = 'data:model/gltf+json;base64,$base64Gltf';
+                } else if (cleanPath.endsWith(".glb")) {
+                    final bytes = await rootBundle.load(cleanPath);
+                    final base64String = base64Encode(bytes.buffer.asUint8List());
+                    resultUrl = 'data:model/gltf-binary;base64,$base64String';
+                }
+            }
+            // 2. Xử lý mô hình từ file cục bộ (khi người dùng upload file từ điện thoại)
+            else {
+                final file = File(cleanPath);
+                if (await file.exists()) {
+                    if (cleanPath.endsWith(".glb")) {
+                        final bytes = await file.readAsBytes();
+                        final base64String = base64Encode(bytes);
+                        resultUrl = 'data:model/gltf-binary;base64,$base64String';
+                    } else if (cleanPath.endsWith(".gltf")) {
+                        final gltfString = await file.readAsString();
+                        final Map<String, dynamic> gltfJson = jsonDecode(gltfString);
+                        final baseDir = file.parent.path;
+
+                        if (gltfJson['buffers'] != null && gltfJson['buffers'] is List) {
+                            for (var buffer in gltfJson['buffers']) {
+                                final String? uri = buffer['uri'];
+                                if (uri != null && !uri.startsWith('data:') && !uri.startsWith('http')) {
+                                    final binFile = File('$baseDir/$uri');
+                                    if (await binFile.exists()) {
+                                        final binBytes = await binFile.readAsBytes();
+                                        final base64String = base64Encode(binBytes);
+                                        buffer['uri'] = 'data:application/octet-stream;base64,$base64String';
+                                    }
+                                }
+                            }
+                        }
+
+                        if (gltfJson['images'] != null && gltfJson['images'] is List) {
+                            for (var img in gltfJson['images']) {
+                                final String? uri = img['uri'];
+                                if (uri != null && !uri.startsWith('data:') && !uri.startsWith('http')) {
+                                    final imgFile = File('$baseDir/$uri');
+                                    if (await imgFile.exists()) {
+                                        final imgBytes = await imgFile.readAsBytes();
+                                        final base64String = base64Encode(imgBytes);
+                                        String mimeType = 'image/png';
+                                        if (uri.endsWith('.jpg') || uri.endsWith('.jpeg')) mimeType = 'image/jpeg';
+                                        img['uri'] = 'data:$mimeType;base64,$base64String';
+                                    }
+                                }
+                            }
+                        }
+
+                        final modifiedGltfString = jsonEncode(gltfJson);
+                        final base64Gltf = base64Encode(utf8.encode(modifiedGltfString));
+                        resultUrl = 'data:model/gltf+json;base64,$base64Gltf';
+                    } else {
+                        final bytes = await file.readAsBytes();
+                        final base64String = base64Encode(bytes);
+                        resultUrl = 'data:application/octet-stream;base64,$base64String';
+                    }
+                }
+            }
+
+            if (mounted) {
+                setState(() {
+                    _preparedModelUrl = resultUrl;
+                    _isPreparing = false;
+                });
+            }
+        } catch (e) {
+            debugPrint("Error preparing 3D model: \$e");
+            if (mounted) {
+                setState(() {
+                    _preparedModelUrl = inputUrl; // Fallback nếu có lỗi
+                    _isPreparing = false;
+                });
+            }
+        }
+    }
+
+    @override
     Widget build(BuildContext context) {
-        final String effectiveModelUrl = (customAvatarUrl != null && customAvatarUrl!.isNotEmpty)
-            ? customAvatarUrl!
+        final String effectiveModelUrl = (widget.customAvatarUrl != null && widget.customAvatarUrl!.isNotEmpty)
+            ? widget.customAvatarUrl!
             : AppConstants.avatar3dUrl;
 
         return GestureDetector(
-            onTap: onTap,
+            onTap: widget.onTap,
             child: Container(
-                height: height,
+                height: widget.height,
                 width: double.infinity,
                 decoration: BoxDecoration(
                     gradient: const LinearGradient(
@@ -68,8 +238,8 @@ class Avatar3dViewer extends StatelessWidget {
                         ),
                         BoxShadow(
                             color: AppColors.deepIndigo.withValues(alpha: 0.4),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                            blurRadius: 30,
+                            offset: const Offset(0, 15),
                         ),
                     ],
                 ),
@@ -78,18 +248,22 @@ class Avatar3dViewer extends StatelessWidget {
                         // Universal 3D Avatar Loader (GLB/VRM or Desktop fallback)
                         ClipRRect(
                             borderRadius: BorderRadius.circular(26),
-                            child: _isWebViewSupported
-                                ? ModelViewer(
-                                    backgroundColor: const Color.fromARGB(0, 0, 0, 0),
-                                    src: effectiveModelUrl,
-                                    alt: "Grok Ani style 3D Sensei AI Tutor",
-                                    ar: false,
-                                    autoRotate: emotion == "thinking" || emotion == "idle",
-                                    autoPlay: true,
-                                    cameraControls: true,
-                                    animationName: _getAnimationName(emotion),
-                                )
-                                : _buildDesktopFallbackAvatar(effectiveModelUrl),
+                            child: _isPreparing
+                                ? const Center(
+                                    child: CircularProgressIndicator(color: AppColors.sakuraPink),
+                                  )
+                                : _isWebViewSupported
+                                    ? ModelViewer(
+                                        backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+                                        src: _preparedModelUrl ?? effectiveModelUrl,
+                                        alt: "Grok Ani style 3D Sensei AI Tutor",
+                                        ar: false,
+                                        autoRotate: widget.emotion == "thinking" || widget.emotion == "idle",
+                                        autoPlay: true,
+                                        cameraControls: true,
+                                        animationName: _getAnimationName(widget.emotion),
+                                    )
+                                    : _buildDesktopFallbackAvatar(effectiveModelUrl),
                         ),
                         // Grok Ani VTuber Mode Header Badge (Top Left)
                         Positioned(
@@ -129,7 +303,7 @@ class Avatar3dViewer extends StatelessWidget {
                             child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                    color: _getBadgeColor(emotion),
+                                    color: _getBadgeColor(widget.emotion),
                                     borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                         BoxShadow(
@@ -142,13 +316,13 @@ class Avatar3dViewer extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                         Icon(
-                                            _getBadgeIcon(emotion),
+                                            _getBadgeIcon(widget.emotion),
                                             color: Colors.white,
                                             size: 14,
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
-                                            _getBadgeText(emotion),
+                                            _getBadgeText(widget.emotion),
                                             style: const TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 11,
@@ -160,7 +334,7 @@ class Avatar3dViewer extends StatelessWidget {
                             ),
                         ),
                         // Real-time Lip-Sync Audio Waveform Indicator when talking
-                        if (emotion == "talking" || emotion == "thinking")
+                        if (widget.emotion == "talking" || widget.emotion == "thinking")
                             Positioned(
                                 top: 48,
                                 left: 16,
@@ -182,7 +356,7 @@ class Avatar3dViewer extends StatelessWidget {
                                             _buildWaveBar(16, 250),
                                             const SizedBox(width: 6),
                                             Text(
-                                                emotion == "talking" ? "Lip-Sync Active" : "AI Reasoning...",
+                                                widget.emotion == "talking" ? "Lip-Sync Active" : "AI Reasoning...",
                                                 style: const TextStyle(color: AppColors.duoGreen, fontSize: 11, fontWeight: FontWeight.bold),
                                             ),
                                         ],
@@ -206,7 +380,7 @@ class Avatar3dViewer extends StatelessWidget {
                                         const Icon(Icons.auto_awesome, color: AppColors.duoYellow, size: 16),
                                         const SizedBox(width: 6),
                                         Text(
-                                            isVoiceCloned ? "Sensei (VA: $voiceActorName)" : "Sensei AI (3D Tutor)",
+                                            widget.isVoiceCloned ? "Sensei (VA: ${widget.voiceActorName})" : "Sensei AI (3D Tutor)",
                                             style: const TextStyle(color: Color(0xFF3C3C3C), fontWeight: FontWeight.w600, fontSize: 12),
                                         ),
                                     ],
@@ -214,12 +388,12 @@ class Avatar3dViewer extends StatelessWidget {
                             ),
                         ),
                         // Quick Action: Upload 3D Model File button (Bottom Right)
-                        if (onUploadTap != null)
+                        if (widget.onUploadTap != null)
                             Positioned(
                                 bottom: 14,
                                 right: 14,
                                 child: ElevatedButton.icon(
-                                    onPressed: onUploadTap,
+                                    onPressed: widget.onUploadTap,
                                     style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors.sakuraPink,
                                         foregroundColor: Colors.white,
@@ -240,7 +414,7 @@ class Avatar3dViewer extends StatelessWidget {
 
     Widget _buildWaveBar(double maxH, int speedMs) {
         return TweenAnimationBuilder<double>(
-            tween: Tween(begin: 4.0, end: emotion == "talking" ? maxH : 6.0),
+            tween: Tween(begin: 4.0, end: widget.emotion == "talking" ? maxH : 6.0),
             duration: Duration(milliseconds: speedMs),
             curve: Curves.easeInOut,
             builder: (context, val, _) {
@@ -248,7 +422,7 @@ class Avatar3dViewer extends StatelessWidget {
                     width: 3,
                     height: val,
                     decoration: BoxDecoration(
-                        color: emotion == "talking" ? AppColors.sakuraPink : AppColors.warningOrange,
+                        color: widget.emotion == "talking" ? AppColors.sakuraPink : AppColors.warningOrange,
                         borderRadius: BorderRadius.circular(2),
                     ),
                 );
@@ -275,26 +449,26 @@ class Avatar3dViewer extends StatelessWidget {
                                     shape: BoxShape.circle,
                                     gradient: RadialGradient(
                                         colors: [
-                                            _getBadgeColor(emotion).withValues(alpha: 0.2),
+                                            _getBadgeColor(widget.emotion).withValues(alpha: 0.2),
                                             Colors.white,
                                         ],
                                     ),
                                     border: Border.all(
-                                        color: _getBadgeColor(emotion),
-                                        width: emotion == "talking" || emotion == "thinking" ? 2.5 : 1.5,
+                                        color: _getBadgeColor(widget.emotion),
+                                        width: widget.emotion == "talking" || widget.emotion == "thinking" ? 2.5 : 1.5,
                                     ),
                                     boxShadow: [
                                         BoxShadow(
-                                            color: _getBadgeColor(emotion).withValues(alpha: 0.4),
-                                            blurRadius: emotion == "talking" || emotion == "thinking" ? 16 : 8,
-                                            spreadRadius: emotion == "talking" ? 3 : 0,
+                                            color: _getBadgeColor(widget.emotion).withValues(alpha: 0.4),
+                                            blurRadius: widget.emotion == "talking" || widget.emotion == "thinking" ? 16 : 8,
+                                            spreadRadius: widget.emotion == "talking" ? 3 : 0,
                                         ),
                                     ],
                                 ),
                                 child: Icon(
-                                    _getBadgeIcon(emotion),
+                                    _getBadgeIcon(widget.emotion),
                                     size: 32,
-                                    color: _getBadgeColor(emotion),
+                                    color: _getBadgeColor(widget.emotion),
                                 ),
                             ),
                             const SizedBox(height: 8),
@@ -346,11 +520,11 @@ class Avatar3dViewer extends StatelessWidget {
 
     String _getBadgeText(String em) {
         switch (em) {
-            case "talking": return isVoiceCloned ? "Anime VA Lip-Sync..." : "Đang nói...";
+            case "talking": return widget.isVoiceCloned ? "Anime VA Lip-Sync..." : "Đang nói...";
             case "thinking": return "Đang suy nghĩ...";
             case "happy": return "Vui mừng!";
             case "cheering": return "Tuyệt vời!";
-            default: return isVoiceCloned ? "Sẵn sàng (Anime VA)" : "Sẵn sàng";
+            default: return widget.isVoiceCloned ? "Sẵn sàng (Anime VA)" : "Sẵn sàng";
         }
     }
 }
