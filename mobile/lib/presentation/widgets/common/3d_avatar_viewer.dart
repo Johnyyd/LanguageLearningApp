@@ -115,7 +115,7 @@ class Avatar3dViewer extends StatelessWidget {
                                         ),
                                         const SizedBox(width: 6),
                                         const Text(
-                                            "✨ GROK ANI COMPANION",
+                                            "GROK ANI COMPANION",
                                             style: TextStyle(color: AppColors.sakuraPink, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5),
                                         ),
                                     ],
@@ -229,7 +229,7 @@ class Avatar3dViewer extends StatelessWidget {
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                     ),
                                     icon: const Icon(Icons.folder_open, size: 16),
-                                    label: const Text("📁 Tải File 3D", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                    label: const Text("Tải File 3D", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                                 ),
                             ),
                     ],
@@ -258,55 +258,57 @@ class Avatar3dViewer extends StatelessWidget {
 
     Widget _buildDesktopFallbackAvatar(String modelUrl) {
         final String modelName = modelUrl.split('/').last.replaceAll(RegExp(r'(\?.*|#.*)'), '');
-        return Align(
-            alignment: const Alignment(0, -0.25),
-            child: SingleChildScrollView(
-                padding: const EdgeInsets.only(top: 28, bottom: 28, left: 16, right: 16),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                        // Compact VTuber AI Glowing Avatar Icon
-                        AnimatedContainer(
-                            duration: const Duration(milliseconds: 500),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: RadialGradient(
-                                    colors: [
-                                        _getBadgeColor(emotion).withValues(alpha: 0.2),
-                                        Colors.white,
+        return Center(
+            child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                            // Compact VTuber AI Glowing Avatar Icon
+                            AnimatedContainer(
+                                duration: const Duration(milliseconds: 500),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: RadialGradient(
+                                        colors: [
+                                            _getBadgeColor(emotion).withValues(alpha: 0.2),
+                                            Colors.white,
+                                        ],
+                                    ),
+                                    border: Border.all(
+                                        color: _getBadgeColor(emotion),
+                                        width: emotion == "talking" || emotion == "thinking" ? 2.5 : 1.5,
+                                    ),
+                                    boxShadow: [
+                                        BoxShadow(
+                                            color: _getBadgeColor(emotion).withValues(alpha: 0.4),
+                                            blurRadius: emotion == "talking" || emotion == "thinking" ? 16 : 8,
+                                            spreadRadius: emotion == "talking" ? 3 : 0,
+                                        ),
                                     ],
                                 ),
-                                border: Border.all(
+                                child: Icon(
+                                    _getBadgeIcon(emotion),
+                                    size: 32,
                                     color: _getBadgeColor(emotion),
-                                    width: emotion == "talking" || emotion == "thinking" ? 2.5 : 1.5,
                                 ),
-                                boxShadow: [
-                                    BoxShadow(
-                                        color: _getBadgeColor(emotion).withValues(alpha: 0.4),
-                                        blurRadius: emotion == "talking" || emotion == "thinking" ? 16 : 8,
-                                        spreadRadius: emotion == "talking" ? 3 : 0,
-                                    ),
-                                ],
                             ),
-                            child: Icon(
-                                _getBadgeIcon(emotion),
-                                size: 32,
-                                color: _getBadgeColor(emotion),
+                            const SizedBox(height: 8),
+                            Text(
+                                "Trợ Lý 3D Sẵn Sàng ($modelName)",
+                                style: TextStyle(
+                                    color: AppColors.duoGreen,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.3,
+                                ),
                             ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                            "Trợ Lý 3D Sẵn Sàng ($modelName)",
-                            style: TextStyle(
-                                color: AppColors.duoGreen,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.3,
-                            ),
-                        ),
-                    ],
+                        ],
+                    ),
                 ),
             ),
         );
@@ -344,7 +346,7 @@ class Avatar3dViewer extends StatelessWidget {
 
     String _getBadgeText(String em) {
         switch (em) {
-            case "talking": return isVoiceCloned ? "🎙️ Anime VA Lip-Sync..." : "Đang nói...";
+            case "talking": return isVoiceCloned ? "Anime VA Lip-Sync..." : "Đang nói...";
             case "thinking": return "Đang suy nghĩ...";
             case "happy": return "Vui mừng!";
             case "cheering": return "Tuyệt vời!";

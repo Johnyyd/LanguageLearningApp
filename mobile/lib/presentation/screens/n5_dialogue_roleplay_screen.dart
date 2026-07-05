@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/tts_helper.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
 
 class DialogueScenario {
@@ -184,23 +185,13 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
 
     void _speak(String text) async {
         if (_isSpeaking) {
-            try {
-                await _flutterTts.stop();
-            } catch (_) {}
+            await TtsHelper.stop(_flutterTts);
             if (mounted) setState(() => _isSpeaking = false);
             return;
         }
-        try {
-            await _flutterTts.speak(text);
-            if (mounted) setState(() => _isSpeaking = true);
-        } catch (_) {
-            if (mounted) {
-                setState(() => _isSpeaking = true);
-                Future.delayed(const Duration(seconds: 2), () {
-                    if (mounted) setState(() => _isSpeaking = false);
-                });
-            }
-        }
+        if (mounted) setState(() => _isSpeaking = true);
+        await TtsHelper.speak(text, lang: "ja-JP", tts: _flutterTts);
+        if (mounted) setState(() => _isSpeaking = false);
     }
 
     void _simulateUserSpeech() {
@@ -225,7 +216,7 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
 
     @override
     void dispose() {
-        _flutterTts.stop();
+        TtsHelper.stop(_flutterTts);
         super.dispose();
     }
 

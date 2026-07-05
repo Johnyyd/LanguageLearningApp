@@ -7,6 +7,7 @@ import '../blocs/chat/chat_event.dart';
 import '../blocs/chat/chat_state.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/tts_helper.dart';
 
 class ChatTutorScreen extends StatefulWidget {
     const ChatTutorScreen({super.key});
@@ -67,11 +68,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
 
     void _speak(String text) async {
         if (_isSpeaking) {
-            try {
-                await _flutterTts.stop();
-            } catch (e) {
-                // Ignore stop error on Linux
-            }
+            await TtsHelper.stop(_flutterTts);
             if (mounted) {
                 setState(() => _isSpeaking = false);
                 context.read<ChatBloc>().add(const UpdateAvatarEmotion("happy"));
@@ -79,21 +76,14 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
             return;
         }
 
-        try {
-            await _flutterTts.speak(text);
-        } catch (e) {
-            debugPrint("⚠️ TTS speak error / fallback: $e");
-            // Fallback lip-sync simulation for Linux Desktop / unsupported platforms
-            if (mounted) {
-                setState(() => _isSpeaking = true);
-                context.read<ChatBloc>().add(const UpdateAvatarEmotion("talking"));
-                Future.delayed(const Duration(seconds: 3), () {
-                    if (mounted && _isSpeaking) {
-                        setState(() => _isSpeaking = false);
-                        context.read<ChatBloc>().add(const UpdateAvatarEmotion("happy"));
-                    }
-                });
-            }
+        if (mounted) {
+            setState(() => _isSpeaking = true);
+            context.read<ChatBloc>().add(const UpdateAvatarEmotion("talking"));
+        }
+        await TtsHelper.speak(text, lang: "vi-VN", tts: _flutterTts);
+        if (mounted && _isSpeaking) {
+            setState(() => _isSpeaking = false);
+            context.read<ChatBloc>().add(const UpdateAvatarEmotion("happy"));
         }
     }
 
@@ -128,7 +118,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
     @override
     void dispose() {
         _msgController.dispose();
-        _flutterTts.stop();
+        TtsHelper.stop(_flutterTts);
         super.dispose();
     }
 
