@@ -258,7 +258,7 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                                         src: _preparedModelUrl ?? effectiveModelUrl,
                                         alt: "Grok Ani style 3D Sensei AI Tutor",
                                         ar: false,
-                                        autoRotate: widget.emotion == "thinking" || widget.emotion == "idle",
+                                        autoRotate: widget.emotion == "thinking" || widget.emotion == "idle" || widget.emotion == "listening",
                                         autoPlay: true,
                                         cameraControls: true,
                                         animationName: _getAnimationName(widget.emotion),
@@ -334,7 +334,7 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                             ),
                         ),
                         // Real-time Lip-Sync Audio Waveform Indicator when talking
-                        if (widget.emotion == "talking" || widget.emotion == "thinking")
+                        if (widget.emotion == "talking" || widget.emotion == "thinking" || widget.emotion == "listening")
                             Positioned(
                                 top: 48,
                                 left: 16,
@@ -356,7 +356,7 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                                             _buildWaveBar(16, 250),
                                             const SizedBox(width: 6),
                                             Text(
-                                                widget.emotion == "talking" ? "Lip-Sync Active" : "AI Reasoning...",
+                                                widget.emotion == "talking" ? "Lip-Sync Active" : (widget.emotion == "listening" ? "Đang thu âm..." : "AI Reasoning..."),
                                                 style: const TextStyle(color: AppColors.duoGreen, fontSize: 11, fontWeight: FontWeight.bold),
                                             ),
                                         ],
@@ -455,12 +455,12 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                                     ),
                                     border: Border.all(
                                         color: _getBadgeColor(widget.emotion),
-                                        width: widget.emotion == "talking" || widget.emotion == "thinking" ? 2.5 : 1.5,
+                                        width: widget.emotion == "talking" || widget.emotion == "thinking" || widget.emotion == "listening" ? 2.5 : 1.5,
                                     ),
                                     boxShadow: [
                                         BoxShadow(
                                             color: _getBadgeColor(widget.emotion).withValues(alpha: 0.4),
-                                            blurRadius: widget.emotion == "talking" || widget.emotion == "thinking" ? 16 : 8,
+                                            blurRadius: widget.emotion == "talking" || widget.emotion == "thinking" || widget.emotion == "listening" ? 16 : 8,
                                             spreadRadius: widget.emotion == "talking" ? 3 : 0,
                                         ),
                                     ],
@@ -492,6 +492,7 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
         switch (em) {
             case "talking": return "Wave";
             case "thinking": return "Walking";
+            case "listening": return "Idle";
             case "happy":
             case "cheering": return "Jump";
             default: return "Idle";
@@ -502,6 +503,7 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
         switch (em) {
             case "talking": return AppColors.successGreen;
             case "thinking": return AppColors.warningOrange;
+            case "listening": return AppColors.duoYellow;
             case "happy":
             case "cheering": return AppColors.sakuraPink;
             default: return AppColors.slateGray;
@@ -512,6 +514,7 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
         switch (em) {
             case "talking": return Icons.record_voice_over;
             case "thinking": return Icons.psychology;
+            case "listening": return Icons.mic;
             case "happy":
             case "cheering": return Icons.celebration;
             default: return Icons.smart_toy;
@@ -522,6 +525,7 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
         switch (em) {
             case "talking": return widget.isVoiceCloned ? "Anime VA Lip-Sync..." : "Đang nói...";
             case "thinking": return "Đang suy nghĩ...";
+            case "listening": return "Đang thu âm...";
             case "happy": return "Vui mừng!";
             case "cheering": return "Tuyệt vời!";
             default: return widget.isVoiceCloned ? "Sẵn sàng (Anime VA)" : "Sẵn sàng";

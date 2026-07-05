@@ -8,6 +8,7 @@ import '../blocs/chat/chat_state.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/tts_helper.dart';
+import '../../core/utils/stt_helper.dart';
 
 class ChatTutorScreen extends StatefulWidget {
     const ChatTutorScreen({super.key});
@@ -89,11 +90,14 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
 
     void _toggleVoiceInput() async {
         if (_isListening) {
-            setState(() => _isListening = false);
-            context.read<ChatBloc>().add(const UpdateAvatarEmotion("idle"));
+            await SttHelper.stopListening();
+            if (mounted) {
+                setState(() => _isListening = false);
+                context.read<ChatBloc>().add(const UpdateAvatarEmotion("idle"));
+            }
         } else {
             setState(() => _isListening = true);
-            context.read<ChatBloc>().add(const UpdateAvatarEmotion("thinking"));
+            context.read<ChatBloc>().add(const UpdateAvatarEmotion("listening"));
             ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                     content: Text("Đang lắng nghe... Hãy nói câu hỏi của bạn!"),
@@ -102,16 +106,35 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                 ),
             );
             
-            // Simulate portfolio voice STT recognition
-            Future.delayed(const Duration(seconds: 2), () {
-                if (mounted && _isListening) {
-                    setState(() {
-                        _isListening = false;
-                        _msgController.text = "Thầy ơi, giải thích giúp em cách dùng mẫu câu ~te imasu với ạ?";
-                    });
-                    context.read<ChatBloc>().add(const UpdateAvatarEmotion("happy"));
-                }
-            });
+            final success = await SttHelper.startListening(
+                onResult: (text, isFinal) {
+                    if (mounted) {
+                        setState(() {
+                            _msgController.text = text;
+                        });
+                        if (isFinal) {
+                            setState(() => _isListening = false);
+                            if (_msgController.text.trim().isNotEmpty) {
+                                _send();
+                            } else {
+                                context.read<ChatBloc>().add(const UpdateAvatarEmotion("idle"));
+                            }
+                        }
+                    }
+                },
+            );
+
+            if (!success && mounted) {
+                setState(() => _isListening = false);
+                context.read<ChatBloc>().add(const UpdateAvatarEmotion("idle"));
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text("Không thể thu âm hoặc chưa cấp quyền micro!"),
+                        backgroundColor: AppColors.duoRed,
+                        duration: Duration(seconds: 3),
+                    ),
+                );
+            }
         }
     }
 
@@ -119,6 +142,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
     void dispose() {
         _msgController.dispose();
         TtsHelper.stop(_flutterTts);
+        SttHelper.stopListening();
         super.dispose();
     }
 
@@ -378,6 +402,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
     void _send() {
         if (_msgController.text.trim().isNotEmpty) {
             if (_isListening) {
+                SttHelper.stopListening();
                 setState(() => _isListening = false);
             }
             context.read<ChatBloc>().add(SendChatMessage(_msgController.text.trim(), moduleContext: _moduleContext));

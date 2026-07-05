@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/tts_helper.dart';
+import '../../core/utils/stt_helper.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
 
 class DialogueScenario {
@@ -194,29 +195,51 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
         if (mounted) setState(() => _isSpeaking = false);
     }
 
-    void _simulateUserSpeech() {
+    void _simulateUserSpeech() async {
+        if (_isListeningMic) {
+            await SttHelper.stopListening();
+            if (mounted) setState(() => _isListeningMic = false);
+            return;
+        }
+
         setState(() => _isListeningMic = true);
-        Future.delayed(const Duration(milliseconds: 1800), () {
-            if (!mounted) return;
-            setState(() {
-                _isListeningMic = false;
-                if (_selectedScenarioIndex != null &&
-                    _currentTurnIndex < _scenarios[_selectedScenarioIndex!].turns.length - 1) {
-                    _currentTurnIndex++;
+        final success = await SttHelper.startListening(
+            localeId: "ja_JP",
+            onResult: (text, isFinal) {
+                if (mounted && isFinal) {
+                    setState(() {
+                        _isListeningMic = false;
+                        if (_selectedScenarioIndex != null &&
+                            _currentTurnIndex < _scenarios[_selectedScenarioIndex!].turns.length - 1) {
+                            _currentTurnIndex++;
+                        }
+                    });
+                    final display = text.isNotEmpty ? "Bạn nói: \"$text\" - Phát âm tốt!" : "Phát âm của bạn rất tốt! Độ trôi chảy: 95%";
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(display),
+                            backgroundColor: AppColors.duoGreen,
+                        ),
+                    );
                 }
-            });
+            },
+        );
+
+        if (!success && mounted) {
+            setState(() => _isListeningMic = false);
             ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                    content: Text("Phát âm của bạn rất tốt! Độ trôi chảy: 95%"),
-                    backgroundColor: AppColors.duoGreen,
+                    content: Text("Không thể thu âm hoặc chưa cấp quyền micro!"),
+                    backgroundColor: AppColors.duoRed,
                 ),
             );
-        });
+        }
     }
 
     @override
     void dispose() {
         TtsHelper.stop(_flutterTts);
+        SttHelper.stopListening();
         super.dispose();
     }
 
