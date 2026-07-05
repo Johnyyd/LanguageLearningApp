@@ -515,7 +515,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
 
     Future<void> _pickAndUpload3dFile() async {
         try {
-            final result = await FilePicker.pickFiles(
+            final result = await FilePicker.platform.pickFiles(
                 type: FileType.any,
             );
             if (result != null && result.files.single.path != null) {

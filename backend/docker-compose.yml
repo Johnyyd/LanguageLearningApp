@@ -1,3 +1,17 @@
+x-tailscale-common: &tailscale-common
+  image: tailscale/tailscale:latest
+  network_mode: host
+  environment: &tailscale-env
+    # Lấy auth key từ: https://login.tailscale.com/admin/settings/keys (Chọn Reusable)
+    - TS_AUTHKEY=${TS_AUTHKEY:-tskey-auth-kHayJBjr9j11CNTRL-dfkHN8fxFdEnyYFPPQR3dEQ6gD3pKJxL}
+    # Thư mục state - lưu giữ IP qua các lần khởi động lại
+    - TS_STATE_DIR=/var/lib/tailscale
+    # Chế độ userspace - chạy không cần quyền root
+    - TS_USERSPACE=true
+    # Tắt DNS Tailscale để không ảnh hưởng host DNS
+    - TS_ACCEPT_DNS=false
+  restart: unless-stopped
+
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -57,7 +71,7 @@ services:
       - ./voice_engine:/app
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:1114/health || exit 1"]
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:1114/health\")' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -84,6 +98,21 @@ services:
     volumes:
       - .:/app
     restart: unless-stopped
+
+  # ============================================================
+  # Tunnel Tailscale Funnel: Expose AI Gateway (port 1112) ra Public URL
+  # Hướng dẫn từ: https://github.com/Johnyyd/tailscale_public_url
+  # ============================================================
+  tunnel-ai-gateway:
+    <<: *tailscale-common
+    container_name: tunnel-ai-gateway
+    hostname: ai-gateway
+    env_file:
+      - .env
+    volumes:
+      - ./tunnels/ai-gateway:/var/lib/tailscale
+    depends_on:
+      - ai-gateway
 
 volumes:
   mssql_data:
