@@ -146,13 +146,128 @@ def synthesize_speech(request: SynthesisRequest):
         visemes=visemes
     )
 
+def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed: float = 1.0) -> bytes:
+    import os, urllib.parse
+    # Tier 1: Mã nguồn mở GPT-SoVITS / Style-Bert-VITS2 (Local AI Voice Cloning Server)
+    vits_url = os.environ.get("VITS_URL") or os.environ.get("SOVITS_URL") or os.environ.get("VOICE_CLONE_URL")
+    if vits_url:
+        try:
+            # 1. Thử chuẩn API custom POST /synthesize
+            res = requests.post(f"{vits_url.rstrip('/')}/synthesize", json={"text": text, "speaker_id": speaker_id, "speed": speed}, timeout=6.0)
+            if res.status_code == 200 and len(res.content) > 100:
+                return res.content
+        except Exception:
+            pass
+        try:
+            # 2. Thử chuẩn API GPT-SoVITS (GET / or /tts trên port 9880)
+            res = requests.get(f"{vits_url.rstrip('/')}/", params={"text": text, "text_lang": "ja" if "sensei" in speaker_id else "vi"}, timeout=8.0)
+            if res.status_code == 200 and len(res.content) > 100:
+                return res.content
+        except Exception:
+            pass
+        try:
+            # 3. Thử chuẩn API Style-Bert-VITS2 (GET /voice trên port 5000)
+            model_map = {"sensei_va_01": 0, "sensei_va_02": 1, "sensei_va_03": 2, "sensei_va_04": 3}
+            res = requests.get(f"{vits_url.rstrip('/')}/voice", params={"text": text, "model_id": model_map.get(speaker_id, 0), "speaker_id": 0, "speed": speed}, timeout=8.0)
+            if res.status_code == 200 and len(res.content) > 100:
+                return res.content
+        except Exception:
+            pass
+
+    eleven_key = os.environ.get("ELEVENLABS_API_KEY")
+    if eleven_key:
+        voice_id_map = {
+            "sensei_va_01": os.environ.get("VOICE_ID_SAKURA", "EXAVITQu4vr4xnSDxMaL"),
+            "sensei_va_02": os.environ.get("VOICE_ID_KENJI", "ErXwobaYiN019PkySvjV"),
+            "sensei_va_03": os.environ.get("VOICE_ID_AOI", "MF3mGyEYCl7XYWbV9V6O"),
+            "sensei_va_04": os.environ.get("VOICE_ID_ZEROTWO", "TX3LPaxmSGnfKAjCFHIx"),
+        }
+        target_voice_id = voice_id_map.get(speaker_id, "EXAVITQu4vr4xnSDxMaL")
+        try:
+            res = requests.post(f"https://api.elevenlabs.io/v1/text-to-speech/{target_voice_id}", json={"text": text, "model_id": "eleven_multilingual_v2"}, headers={"Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": eleven_key}, timeout=8.0)
+            if res.status_code == 200 and len(res.content) > 100:
+                return res.content
+        except Exception:
+            pass
+
+    # Tier 2.5: HuggingFace Public Anime VITS Spaces via gradio_client (Free Anime Voice Synthesis)
+    try:
+        from gradio_client import Client
+        hf_char_map = {
+            "sensei_va_01": "Silence Suzuka",
+            "sensei_va_02": "Gold Ship",
+            "sensei_va_03": "Haru Urara",
+            "sensei_va_04": "Mejiro McQueen",
+        }
+        char_name = hf_char_map.get(speaker_id, "Silence Suzuka")
+        client = Client("Plachta/VITS-Umamusume-voice-synthesizer")
+        result = client.predict(
+            text,
+            char_name,
+            "Japanese",
+            speed,
+            api_name="/predict"
+        )
+        if result and isinstance(result, str) and os.path.exists(result):
+            with open(result, "rb") as f:
+                audio_bytes = f.read()
+            if len(audio_bytes) > 100:
+                return audio_bytes
+    except Exception:
+        pass
+
+    try:
+        import edge_tts, asyncio
+        is_vi = any(c in text.lower() for c in "àáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụăâđêôơư")
+        if is_vi:
+            vi_map = {"sensei_va_01": "vi-VN-HoaiMyNeural", "sensei_va_02": "vi-VN-NamMinhNeural", "sensei_va_03": "vi-VN-HoaiMyNeural", "sensei_va_04": "vi-VN-HoaiMyNeural"}
+            voice_name = vi_map.get(speaker_id, "vi-VN-HoaiMyNeural")
+        else:
+            ja_map = {"sensei_va_01": "ja-JP-NanamiNeural", "sensei_va_02": "ja-JP-KeitaNeural", "sensei_va_03": "ja-JP-MayuNeural", "sensei_va_04": "ja-JP-ShioriNeural"}
+            voice_name = ja_map.get(speaker_id, "ja-JP-NanamiNeural")
+            
+        async def _run_edge():
+            communicate = edge_tts.Communicate(text, voice_name)
+            audio_data = b""
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    audio_data += chunk["data"]
+            return audio_data
+            
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        if loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                audio_bytes = pool.submit(lambda: asyncio.run(_run_edge())).result()
+        else:
+            audio_bytes = loop.run_until_complete(_run_edge())
+            
+        if audio_bytes and len(audio_bytes) > 100:
+            return audio_bytes
+    except Exception:
+        pass
+
+    try:
+        target_lang = "vi" if any(c in text.lower() for c in "àáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụăâđêôơư") else "ja"
+        url = f"https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q={urllib.parse.quote(text)}&tl={target_lang}"
+        res = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=5.0)
+        if res.status_code == 200 and len(res.content) > 100:
+            return res.content
+    except Exception:
+        pass
+
+    text_len = max(len(text), 1)
+    duration_sec = max((text_len / 4.0) / max(speed, 0.5), 1.0)
+    return _generate_synthetic_audio(duration_sec)
+
 @app.post("/synthesize/audio")
 def synthesize_audio_stream(request: SynthesisRequest):
     """
     Returns direct WAV audio binary stream for playback on mobile clients.
     """
-    text_len = max(len(request.text), 1)
-    duration_sec = max((text_len / 4.0) / max(request.speed, 0.5), 1.0)
-    
-    wav_bytes = _generate_synthetic_audio(duration_sec)
+    wav_bytes = _synthesize_cloned_voice(request.text, request.speaker_id, request.speed)
     return Response(content=wav_bytes, media_type="audio/wav")

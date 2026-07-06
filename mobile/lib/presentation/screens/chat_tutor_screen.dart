@@ -81,7 +81,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
             setState(() => _isSpeaking = true);
             context.read<ChatBloc>().add(const UpdateAvatarEmotion("talking"));
         }
-        await TtsHelper.speak(text, lang: "vi-VN", tts: _flutterTts);
+        await TtsHelper.speak(text, lang: "vi-VN", tts: _flutterTts, speakerId: _currentSpeakerId);
         if (mounted && _isSpeaking) {
             setState(() => _isSpeaking = false);
             context.read<ChatBloc>().add(const UpdateAvatarEmotion("happy"));
