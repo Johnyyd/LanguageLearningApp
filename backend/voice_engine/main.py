@@ -159,8 +159,24 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
         except Exception:
             pass
         try:
-            # 2. Thử chuẩn API GPT-SoVITS (GET / or /tts trên port 9880)
-            res = requests.get(f"{vits_url.rstrip('/')}/", params={"text": text, "text_lang": "ja" if "sensei" in speaker_id else "vi"}, timeout=8.0)
+            # 2. Thử chuẩn API GPT-SoVITS (POST /tts hoặc GET / trên port 9880 với reference audio chuẩn Zero Two)
+            gpt_sovits_payload = {
+                "text": text,
+                "text_lang": "ja" if "sensei" in speaker_id else "vi",
+                "ref_audio_path": "/home/tringuyen/AI_Voice_Workspace/GPT-SoVITS/output/slicer_opt/Every Time Zero Two Says Darling in DARLING in the FRANXX - Crunchyroll (youtube).mp3_0001797440_0001964160.wav",
+                "prompt_text": "僕だけがダーリンのパートナーダーリンはもう知ってるんだよね。",
+                "prompt_lang": "ja",
+                "top_k": 15,
+                "top_p": 1.0,
+                "temperature": 0.85,
+                "text_split_method": "cut0",
+                "streaming_mode": False
+            }
+            res = requests.post(f"{vits_url.rstrip('/')}/tts", json=gpt_sovits_payload, timeout=12.0)
+            if res.status_code == 200 and len(res.content) > 100:
+                return res.content
+            # Fallback sang GET nếu POST /tts không phản hồi
+            res = requests.get(f"{vits_url.rstrip('/')}/", params=gpt_sovits_payload, timeout=12.0)
             if res.status_code == 200 and len(res.content) > 100:
                 return res.content
         except Exception:

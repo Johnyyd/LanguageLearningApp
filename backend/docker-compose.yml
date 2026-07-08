@@ -67,6 +67,11 @@ services:
     container_name: language_app_voice_engine
     ports:
       - "1114:1114"
+    environment:
+      # Kết nối tới GPT-SoVITS API Server (api_v2.py cổng 9880) chạy trên máy Host
+      - VITS_URL=http://host.docker.internal:9880
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./voice_engine:/app
     restart: unless-stopped
