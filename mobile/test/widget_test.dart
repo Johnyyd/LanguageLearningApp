@@ -7,13 +7,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:language_learning_app/main.dart';
+import 'package:language_learning_app/data/datasources/local_vocab_datasource.dart';
+import 'package:language_learning_app/data/repositories/vocab_repository_impl.dart';
+import 'package:language_learning_app/data/repositories/ielts_repository_impl.dart';
+import 'package:language_learning_app/data/repositories/chat_repository_impl.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    final remoteAiDs = MockRemoteAiDataSource();
+    final localVocabDs = LocalVocabDataSource();
+    await localVocabDs.init();
+    final vocabRepo = VocabRepositoryImpl(localVocabDs, remoteAiDs);
+    final ieltsRepo = IeltsRepositoryImpl(remoteAiDs);
+    final chatRepo = ChatRepositoryImpl(remoteAiDs);
+    await tester.pumpWidget(LanguageLearningApp(
+      vocabRepo: vocabRepo,
+      ieltsRepo: ieltsRepo,
+      chatRepo: chatRepo,
+    ));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
