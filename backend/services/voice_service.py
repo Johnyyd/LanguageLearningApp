@@ -150,82 +150,44 @@ def synthesize_voice_and_visemes(
 def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed: float = 1.0) -> bytes:
     """
     Synthesizes AI Voice Cloned speech audio (WAV/MP3 bytes) for Anime characters.
-    Does NOT use simple pitch/speed shifting. Uses model-based voice synthesis:
-    1. Style-Bert-VITS2 / GPT-SoVITS microservice endpoint (VITS_URL / SOVITS_URL)
-    2. ElevenLabs API voice cloning (ELEVENLABS_API_KEY)
-    3. Neural AI Voice Speech Synthesis (Edge-TTS / Online Neural Speech Engine)
+    1. Direct fast call to GPT-SoVITS API Server (cổng 9880) với Zero Two reference audio
+    2. Fallback sang Edge-TTS / Neural TTS
     """
     import os, urllib.parse
     
-    # Tier 1: Style-Bert-VITS2 / GPT-SoVITS Custom Voice Cloning Server (Default 9880 from AI_Voice_Workspace is Zero Two model)
-    ref_wav = os.environ.get("ZEROTWO_REF_WAV") or "E:/GitHub/LanguageLearningApp/backend/voice_engine/audio.wav"
+    # Tier 1: GPT-SoVITS API Server (Zero Two model trên cổng 9880)
+    ref_wav = os.environ.get("ZEROTWO_REF_WAV") or "/home/tringuyen/AI_Voice_Workspace/GPT-SoVITS/output/slicer_opt/Every Time Zero Two Says Darling in DARLING in the FRANXX - Crunchyroll (youtube).mp3_0001797440_0001964160.wav"
     is_vi = any(c in text.lower() for c in "àáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụăâđêôơư")
     target_lang = "vi" if is_vi else "ja"
+    
     gpt_sovits_payload = {
-            "text": text,
-            "text_lang": target_lang,
-            "text_language": target_lang,
-            "ref_audio_path": ref_wav,
-            "refer_wav_path": ref_wav,
-            "prompt_text": "僕だけがダーリンのパートナーダーリンはもう知ってるんだよね。",
-            "prompt_lang": "ja",
-            "prompt_language": "ja",
-            "top_k": 15,
-            "top_p": 1.0,
-            "temperature": 0.85,
-            "text_split_method": "cut0",
-            "speed": speed,
-            "streaming_mode": False
-        }
-        candidate_urls = []
-        for u in [os.environ.get("VITS_URL"), os.environ.get("SOVITS_URL"), "http://host.docker.internal:9880", "http://172.17.0.1:9880", "http://127.0.0.1:9880"]:
-            if u and u.rstrip('/') not in candidate_urls:
-                candidate_urls.append(u.rstrip('/'))
+        "text": text,
+        "text_lang": target_lang,
+        "text_language": target_lang,
+        "ref_audio_path": ref_wav,
+        "refer_wav_path": ref_wav,
+        "prompt_text": "僕だけがダーリンのパートナーダーリンはもう知ってるんだよね。",
+        "prompt_lang": "ja",
+        "prompt_language": "ja",
+        "top_k": 15,
+        "top_p": 1.0,
+        "temperature": 0.85,
+        "text_split_method": "cut0",
+        "speed": speed,
+        "streaming_mode": False
+    }
 
-        simple_payload = {
-            "text": text,
-            "text_lang": target_lang,
-            "text_language": target_lang,
-            "speed": speed
-        }
-
-        for base_url in candidate_urls:
-            try:
-                with httpx.Client(timeout=15.0) as client:
-                    res = client.post(f"{base_url}/tts", json=simple_payload)
-                    if res.status_code == 200 and len(res.content) > 100:
-                        logger.info(f"Synthesized voice via GPT-SoVITS POST /tts successfully from {base_url} (preconfigured ref).")
-                        return res.content
-            except Exception:
-                pass
-            try:
-                with httpx.Client(timeout=15.0) as client:
-                    res = client.get(f"{base_url}/tts", params=simple_payload)
-                    if res.status_code == 200 and len(res.content) > 100:
-                        logger.info(f"Synthesized voice via GPT-SoVITS GET /tts successfully from {base_url} (preconfigured ref).")
-                        return res.content
-            except Exception:
-                pass
-
-        for base_url in candidate_urls:
-            try:
-                with httpx.Client(timeout=15.0) as client:
-                    res = client.post(f"{base_url}/tts", json=gpt_sovits_payload)
-                    if res.status_code == 200 and len(res.content) > 100:
-                        logger.info(f"Synthesized voice via GPT-SoVITS POST /tts successfully from {base_url}.")
-                        return res.content
-                    else:
-                        logger.warning(f"GPT-SoVITS POST {base_url}/tts failed with status {res.status_code}: {res.text[:200]}")
-            except Exception as e:
-                logger.warning(f"GPT-SoVITS POST {base_url}/tts exception: {e}")
-            try:
-                with httpx.Client(timeout=15.0) as client:
-                    res = client.get(f"{base_url}/tts", params=gpt_sovits_payload)
-                    if res.status_code == 200 and len(res.content) > 100:
-                        logger.info(f"Synthesized voice via GPT-SoVITS GET /tts successfully from {base_url}.")
-                        return res.content
-            except Exception:
-                pass
+    # Thử nhanh cổng 9880 (timeout ngắn 6s để không bao giờ bị treo ứng dụng Mobile)
+    candidate_urls = ["http://127.0.0.1:9880", "http://host.docker.internal:9880"]
+    for base_url in candidate_urls:
+        try:
+            with httpx.Client(timeout=8.0) as client:
+                res = client.post(f"{base_url}/tts", json=gpt_sovits_payload)
+                if res.status_code == 200 and len(res.content) > 100:
+                    logger.info(f"✅ Synthesized voice via GPT-SoVITS POST /tts successfully from {base_url}.")
+                    return res.content
+        except Exception as e:
+            logger.debug(f"GPT-SoVITS POST {base_url}/tts skipped: {e}")
 
     # Tier 2: ElevenLabs API Voice Cloning
     eleven_key = os.environ.get("ELEVENLABS_API_KEY")
