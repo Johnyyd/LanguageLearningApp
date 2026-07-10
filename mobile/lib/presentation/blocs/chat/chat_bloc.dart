@@ -34,7 +34,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         ));
 
         try {
-            final aiReply = await _repository.askTutor(event.messageText, event.moduleContext);
+            final aiReply = await _repository.askTutor(event.messageText, event.moduleContext, speakerId: event.speakerId);
             final finalList = List<ChatMessage>.from(updatedList)..add(aiReply);
             
             // Switch avatar emotion to reply emotion (happy, explaining, cheering)

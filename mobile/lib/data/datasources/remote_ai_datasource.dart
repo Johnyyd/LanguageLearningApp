@@ -73,11 +73,12 @@ class RemoteAiDataSource {
         }
     }
 
-    Future<ChatMessage> ask3dTutor(String message, String moduleContext) async {
+    Future<ChatMessage> ask3dTutor(String message, String moduleContext, {String speakerId = "sensei_va_01"}) async {
         try {
             final response = await _apiClient.dio.post('/chat/ask', data: {
                 "message": message,
                 "module_context": moduleContext,
+                "speaker_id": speakerId,
             });
             
             final data = response.data;

@@ -157,9 +157,11 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
     """
     import os, urllib.parse
     
-    # Tier 1: Style-Bert-VITS2 / GPT-SoVITS Custom Voice Cloning Server (Default 9880 from AI_Voice_Workspace)
+    # Tier 1: Style-Bert-VITS2 / GPT-SoVITS Custom Voice Cloning Server (Default 9880 from AI_Voice_Workspace is Zero Two model)
     vits_url = os.environ.get("VITS_URL") or os.environ.get("SOVITS_URL") or os.environ.get("VOICE_CLONE_URL") or "http://127.0.0.1:9880"
-    if vits_url:
+    is_zero_two = (speaker_id in ["sensei_va_04", "zero_two"])
+    
+    if vits_url and is_zero_two:
         try:
             with httpx.Client(timeout=10.0) as client:
                 res = client.get(f"{vits_url.rstrip('/')}/tts", params={
@@ -187,16 +189,6 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
                     return res.content
         except Exception:
             pass
-        try:
-            model_map = {"sensei_va_01": 0, "sensei_va_02": 1, "sensei_va_03": 2, "sensei_va_04": 3}
-            with httpx.Client(timeout=8.0) as client:
-                res = client.get(f"{vits_url.rstrip('/')}/voice", params={
-                    "text": text, "model_id": model_map.get(speaker_id, 0), "speaker_id": 0, "speed": speed
-                })
-                if res.status_code == 200 and len(res.content) > 100:
-                    return res.content
-        except Exception as e:
-            logger.warning(f"⚠️ Custom VITS/SoVITS voice clone server unreachable: {e}")
 
     # Tier 2: ElevenLabs API Voice Cloning
     eleven_key = os.environ.get("ELEVENLABS_API_KEY")

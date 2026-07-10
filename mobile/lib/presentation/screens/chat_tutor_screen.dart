@@ -347,7 +347,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                                     label: Text(suggestions[index], style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyLarge?.color)),
                                                     backgroundColor: Theme.of(context).cardColor,
                                                     onPressed: () {
-                                                        context.read<ChatBloc>().add(SendChatMessage(suggestions[index], moduleContext: _moduleContext));
+                                                        context.read<ChatBloc>().add(SendChatMessage(suggestions[index], moduleContext: _moduleContext, speakerId: _currentSpeakerId));
                                                     },
                                                 ),
                                             );
@@ -501,7 +501,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                 SttHelper.stopListening();
                 setState(() => _isListening = false);
             }
-            context.read<ChatBloc>().add(SendChatMessage(_msgController.text.trim(), moduleContext: _moduleContext));
+            context.read<ChatBloc>().add(SendChatMessage(_msgController.text.trim(), moduleContext: _moduleContext, speakerId: _currentSpeakerId));
             _msgController.clear();
         }
     }

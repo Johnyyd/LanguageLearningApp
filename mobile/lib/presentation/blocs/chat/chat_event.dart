@@ -9,9 +9,10 @@ abstract class ChatEvent extends Equatable {
 class SendChatMessage extends ChatEvent {
     final String messageText;
     final String moduleContext;
-    const SendChatMessage(this.messageText, {this.moduleContext = "japanese_n5"});
+    final String speakerId;
+    const SendChatMessage(this.messageText, {this.moduleContext = "japanese_n5", this.speakerId = "sensei_va_01"});
     @override
-    List<Object?> get props => [messageText, moduleContext];
+    List<Object?> get props => [messageText, moduleContext, speakerId];
 }
 
 class UpdateAvatarEmotion extends ChatEvent {

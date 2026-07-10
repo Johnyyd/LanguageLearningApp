@@ -6,7 +6,7 @@ class ChatRepositoryImpl {
 
     ChatRepositoryImpl(this._remoteDataSource);
 
-    Future<ChatMessage> askTutor(String message, String moduleContext) async {
-        return await _remoteDataSource.ask3dTutor(message, moduleContext);
+    Future<ChatMessage> askTutor(String message, String moduleContext, {String speakerId = "sensei_va_01"}) async {
+        return await _remoteDataSource.ask3dTutor(message, moduleContext, speakerId: speakerId);
     }
 }
