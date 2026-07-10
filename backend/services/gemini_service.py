@@ -46,7 +46,7 @@ def _call_ai_engine(prompt: str) -> str | None:
                 "messages": [{"role": "user", "content": prompt}]
             }
             logger.info(f"🚀 [OpenRouter] Calling AI model: {settings.OPENROUTER_MODEL}")
-            with httpx.Client(timeout=30.0) as client:
+            with httpx.Client(timeout=12.0) as client:
                 resp = client.post(url, headers=headers, json=payload)
                 if resp.status_code == 200:
                     data = resp.json()
@@ -58,7 +58,7 @@ def _call_ai_engine(prompt: str) -> str | None:
             return None
     elif model:
         try:
-            response = model.generate_content(prompt)
+            response = model.generate_content(prompt, request_options={"timeout": 12.0})
             return response.text
         except Exception as e:
             logger.error(f"⚠️ Google GenAI SDK error: {e}")
