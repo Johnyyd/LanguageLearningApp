@@ -86,6 +86,7 @@ class RemoteAiDataSource {
                 text: data['reply_text'] ?? "Xin chào, tôi là Sensei AI!",
                 isUser: false,
                 avatarEmotion: data['avatar_emotion'] ?? "happy",
+                speechAudioUrl: data['speech_audio_url'],
                 timestamp: DateTime.now(),
                 suggestedQuestions: List<String>.from(data['suggested_questions'] ?? []),
             );

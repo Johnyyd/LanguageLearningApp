@@ -27,7 +27,7 @@ def get_db():
 @router.post("/ask")
 def ask_tutor(request: ChatRequest, db: Session = Depends(get_db)):
     msg_hash = hashlib.md5(f"{request.module_context}:{request.message.strip().lower()}:{request.speaker_id}".encode('utf-8')).hexdigest()
-    cache_key = f"chat:qa:v6:{msg_hash}"
+    cache_key = f"chat:qa:v7:{msg_hash}"
     cached_res = cache_service.get(cache_key)
     if cached_res:
         print(f"🎯 [Redis Hit] Returning cached chat response for {request.message[:20]}...")

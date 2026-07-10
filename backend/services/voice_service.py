@@ -157,9 +157,18 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
     """
     import os, urllib.parse
     
-    # Tier 1: Style-Bert-VITS2 / GPT-SoVITS Custom Voice Cloning Server
-    vits_url = os.environ.get("VITS_URL") or os.environ.get("SOVITS_URL") or os.environ.get("VOICE_CLONE_URL")
+    # Tier 1: Style-Bert-VITS2 / GPT-SoVITS Custom Voice Cloning Server (Default 9880 from AI_Voice_Workspace)
+    vits_url = os.environ.get("VITS_URL") or os.environ.get("SOVITS_URL") or os.environ.get("VOICE_CLONE_URL") or "http://127.0.0.1:9880"
     if vits_url:
+        try:
+            with httpx.Client(timeout=10.0) as client:
+                res = client.get(f"{vits_url.rstrip('/')}/tts", params={
+                    "text": text, "text_lang": "vi" if any(c in text.lower() for c in "àáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụăâđêôơư") else "ja"
+                })
+                if res.status_code == 200 and len(res.content) > 100:
+                    return res.content
+        except Exception:
+            pass
         try:
             with httpx.Client(timeout=6.0) as client:
                 res = client.post(f"{vits_url.rstrip('/')}/synthesize", json={

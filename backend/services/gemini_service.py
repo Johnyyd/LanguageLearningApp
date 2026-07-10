@@ -162,19 +162,38 @@ def chat_with_3d_tutor(message: str, module_context: str) -> dict:
     Handles conversational Q&A with the 3D AI Tutor.
     Returns reply text, appropriate 3D avatar emotion state, and follow-up suggestions.
     """
+    is_japanese_input = any('\u3040' <= c <= '\u309f' or '\u30a0' <= c <= '\u30ff' or '\u4e00' <= c <= '\u9faf' for c in message)
+    is_japanese_only = (module_context == "japanese_kaiwa" or module_context == "japanese_only" or is_japanese_input)
+
     if is_openrouter or model:
-        prompt = f"""
-        You are Sensei AI, a friendly, encouraging language tutor represented as a 3D avatar.
-        The user is asking a question in context '{module_context}'.
-        User message: "{message}"
-        
-        Return ONLY valid JSON with this structure:
-        {{
-          "reply_text": "string in Vietnamese with helpful, pedagogically sound explanation",
-          "avatar_emotion": "happy | thinking | explaining | cheering | idle",
-          "suggested_questions": ["question 1", "question 2"]
-        }}
-        """
+        if is_japanese_only:
+            prompt = f"""
+            You are Sensei AI, an Anime Japanese language tutor represented as a 3D VTuber avatar.
+            The user wants to practice pure Japanese Kaiwa (conversation).
+            User message: "{message}"
+            
+            IMPORTANT: You MUST reply ENTIRELY in natural, friendly, conversational Japanese (日本語) so that the Anime AI Voice Synthesizer can speak your reply naturally in Japanese! Keep the reply concise (2-4 sentences).
+            
+            Return ONLY valid JSON with this structure:
+            {{
+              "reply_text": "string in natural conversational Japanese (日本語)",
+              "avatar_emotion": "happy | thinking | explaining | cheering | idle",
+              "suggested_questions": ["自己紹介をお願いします", "日本語が上手になりたいです"]
+            }}
+            """
+        else:
+            prompt = f"""
+            You are Sensei AI, a friendly, encouraging language tutor represented as a 3D avatar.
+            The user is asking a question in context '{module_context}'.
+            User message: "{message}"
+            
+            Return ONLY valid JSON with this structure:
+            {{
+              "reply_text": "string in Vietnamese with helpful, pedagogically sound explanation",
+              "avatar_emotion": "happy | thinking | explaining | cheering | idle",
+              "suggested_questions": ["question 1", "question 2"]
+            }}
+            """
         raw_res = _call_ai_engine(prompt)
         if raw_res:
             parsed = _clean_json_string(raw_res)
@@ -186,6 +205,32 @@ def chat_with_3d_tutor(message: str, module_context: str) -> dict:
     logger.info("ℹ️ [GeminiService] Using fallback intelligent 3D Tutor reply.")
     msg_lower = message.lower()
     
+    if is_japanese_only:
+        if any(w in msg_lower for w in ["こんにちは", "おはよう", "xin chào", "hi", "hello", "konnichiwa"]):
+            return {
+                "reply_text": "こんにちは！私は日本語AIチューターのセンセイです。今日はどんなことを勉強したいですか？一緒に楽しく日本語を話しましょう！",
+                "avatar_emotion": "happy",
+                "suggested_questions": ["自己紹介をお願いします", "日本語の勉強方法を教えてください"]
+            }
+        elif any(w in msg_lower for w in ["あります", "います", "arimasu", "imasu"]):
+            return {
+                "reply_text": "「あります」と「います」の違いですね！人や動物には「います」（例：犬がいます）を使い、物や植物には「あります」（例：本があります）を使います。とても大切な文法ですね！",
+                "avatar_emotion": "explaining",
+                "suggested_questions": ["助詞の「は」と「が」の違いは？", "動詞のテ形について教えて"]
+            }
+        elif any(w in msg_lower for w in ["て形", "te", "động từ"]):
+            return {
+                "reply_text": "動詞の「て形」ですね！例えば、「食べる」は「食べて」、「行く」は「行って」になります。お願いや接続表現によく使われますよ！",
+                "avatar_emotion": "explaining",
+                "suggested_questions": ["もっと例文を作って", "会話の練習をしましょう"]
+            }
+        else:
+            return {
+                "reply_text": f"「{message}」ですね！素晴らしい質問です。日本語の会話をもっと一緒に練習しましょう。私はあなたとお話しできてとても嬉しいです！",
+                "avatar_emotion": "happy",
+                "suggested_questions": ["日本の文化について教えて", "今日の天気はどうですか"]
+            }
+
     # Helper function to match keywords cleanly using word boundaries for ASCII/short strings
     # This prevents short substrings like 'hi', 'ai', 'to', 'mo', 'e', 'ni', 'de', 'wa', 'ga' 
     # from falsely triggering inside words like 'giải thích', 'bài 1', 'tôi', 'ngữ pháp', 'xem'...

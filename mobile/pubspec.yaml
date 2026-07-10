@@ -36,6 +36,7 @@ dependencies:
   google_fonts: ^6.1.0
 
   # Audio & Speech
+  audioplayers: ^6.1.0
   flutter_tts: ^4.0.0
   speech_to_text: ^7.0.0
 

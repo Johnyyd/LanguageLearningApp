@@ -1,14 +1,79 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:dio/dio.dart';
+import '../constants/app_constants.dart';
 
 class TtsHelper {
+  static final AudioPlayer _audioPlayer = AudioPlayer();
+
   static Future<bool> speak(
     String text, {
     String lang = "ja",
     FlutterTts? tts,
     String speakerId = "sensei_va_01",
+    String? audioUrl,
+    bool enableVoiceCloning = true,
+    VoidCallback? onStart,
+    VoidCallback? onComplete,
+    VoidCallback? onError,
   }) async {
+    // 1. ƯU TIÊN TẢI & PHÁT GIỌNG CLONE AI TỪ BACKEND / TAILSCALE TUNNEL
+    if (enableVoiceCloning) {
+      try {
+        final String fullAudioUrl;
+        if (audioUrl != null && audioUrl.isNotEmpty) {
+          if (audioUrl.startsWith('http://') || audioUrl.startsWith('https://')) {
+            fullAudioUrl = audioUrl;
+          } else {
+            final baseServerUrl = AppConstants.baseUrl.replaceAll(RegExp(r'/api/v1/?$'), '');
+            fullAudioUrl = audioUrl.startsWith('/')
+                ? "$baseServerUrl$audioUrl"
+                : "$baseServerUrl/$audioUrl";
+          }
+        } else {
+          final baseServerUrl = AppConstants.baseUrl.replaceAll(RegExp(r'/api/v1/?$'), '');
+          fullAudioUrl = "$baseServerUrl/api/v1/chat/audio?text=${Uri.encodeComponent(text)}&speaker_id=$speakerId&speed=1.0";
+        }
+
+        debugPrint("🎙️ [TtsHelper] Downloading AI Cloned Voice from: $fullAudioUrl");
+        await _audioPlayer.stop();
+        onStart?.call();
+
+        final dio = Dio();
+        final response = await dio.get<List<int>>(
+          fullAudioUrl,
+          options: Options(
+            responseType: ResponseType.bytes,
+            receiveTimeout: const Duration(seconds: 15),
+          ),
+        );
+
+        if (response.statusCode == 200 && response.data != null && response.data!.length > 100) {
+          final tempDir = Directory.systemTemp;
+          final filePath = '${tempDir.path}/ai_cloned_voice_${DateTime.now().millisecondsSinceEpoch}.wav';
+          final file = File(filePath);
+          await file.writeAsBytes(response.data!, flush: true);
+
+          debugPrint("✅ [TtsHelper] Audio downloaded (${response.data!.length} bytes). Playing file: $filePath");
+
+          _audioPlayer.onPlayerComplete.first.then((_) {
+            onComplete?.call();
+          }).catchError((_) {
+            onComplete?.call();
+          });
+
+          await _audioPlayer.play(DeviceFileSource(filePath));
+          return true;
+        }
+      } catch (e) {
+        debugPrint("⚠️ Remote AI Cloned Voice playback failed ($e), falling back to device TTS");
+      }
+    }
+
+    // 2. FALLBACK NẾU STREAMING GIỌNG CLONE KHÔNG THÀNH CÔNG
+    onStart?.call();
     if (kIsWeb) {
       if (tts != null) {
         try {
@@ -18,13 +83,16 @@ class TtsHelper {
           return true;
         } catch (_) {}
       }
+      onError?.call();
       return false;
     }
 
-    // Trên Linux Desktop hoặc Desktop OS, ưu tiên phát âm chất lượng cao qua OS stream / Google TTS
     if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
       final success = await _playDesktopTts(text, lang, speakerId);
-      if (success) return true;
+      if (success) {
+        onComplete?.call();
+        return true;
+      }
     }
 
     if (tts != null) {
@@ -36,10 +104,15 @@ class TtsHelper {
       } catch (e) {
         debugPrint("FlutterTts speak error: $e");
         if (!Platform.isLinux && !Platform.isMacOS && !Platform.isWindows) {
-          return await _playDesktopTts(text, lang, speakerId);
+          final success = await _playDesktopTts(text, lang, speakerId);
+          if (success) {
+            onComplete?.call();
+            return true;
+          }
         }
       }
     }
+    onError?.call();
     return false;
   }
 
@@ -80,6 +153,9 @@ class TtsHelper {
   }
 
   static Future<bool> stop(FlutterTts? tts) async {
+    try {
+      await _audioPlayer.stop();
+    } catch (_) {}
     try {
       if (tts != null) await tts.stop();
     } catch (_) {}

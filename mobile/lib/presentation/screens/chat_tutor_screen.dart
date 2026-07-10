@@ -20,7 +20,8 @@ class ChatTutorScreen extends StatefulWidget {
 class _ChatTutorScreenState extends State<ChatTutorScreen> {
     final TextEditingController _msgController = TextEditingController();
     final FlutterTts _flutterTts = FlutterTts();
-    final String _moduleContext = "japanese_n5";
+    String _moduleContext = "japanese_n5";
+    bool _isJapaneseKaiwaMode = false;
     bool _isSpeaking = false;
     bool _isListening = false;
     String? _lastSpokenMessageId;
@@ -67,7 +68,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
         }
     }
 
-    void _speak(String text) async {
+    void _speak(String text, {String? audioUrl}) async {
         if (_isSpeaking) {
             await TtsHelper.stop(_flutterTts);
             if (mounted) {
@@ -77,15 +78,35 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
             return;
         }
 
-        if (mounted) {
-            setState(() => _isSpeaking = true);
-            context.read<ChatBloc>().add(const UpdateAvatarEmotion("talking"));
-        }
-        await TtsHelper.speak(text, lang: "vi-VN", tts: _flutterTts, speakerId: _currentSpeakerId);
-        if (mounted && _isSpeaking) {
-            setState(() => _isSpeaking = false);
-            context.read<ChatBloc>().add(const UpdateAvatarEmotion("happy"));
-        }
+        final bool hasJapaneseChars = RegExp(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]').hasMatch(text);
+        final String targetLang = hasJapaneseChars ? "ja-JP" : "vi-VN";
+
+        await TtsHelper.speak(
+            text,
+            lang: targetLang,
+            tts: _flutterTts,
+            speakerId: _currentSpeakerId,
+            audioUrl: audioUrl,
+            enableVoiceCloning: _enableVoiceCloning,
+            onStart: () {
+                if (mounted) {
+                    setState(() => _isSpeaking = true);
+                    context.read<ChatBloc>().add(const UpdateAvatarEmotion("talking"));
+                }
+            },
+            onComplete: () {
+                if (mounted) {
+                    setState(() => _isSpeaking = false);
+                    context.read<ChatBloc>().add(const UpdateAvatarEmotion("happy"));
+                }
+            },
+            onError: () {
+                if (mounted) {
+                    setState(() => _isSpeaking = false);
+                    context.read<ChatBloc>().add(const UpdateAvatarEmotion("idle"));
+                }
+            },
+        );
     }
 
     void _toggleVoiceInput() async {
@@ -183,7 +204,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                         if (!lastMsg.isUser && !state.isAiThinking && _lastSpokenMessageId != lastMsg.id) {
                             _lastSpokenMessageId = lastMsg.id;
                             // Auto trigger TTS lip-sync animation
-                            _speak(lastMsg.text);
+                            _speak(lastMsg.text, audioUrl: lastMsg.speechAudioUrl);
                         }
                     }
                 },
@@ -207,14 +228,18 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                     isVoiceCloned: _enableVoiceCloning,
                                     voiceActorName: _currentVoiceActor,
                                     customAvatarUrl: _customAvatarUrl,
-                                    onTap: () => _speak("Konnichiwa! Mình là Sensei ($_currentVoiceActor) với công nghệ lồng tiếng AI Anime. Bạn hãy đặt câu hỏi nhé!"),
+                                    onTap: () => _speak(
+                                        _isJapaneseKaiwaMode
+                                            ? "こんにちは！私は日本語AIチューターのセンセイです。一緒に楽しく日本語を話しましょう！"
+                                            : "Konnichiwa! Mình là Sensei ($_currentVoiceActor) với công nghệ lồng tiếng AI Anime. Bạn hãy đặt câu hỏi nhé!"
+                                    ),
                                     onUploadTap: _pickAndUpload3dFile,
                                 ),
                             ),
 
                             // Duolingo-inspired Customization Button
                             Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.only(bottom: 6),
                                 child: ElevatedButton.icon(
                                     onPressed: _showAvatarAndVoiceSelector,
                                     style: ElevatedButton.styleFrom(
@@ -231,6 +256,77 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                     label: Text(
                                         "Đổi Avatar & Giọng VA ($_currentVoiceActor)",
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    ),
+                                ),
+                            ),
+
+                            // Trò chuyện 100% Tiếng Nhật Mode Switcher
+                            Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                child: Container(
+                                    decoration: BoxDecoration(
+                                        color: Theme.of(context).cardColor,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: AppColors.duoGreen.withValues(alpha: 0.4)),
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: Row(
+                                        children: [
+                                            Expanded(
+                                                child: GestureDetector(
+                                                    onTap: () {
+                                                        setState(() {
+                                                            _isJapaneseKaiwaMode = false;
+                                                            _moduleContext = "japanese_n5";
+                                                        });
+                                                    },
+                                                    child: Container(
+                                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                            color: !_isJapaneseKaiwaMode ? AppColors.duoGreen : Colors.transparent,
+                                                            borderRadius: BorderRadius.circular(16),
+                                                        ),
+                                                        child: Center(
+                                                            child: Text(
+                                                                "🇻🇳 Giải Thích N5",
+                                                                style: TextStyle(
+                                                                    fontSize: 12,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    color: !_isJapaneseKaiwaMode ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                                                                ),
+                                                            ),
+                                                        ),
+                                                    ),
+                                                ),
+                                            ),
+                                            Expanded(
+                                                child: GestureDetector(
+                                                    onTap: () {
+                                                        setState(() {
+                                                            _isJapaneseKaiwaMode = true;
+                                                            _moduleContext = "japanese_kaiwa";
+                                                        });
+                                                    },
+                                                    child: Container(
+                                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                            color: _isJapaneseKaiwaMode ? AppColors.duoGreen : Colors.transparent,
+                                                            borderRadius: BorderRadius.circular(16),
+                                                        ),
+                                                        child: Center(
+                                                            child: Text(
+                                                                "🇯🇵 100% Tiếng Nhật",
+                                                                style: TextStyle(
+                                                                    fontSize: 12,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    color: _isJapaneseKaiwaMode ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                                                                ),
+                                                            ),
+                                                        ),
+                                                    ),
+                                                ),
+                                            ),
+                                        ],
                                     ),
                                 ),
                             ),
@@ -311,7 +407,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                                                     mainAxisSize: MainAxisSize.min,
                                                                     children: [
                                                                         GestureDetector(
-                                                                            onTap: () => _speak(msg.text),
+                                                                            onTap: () => _speak(msg.text, audioUrl: msg.speechAudioUrl),
                                                                             child: Icon(
                                                                                 _isSpeaking ? Icons.volume_up : Icons.volume_up_outlined,
                                                                                 size: 18,
@@ -319,7 +415,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                                                             ),
                                                                         ),
                                                                         const SizedBox(width: 4),
-                                                                        Text("Đọc câu trả lời (TTS)", style: TextStyle(fontSize: 11, color: AppColors.slateGray.withValues(alpha: 0.8))),
+                                                                        Text("Đọc bằng giọng AI Voice Clone VA", style: TextStyle(fontSize: 11, color: AppColors.slateGray.withValues(alpha: 0.8))),
                                                                     ],
                                                                 ),
                                                             ]
