@@ -160,12 +160,23 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
             pass
         try:
             # 2. Thử chuẩn API GPT-SoVITS (POST /tts hoặc GET / trên port 9880 với reference audio chuẩn Zero Two)
+            ref_wav = os.environ.get("ZEROTWO_REF_WAV")
+            if not ref_wav:
+                local_wav = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "audio.wav")).replace("\\", "/")
+                if os.path.exists(local_wav):
+                    ref_wav = local_wav
+                else:
+                    ref_wav = "E:/GitHub/LanguageLearningApp/backend/voice_engine/audio.wav"
+
             gpt_sovits_payload = {
                 "text": text,
                 "text_lang": "ja" if "sensei" in speaker_id else "vi",
-                "ref_audio_path": "/home/tringuyen/AI_Voice_Workspace/GPT-SoVITS/output/slicer_opt/Every Time Zero Two Says Darling in DARLING in the FRANXX - Crunchyroll (youtube).mp3_0001797440_0001964160.wav",
+                "text_language": "ja" if "sensei" in speaker_id else "vi",
+                "ref_audio_path": ref_wav,
+                "refer_wav_path": ref_wav,
                 "prompt_text": "僕だけがダーリンのパートナーダーリンはもう知ってるんだよね。",
                 "prompt_lang": "ja",
+                "prompt_language": "ja",
                 "top_k": 15,
                 "top_p": 1.0,
                 "temperature": 0.85,

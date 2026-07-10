@@ -162,28 +162,57 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
     is_zero_two = (speaker_id in ["sensei_va_04", "zero_two"])
     
     if vits_url and is_zero_two:
+        ref_wav = os.environ.get("ZEROTWO_REF_WAV")
+        if not ref_wav:
+            local_wav = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "voice_engine", "audio.wav")).replace("\\", "/")
+            if os.path.exists(local_wav):
+                ref_wav = local_wav
+            else:
+                ref_wav = "E:/GitHub/LanguageLearningApp/backend/voice_engine/audio.wav"
+
+        is_vi = any(c in text.lower() for c in "àáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụăâđêôơư")
+        target_lang = "vi" if is_vi else "ja"
+        gpt_sovits_payload = {
+            "text": text,
+            "text_lang": target_lang,
+            "text_language": target_lang,
+            "ref_audio_path": ref_wav,
+            "refer_wav_path": ref_wav,
+            "prompt_text": "僕だけがダーリンのパートナーダーリンはもう知ってるんだよね。",
+            "prompt_lang": "ja",
+            "prompt_language": "ja",
+            "top_k": 15,
+            "top_p": 1.0,
+            "temperature": 0.85,
+            "text_split_method": "cut0",
+            "speed": speed,
+            "streaming_mode": False
+        }
+        try:
+            with httpx.Client(timeout=15.0) as client:
+                res = client.post(f"{vits_url.rstrip('/')}/tts", json=gpt_sovits_payload)
+                if res.status_code == 200 and len(res.content) > 100:
+                    return res.content
+        except Exception:
+            pass
+        try:
+            with httpx.Client(timeout=15.0) as client:
+                res = client.get(f"{vits_url.rstrip('/')}/tts", params=gpt_sovits_payload)
+                if res.status_code == 200 and len(res.content) > 100:
+                    return res.content
+        except Exception:
+            pass
+        try:
+            with httpx.Client(timeout=15.0) as client:
+                res = client.get(f"{vits_url.rstrip('/')}/", params=gpt_sovits_payload)
+                if res.status_code == 200 and len(res.content) > 100:
+                    return res.content
+        except Exception:
+            pass
         try:
             with httpx.Client(timeout=10.0) as client:
-                res = client.get(f"{vits_url.rstrip('/')}/tts", params={
-                    "text": text, "text_lang": "vi" if any(c in text.lower() for c in "àáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụăâđêôơư") else "ja"
-                })
-                if res.status_code == 200 and len(res.content) > 100:
-                    return res.content
-        except Exception:
-            pass
-        try:
-            with httpx.Client(timeout=6.0) as client:
                 res = client.post(f"{vits_url.rstrip('/')}/synthesize", json={
-                    "text": text, "speaker_id": speaker_id, "speed": speed
-                })
-                if res.status_code == 200 and len(res.content) > 100:
-                    return res.content
-        except Exception:
-            pass
-        try:
-            with httpx.Client(timeout=8.0) as client:
-                res = client.get(f"{vits_url.rstrip('/')}/", params={
-                    "text": text, "text_lang": "ja" if "sensei" in speaker_id else "vi"
+                    "text": text, "speaker_id": speaker_id, "ref_audio_path": ref_wav, "refer_wav_path": ref_wav, "speed": speed
                 })
                 if res.status_code == 200 and len(res.content) > 100:
                     return res.content
