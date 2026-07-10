@@ -158,18 +158,10 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
     import os, urllib.parse
     
     # Tier 1: Style-Bert-VITS2 / GPT-SoVITS Custom Voice Cloning Server (Default 9880 from AI_Voice_Workspace is Zero Two model)
-    vits_url = os.environ.get("VITS_URL") or os.environ.get("SOVITS_URL") or os.environ.get("VOICE_CLONE_URL") or "http://127.0.0.1:9880"
     is_zero_two = (speaker_id in ["sensei_va_04", "zero_two"])
     
-    if vits_url and is_zero_two:
-        ref_wav = os.environ.get("ZEROTWO_REF_WAV")
-        if not ref_wav:
-            local_wav = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "voice_engine", "audio.wav")).replace("\\", "/")
-            if os.path.exists(local_wav):
-                ref_wav = local_wav
-            else:
-                ref_wav = "E:/GitHub/LanguageLearningApp/backend/voice_engine/audio.wav"
-
+    if is_zero_two:
+        ref_wav = os.environ.get("ZEROTWO_REF_WAV") or "E:/GitHub/LanguageLearningApp/backend/voice_engine/audio.wav"
         is_vi = any(c in text.lower() for c in "àáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụăâđêôơư")
         target_lang = "vi" if is_vi else "ja"
         gpt_sovits_payload = {
@@ -188,43 +180,55 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
             "speed": speed,
             "streaming_mode": False
         }
-        try:
-            with httpx.Client(timeout=15.0) as client:
-                res = client.post(f"{vits_url.rstrip('/')}/tts", json=gpt_sovits_payload)
-                if res.status_code == 200 and len(res.content) > 100:
-                    logger.info("Synthesized voice via GPT-SoVITS POST /tts successfully.")
-                    return res.content
-                else:
-                    logger.warning(f"GPT-SoVITS POST /tts failed with status {res.status_code}: {res.text[:200]}")
-        except Exception as e:
-            logger.warning(f"GPT-SoVITS POST /tts exception: {e}")
-        try:
-            with httpx.Client(timeout=15.0) as client:
-                res = client.get(f"{vits_url.rstrip('/')}/tts", params=gpt_sovits_payload)
-                if res.status_code == 200 and len(res.content) > 100:
-                    logger.info("Synthesized voice via GPT-SoVITS GET /tts successfully.")
-                    return res.content
-                else:
-                    logger.warning(f"GPT-SoVITS GET /tts failed with status {res.status_code}")
-        except Exception as e:
-            logger.warning(f"GPT-SoVITS GET /tts exception: {e}")
-        try:
-            with httpx.Client(timeout=15.0) as client:
-                res = client.get(f"{vits_url.rstrip('/')}/", params=gpt_sovits_payload)
-                if res.status_code == 200 and len(res.content) > 100:
-                    logger.info("Synthesized voice via GPT-SoVITS GET / successfully.")
-                    return res.content
-        except Exception as e:
-            logger.warning(f"GPT-SoVITS GET / exception: {e}")
-        try:
-            with httpx.Client(timeout=10.0) as client:
-                res = client.post(f"{vits_url.rstrip('/')}/synthesize", json={
-                    "text": text, "speaker_id": speaker_id, "ref_audio_path": ref_wav, "refer_wav_path": ref_wav, "speed": speed
-                })
-                if res.status_code == 200 and len(res.content) > 100:
-                    return res.content
-        except Exception as e:
-            logger.warning(f"GPT-SoVITS POST /synthesize exception: {e}")
+        candidate_urls = []
+        for u in [os.environ.get("VITS_URL"), os.environ.get("SOVITS_URL"), "http://host.docker.internal:9880", "http://172.17.0.1:9880", "http://127.0.0.1:9880"]:
+            if u and u.rstrip('/') not in candidate_urls:
+                candidate_urls.append(u.rstrip('/'))
+
+        simple_payload = {
+            "text": text,
+            "text_lang": target_lang,
+            "text_language": target_lang,
+            "speed": speed
+        }
+
+        for base_url in candidate_urls:
+            try:
+                with httpx.Client(timeout=15.0) as client:
+                    res = client.post(f"{base_url}/tts", json=simple_payload)
+                    if res.status_code == 200 and len(res.content) > 100:
+                        logger.info(f"Synthesized voice via GPT-SoVITS POST /tts successfully from {base_url} (preconfigured ref).")
+                        return res.content
+            except Exception:
+                pass
+            try:
+                with httpx.Client(timeout=15.0) as client:
+                    res = client.get(f"{base_url}/tts", params=simple_payload)
+                    if res.status_code == 200 and len(res.content) > 100:
+                        logger.info(f"Synthesized voice via GPT-SoVITS GET /tts successfully from {base_url} (preconfigured ref).")
+                        return res.content
+            except Exception:
+                pass
+
+        for base_url in candidate_urls:
+            try:
+                with httpx.Client(timeout=15.0) as client:
+                    res = client.post(f"{base_url}/tts", json=gpt_sovits_payload)
+                    if res.status_code == 200 and len(res.content) > 100:
+                        logger.info(f"Synthesized voice via GPT-SoVITS POST /tts successfully from {base_url}.")
+                        return res.content
+                    else:
+                        logger.warning(f"GPT-SoVITS POST {base_url}/tts failed with status {res.status_code}: {res.text[:200]}")
+            except Exception as e:
+                logger.warning(f"GPT-SoVITS POST {base_url}/tts exception: {e}")
+            try:
+                with httpx.Client(timeout=15.0) as client:
+                    res = client.get(f"{base_url}/tts", params=gpt_sovits_payload)
+                    if res.status_code == 200 and len(res.content) > 100:
+                        logger.info(f"Synthesized voice via GPT-SoVITS GET /tts successfully from {base_url}.")
+                        return res.content
+            except Exception:
+                pass
 
     # Tier 2: ElevenLabs API Voice Cloning
     eleven_key = os.environ.get("ELEVENLABS_API_KEY")
@@ -351,7 +355,7 @@ def get_audio_stream(text: str, speaker_id: str = "sensei_va_01", speed: float =
     }
     
     try:
-        with httpx.Client(timeout=4.0) as client:
+        with httpx.Client(timeout=15.0) as client:
             resp = client.post(endpoint, json=payload)
             if resp.status_code == 200 and len(resp.content) > 100:
                 return resp.content

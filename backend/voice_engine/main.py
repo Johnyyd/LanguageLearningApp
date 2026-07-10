@@ -158,8 +158,33 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
                 return res.content
         except Exception:
             pass
+        candidate_urls = []
+        for u in [os.environ.get("VITS_URL"), "http://host.docker.internal:9880", "http://172.17.0.1:9880", "http://127.0.0.1:9880"]:
+            if u and u.rstrip('/') not in candidate_urls:
+                candidate_urls.append(u.rstrip('/'))
+
+        simple_payload = {
+            "text": text,
+            "text_lang": "ja" if "sensei" in speaker_id else "vi",
+            "text_language": "ja" if "sensei" in speaker_id else "vi",
+            "speed": speed
+        }
+
+        for base_url in candidate_urls:
+            try:
+                res = requests.post(f"{base_url}/tts", json=simple_payload, timeout=12.0)
+                if res.status_code == 200 and len(res.content) > 100:
+                    return res.content
+            except Exception:
+                pass
+            try:
+                res = requests.get(f"{base_url}/tts", params=simple_payload, timeout=12.0)
+                if res.status_code == 200 and len(res.content) > 100:
+                    return res.content
+            except Exception:
+                pass
+
         try:
-            # 2. Thử chuẩn API GPT-SoVITS (POST /tts hoặc GET / trên port 9880 với reference audio chuẩn Zero Two)
             ref_wav = os.environ.get("ZEROTWO_REF_WAV")
             if not ref_wav:
                 local_wav = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "audio.wav")).replace("\\", "/")
@@ -183,13 +208,19 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
                 "text_split_method": "cut0",
                 "streaming_mode": False
             }
-            res = requests.post(f"{vits_url.rstrip('/')}/tts", json=gpt_sovits_payload, timeout=12.0)
-            if res.status_code == 200 and len(res.content) > 100:
-                return res.content
-            # Fallback sang GET nếu POST /tts không phản hồi
-            res = requests.get(f"{vits_url.rstrip('/')}/", params=gpt_sovits_payload, timeout=12.0)
-            if res.status_code == 200 and len(res.content) > 100:
-                return res.content
+            for base_url in candidate_urls:
+                try:
+                    res = requests.post(f"{base_url}/tts", json=gpt_sovits_payload, timeout=12.0)
+                    if res.status_code == 200 and len(res.content) > 100:
+                        return res.content
+                except Exception:
+                    pass
+                try:
+                    res = requests.get(f"{base_url}/tts", params=gpt_sovits_payload, timeout=12.0)
+                    if res.status_code == 200 and len(res.content) > 100:
+                        return res.content
+                except Exception:
+                    pass
         except Exception:
             pass
         try:

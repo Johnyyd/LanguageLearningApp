@@ -100,6 +100,10 @@ services:
       - DATABASE_URL=mssql+pymssql://sa:SuperStrong!Pass2026@sqlserver:1433/LanguageAppDB
       - REDIS_URL=redis://redis:6379/0
       - VOICE_ENGINE_URL=http://voice-engine:1114
+      - VITS_URL=http://host.docker.internal:9880
+      - ZEROTWO_REF_WAV=E:/GitHub/LanguageLearningApp/backend/voice_engine/audio.wav
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - .:/app
     restart: unless-stopped
