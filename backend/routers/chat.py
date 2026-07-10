@@ -79,10 +79,13 @@ def ask_tutor(request: ChatRequest, db: Session = Depends(get_db)):
 @router.get("/audio")
 def stream_tutor_audio(text: str, speaker_id: str = "sensei_va_01", speed: float = 1.0):
     """
-    Streams synthesized WAV audio for Anime VA voice cloning.
+    Streams synthesized audio for Anime VA voice cloning.
     """
     audio_bytes = get_audio_stream(text=text, speaker_id=speaker_id, speed=speed)
-    return Response(content=audio_bytes, media_type="audio/wav")
+    media_type = "audio/wav"
+    if audio_bytes and (audio_bytes.startswith(b'\xff\xf3') or audio_bytes.startswith(b'\xff\xfb') or audio_bytes.startswith(b'ID3')):
+        media_type = "audio/mpeg"
+    return Response(content=audio_bytes, media_type=media_type)
 
 @router.delete("/clear-cache")
 @router.post("/clear-cache")

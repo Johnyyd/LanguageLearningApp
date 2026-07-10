@@ -192,23 +192,30 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
             with httpx.Client(timeout=15.0) as client:
                 res = client.post(f"{vits_url.rstrip('/')}/tts", json=gpt_sovits_payload)
                 if res.status_code == 200 and len(res.content) > 100:
+                    logger.info("Synthesized voice via GPT-SoVITS POST /tts successfully.")
                     return res.content
-        except Exception:
-            pass
+                else:
+                    logger.warning(f"GPT-SoVITS POST /tts failed with status {res.status_code}: {res.text[:200]}")
+        except Exception as e:
+            logger.warning(f"GPT-SoVITS POST /tts exception: {e}")
         try:
             with httpx.Client(timeout=15.0) as client:
                 res = client.get(f"{vits_url.rstrip('/')}/tts", params=gpt_sovits_payload)
                 if res.status_code == 200 and len(res.content) > 100:
+                    logger.info("Synthesized voice via GPT-SoVITS GET /tts successfully.")
                     return res.content
-        except Exception:
-            pass
+                else:
+                    logger.warning(f"GPT-SoVITS GET /tts failed with status {res.status_code}")
+        except Exception as e:
+            logger.warning(f"GPT-SoVITS GET /tts exception: {e}")
         try:
             with httpx.Client(timeout=15.0) as client:
                 res = client.get(f"{vits_url.rstrip('/')}/", params=gpt_sovits_payload)
                 if res.status_code == 200 and len(res.content) > 100:
+                    logger.info("Synthesized voice via GPT-SoVITS GET / successfully.")
                     return res.content
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"GPT-SoVITS GET / exception: {e}")
         try:
             with httpx.Client(timeout=10.0) as client:
                 res = client.post(f"{vits_url.rstrip('/')}/synthesize", json={
@@ -216,8 +223,8 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
                 })
                 if res.status_code == 200 and len(res.content) > 100:
                     return res.content
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"GPT-SoVITS POST /synthesize exception: {e}")
 
     # Tier 2: ElevenLabs API Voice Cloning
     eleven_key = os.environ.get("ELEVENLABS_API_KEY")
