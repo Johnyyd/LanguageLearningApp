@@ -158,13 +158,10 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
     import os, urllib.parse
     
     # Tier 1: Style-Bert-VITS2 / GPT-SoVITS Custom Voice Cloning Server (Default 9880 from AI_Voice_Workspace is Zero Two model)
-    is_zero_two = (speaker_id in ["sensei_va_04", "zero_two"])
-    
-    if is_zero_two:
-        ref_wav = os.environ.get("ZEROTWO_REF_WAV") or "E:/GitHub/LanguageLearningApp/backend/voice_engine/audio.wav"
-        is_vi = any(c in text.lower() for c in "àáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụăâđêôơư")
-        target_lang = "vi" if is_vi else "ja"
-        gpt_sovits_payload = {
+    ref_wav = os.environ.get("ZEROTWO_REF_WAV") or "E:/GitHub/LanguageLearningApp/backend/voice_engine/audio.wav"
+    is_vi = any(c in text.lower() for c in "àáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụăâđêôơư")
+    target_lang = "vi" if is_vi else "ja"
+    gpt_sovits_payload = {
             "text": text,
             "text_lang": target_lang,
             "text_language": target_lang,
