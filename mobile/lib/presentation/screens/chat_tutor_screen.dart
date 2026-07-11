@@ -81,13 +81,20 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
         final bool hasJapaneseChars = RegExp(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]').hasMatch(text);
         final String targetLang = hasJapaneseChars ? "ja-JP" : "vi-VN";
 
+        // Chặn gọi API Voice Cloning đối với câu chào (hoặc thông báo hệ thống) để tránh lãng phí tài nguyên phần cứng & API
+        final bool isGreeting = text.trim().toLowerCase().startsWith("konnichiwa");
+        final bool useVoiceCloning = _enableVoiceCloning && !isGreeting;
+        if (isGreeting) {
+            debugPrint("⚡ [ChatTutorScreen] Câu chào phát hiện: bỏ qua gọi API Voice Clone, dùng Device TTS nội bộ.");
+        }
+
         await TtsHelper.speak(
             text,
             lang: targetLang,
             tts: _flutterTts,
             speakerId: _currentSpeakerId,
             audioUrl: audioUrl,
-            enableVoiceCloning: _enableVoiceCloning,
+            enableVoiceCloning: useVoiceCloning,
             onStart: () {
                 if (mounted) {
                     setState(() => _isSpeaking = true);

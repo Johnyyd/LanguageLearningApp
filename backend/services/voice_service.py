@@ -153,8 +153,18 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
     1. Direct fast call to GPT-SoVITS API Server (cổng 9880) với Zero Two reference audio
     2. Fallback sang Edge-TTS / Neural TTS
     """
-    import os, urllib.parse
-    
+    import os, urllib.parse, hashlib
+
+    # Check local cache first (memory + /tmp/tts_audio_cache)
+    cache_key = hashlib.sha256(f"{text}_{speaker_id}_{speed}".encode("utf-8")).hexdigest()
+    cache_dir = "/tmp/tts_audio_cache"
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_file = os.path.join(cache_dir, f"{cache_key}.wav")
+    if os.path.exists(cache_file) and os.path.getsize(cache_file) > 100:
+        logger.info(f"⚡ [VoiceService] Returning cached audio from {cache_file}")
+        with open(cache_file, "rb") as f:
+            return f.read()
+
     # Tier 1: GPT-SoVITS API Server (Zero Two model trên cổng 9880)
     ref_wav = os.environ.get("ZEROTWO_REF_WAV") or "/home/tringuyen/AI_Voice_Workspace/GPT-SoVITS/output/slicer_opt/Every Time Zero Two Says Darling in DARLING in the FRANXX - Crunchyroll (youtube).mp3_0001797440_0001964160.wav"
     is_ja = any(0x3040 <= ord(c) <= 0x30FF or 0x4E00 <= ord(c) <= 0x9FAF for c in text)
@@ -182,10 +192,12 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
     candidate_urls = ["http://host.docker.internal:9880", "http://172.17.0.1:9880", "http://127.0.0.1:9880"]
     for base_url in candidate_urls:
         try:
-            with httpx.Client(timeout=8.0) as client:
+            with httpx.Client(timeout=45.0) as client:
                 res = client.post(f"{base_url}/tts", json=gpt_sovits_payload)
                 if res.status_code == 200 and len(res.content) > 100:
                     logger.info(f"✅ Synthesized voice via GPT-SoVITS POST /tts successfully from {base_url}.")
+                    with open(cache_file, "wb") as f:
+                        f.write(res.content)
                     return res.content
                 else:
                     logger.warning(f"⚠️ GPT-SoVITS {base_url}/tts returned status {res.status_code}: {res.text[:300]}")
@@ -307,6 +319,16 @@ def get_audio_stream(text: str, speaker_id: str = "sensei_va_01", speed: float =
     """
     Retrieves synthetic speech audio stream from Voice Engine or generates AI cloned voice.
     """
+    import os, hashlib
+    cache_key = hashlib.sha256(f"{text}_{speaker_id}_{speed}".encode("utf-8")).hexdigest()
+    cache_dir = "/tmp/tts_audio_cache"
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_file = os.path.join(cache_dir, f"{cache_key}.wav")
+    if os.path.exists(cache_file) and os.path.getsize(cache_file) > 100:
+        logger.info(f"⚡ [VoiceService get_audio_stream] Returning cached audio from {cache_file}")
+        with open(cache_file, "rb") as f:
+            return f.read()
+
     voice_url = getattr(settings, "VOICE_ENGINE_URL", "http://localhost:1114")
     endpoint = f"{voice_url}/synthesize/audio"
     
@@ -317,12 +339,18 @@ def get_audio_stream(text: str, speaker_id: str = "sensei_va_01", speed: float =
     }
     
     try:
-        with httpx.Client(timeout=15.0) as client:
+        with httpx.Client(timeout=60.0) as client:
             resp = client.post(endpoint, json=payload)
             if resp.status_code == 200 and len(resp.content) > 100:
+                with open(cache_file, "wb") as f:
+                    f.write(resp.content)
                 return resp.content
     except Exception as e:
         logger.warning(f"⚠️ Voice Engine audio stream unreachable ({e}). Using AI voice cloning generator.")
         
-    return _synthesize_cloned_voice(text, speaker_id, speed)
+    audio_bytes = _synthesize_cloned_voice(text, speaker_id, speed)
+    if audio_bytes and len(audio_bytes) > 100:
+        with open(cache_file, "wb") as f:
+            f.write(audio_bytes)
+    return audio_bytes
 

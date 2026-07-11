@@ -147,11 +147,21 @@ def synthesize_speech(request: SynthesisRequest):
     )
 
 def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed: float = 1.0) -> bytes:
-    import os, urllib.parse
+    import os, urllib.parse, hashlib
+
+    # Check local cache first (memory + /tmp/tts_audio_cache)
+    cache_key = hashlib.sha256(f"{text}_{speaker_id}_{speed}".encode("utf-8")).hexdigest()
+    cache_dir = "/tmp/tts_audio_cache"
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_file = os.path.join(cache_dir, f"{cache_key}.wav")
+    if os.path.exists(cache_file) and os.path.getsize(cache_file) > 100:
+        with open(cache_file, "rb") as f:
+            return f.read()
+
     # Tier 1: GPT-SoVITS API Server (Zero Two model trên cổng 9880)
     ref_wav = os.environ.get("ZEROTWO_REF_WAV") or "/home/tringuyen/AI_Voice_Workspace/GPT-SoVITS/output/slicer_opt/Every Time Zero Two Says Darling in DARLING in the FRANXX - Crunchyroll (youtube).mp3_0001797440_0001964160.wav"
-    is_vi = any(c in text.lower() for c in "àáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụăâđêôơư")
-    target_lang = "vi" if is_vi else "ja"
+    is_ja = any(0x3040 <= ord(c) <= 0x30FF or 0x4E00 <= ord(c) <= 0x9FAF for c in text)
+    target_lang = "ja" if is_ja else "auto"
     
     gpt_sovits_payload = {
         "text": text,
@@ -162,19 +172,22 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
         "prompt_text": "僕だけがダーリンのパートナーダーリンはもう知ってるんだよね。",
         "prompt_lang": "ja",
         "prompt_language": "ja",
-        "top_k": 15,
+        "top_k": 5,
         "top_p": 1.0,
-        "temperature": 0.85,
-        "text_split_method": "cut0",
+        "temperature": 0.6,
+        "repetition_penalty": 1.35,
+        "text_split_method": "cut5",
         "speed": speed,
         "streaming_mode": False
     }
 
-    candidate_urls = ["http://127.0.0.1:9880", "http://host.docker.internal:9880"]
+    candidate_urls = ["http://host.docker.internal:9880", "http://172.17.0.1:9880", "http://127.0.0.1:9880"]
     for base_url in candidate_urls:
         try:
-            res = requests.post(f"{base_url}/tts", json=gpt_sovits_payload, timeout=8.0)
+            res = requests.post(f"{base_url}/tts", json=gpt_sovits_payload, timeout=45.0)
             if res.status_code == 200 and len(res.content) > 100:
+                with open(cache_file, "wb") as f:
+                    f.write(res.content)
                 return res.content
         except Exception:
             pass
