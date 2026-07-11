@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "skills": {
+    "claude": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/claude/SKILL.md",
+      "computedHash": "1ee379403d4306a37730975b6abb4e508abca423ceea03f40fcfc4ddbe572a24"
+    },
+    "close-spec": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/close-spec/SKILL.md",
+      "computedHash": "4d4e040ce87702b20c28374f478b57a92b01b410555c82b802d3d5cb64417225"
+    },
+    "code-review": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/code-review/SKILL.md",
+      "computedHash": "d379e269dbb8c6a656832f03f15eac41d0d745d4418e734eb7e1d6da3dbaf4ab"
+    },
+    "codex": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/codex/SKILL.md",
+      "computedHash": "4e512e78c30e78b40c885f6c58772157de077c7d0eef996eab7d6d68f89cebef"
+    },
+    "compare-screenshots": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/visual/compare-screenshots/SKILL.md",
+      "computedHash": "e6429b2363bb4728a22bf9f0e04f7ac784a8f899c6ea650ec07193fa763ff60f"
+    },
+    "eval-skills": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/authoring/eval-skills/SKILL.md",
+      "computedHash": "5a8327a23aba5ac5452f2fad1409cd1f0d838affeb59ed0a788c89735e80c2ee"
+    },
+    "explore-unknowns": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/explore-unknowns/SKILL.md",
+      "computedHash": "53145fb3f535a55143512374cc31fd15d91419338701f5404355c3ecf5c77ce3"
+    },
+    "implement-spec": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/implement-spec/SKILL.md",
+      "computedHash": "edb3a782876113974a082f0a2ec876309247620029a4bf650c77457fea61119b"
+    },
+    "implement-spec-with-codex": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/implement-spec-with-codex/SKILL.md",
+      "computedHash": "f39b3d1d38937bdcbb56615bc5f0323765693f77f4977a19354cf45c4933274a"
+    },
+    "preview-shots": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/visual/preview-shots/SKILL.md",
+      "computedHash": "ffd0a8c6764bc38eab1eb507bd89fd9791bd385aa2b4d362bdfeb7b246420eb5"
+    },
+    "refactor-clean": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/refactor-clean/SKILL.md",
+      "computedHash": "5b83948317db043c4cfe66a81cd2baf0fe2c3e9594473351465faaa49a833d9e"
+    },
+    "renderer": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/graphics/renderer/SKILL.md",
+      "computedHash": "ec7297e9f8dce5e7951c9d4fdcae9f91b6dd336c4c9e53af3569a2f66069949b"
+    },
+    "review": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/review/SKILL.md",
+      "computedHash": "a5fc2f1368e20ebb825041b11df7d22ab4aebd23d7a47141ae941c397a350f49"
+    },
+    "screenshot-critique": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/visual/screenshot-critique/SKILL.md",
+      "computedHash": "d4c28d92aa3d2c4cbea8eab893c43a0129465b95aebf0ef470c50e5120b31d6f"
+    },
+    "write-docs": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/write-docs/SKILL.md",
+      "computedHash": "0157bbc32c0db158e432959d93e49ccb0c2e36ce7f16a083091ea9617748ed55"
+    },
+    "write-skills": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/authoring/write-skills/SKILL.md",
+      "computedHash": "ae9a78a04c4366776c4faac30499014b1c4656fbcf0bab96c043a67a8e6050dd"
+    },
+    "write-spec": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/write-spec/SKILL.md",
+      "computedHash": "d3ad6787b252c0249be900e072942df1d0002dbebc5743ad1590903bb957d589"
+    },
+    "write-tests": {
+      "source": "dzhng/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/write-tests/SKILL.md",
+      "computedHash": "2def2ee208c5906811fe912f047f8dfb9ce2d1e07609d0f9e81d2ac96b0708e6"
+    }
+  }
+}
