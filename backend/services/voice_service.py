@@ -177,8 +177,8 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
         "streaming_mode": False
     }
 
-    # Thử nhanh cổng 9880 (timeout ngắn 6s để không bao giờ bị treo ứng dụng Mobile)
-    candidate_urls = ["http://127.0.0.1:9880", "http://host.docker.internal:9880"]
+    # Thử nhanh cổng 9880 từ trong Docker (host.docker.internal / 172.17.0.1) hoặc Localhost
+    candidate_urls = ["http://host.docker.internal:9880", "http://172.17.0.1:9880", "http://127.0.0.1:9880"]
     for base_url in candidate_urls:
         try:
             with httpx.Client(timeout=8.0) as client:
