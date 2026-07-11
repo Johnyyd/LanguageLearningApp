@@ -474,7 +474,7 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                             const SizedBox(height: 8),
                             Text(
                                 "Trợ Lý 3D Sẵn Sàng ($modelName)",
-                                style: TextStyle(
+                                style: const TextStyle(
                                     color: AppColors.duoGreen,
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,

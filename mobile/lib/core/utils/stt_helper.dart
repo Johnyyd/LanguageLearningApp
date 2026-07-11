@@ -92,11 +92,13 @@ class SttHelper {
             });
           }
         },
-        localeId: targetLocale,
-        cancelOnError: true,
-        listenMode: ListenMode.dictation,
-        pauseFor: pauseDuration,
-        listenFor: const Duration(seconds: 30),
+        listenOptions: SpeechListenOptions(
+          localeId: targetLocale,
+          cancelOnError: true,
+          listenMode: ListenMode.dictation,
+          pauseFor: pauseDuration,
+          listenFor: const Duration(seconds: 30),
+        ),
       );
       return true;
     } catch (e) {

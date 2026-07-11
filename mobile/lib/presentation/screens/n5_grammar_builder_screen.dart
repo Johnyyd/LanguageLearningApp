@@ -135,9 +135,9 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                     Container(
                         height: 140,
                         width: double.infinity,
-                        decoration: BoxDecoration(
-                            color: const Color(0xFFE5F6DF),
-                            border: const Border(bottom: BorderSide(color: Color(0xFFE5E5E5), width: 2)),
+                        decoration: const BoxDecoration(
+                            color: Color(0xFFE5F6DF),
+                            border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5), width: 2)),
                         ),
                         child: Avatar3dViewer(
                             emotion: _isCorrect == true ? "happy" : (_isCorrect == false ? "thinking" : "idle"),
@@ -179,8 +179,8 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                             color: Theme.of(context).cardColor,
                                             borderRadius: BorderRadius.circular(16),
                                             border: Border.all(color: AppColors.duoBlue, width: 2),
-                                            boxShadow: [
-                                                const BoxShadow(color: AppColors.duoBlueShadow, blurRadius: 0, offset: Offset(0, 4)),
+                                            boxShadow: const [
+                                                BoxShadow(color: AppColors.duoBlueShadow, blurRadius: 0, offset: Offset(0, 4)),
                                             ],
                                         ),
                                         child: Column(
@@ -231,7 +231,7 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                                             decoration: BoxDecoration(
                                                                 color: AppColors.duoBlue,
                                                                 borderRadius: BorderRadius.circular(10),
-                                                                boxShadow: [const BoxShadow(color: AppColors.duoBlueShadow, blurRadius: 0, offset: Offset(0, 3))],
+                                                                boxShadow: const [BoxShadow(color: AppColors.duoBlueShadow, blurRadius: 0, offset: Offset(0, 3))],
                                                             ),
                                                             child: Row(
                                                                 mainAxisSize: MainAxisSize.min,
@@ -265,7 +265,7 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                                         color: Theme.of(context).cardColor,
                                                         borderRadius: BorderRadius.circular(12),
                                                         border: Border.all(color: const Color(0xFFE5E5E5), width: 2),
-                                                        boxShadow: [const BoxShadow(color: Color(0xFFCCCCCC), blurRadius: 0, offset: Offset(0, 3))],
+                                                        boxShadow: const [BoxShadow(color: Color(0xFFCCCCCC), blurRadius: 0, offset: Offset(0, 3))],
                                                     ),
                                                     child: Text(word, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                                 ),

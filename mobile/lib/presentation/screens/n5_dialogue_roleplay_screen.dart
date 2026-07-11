@@ -269,9 +269,9 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                         Container(
                             height: 160,
                             width: double.infinity,
-                            decoration: BoxDecoration(
-                                color: const Color(0xFFE5F6DF),
-                                border: const Border(bottom: BorderSide(color: Color(0xFFE5E5E5), width: 2)),
+                            decoration: const BoxDecoration(
+                                color: Color(0xFFE5F6DF),
+                                border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5), width: 2)),
                             ),
                             child: Avatar3dViewer(
                                 emotion: _isSpeaking ? "talking" : (_isListeningMic ? "thinking" : "happy"),

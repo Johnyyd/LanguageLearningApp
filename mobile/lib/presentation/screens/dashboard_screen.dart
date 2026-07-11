@@ -102,19 +102,19 @@ class DashboardScreen extends StatelessWidget {
                                         ),
                                     ],
                                 ),
-                                child: Column(
+                                child: const Column(
                                     children: [
-                                        const Avatar3dViewer(
+                                        Avatar3dViewer(
                                             emotion: "happy",
                                             height: 180,
                                         ),
-                                        const SizedBox(height: 12),
+                                        SizedBox(height: 12),
                                         Text(
                                             "\"Chào mừng quay trở lại! Sensei đã chuẩn bị sẵn các từ vựng N5 theo lịch ôn tập SRS SuperMemo-2 cho hôm nay.\"",
                                             style: TextStyle(
                                                 fontSize: 14,
                                                 fontStyle: FontStyle.italic,
-                                                color: const Color(0xFF3C3C3C),
+                                                color: Color(0xFF3C3C3C),
                                                 height: 1.4,
                                             ),
                                             textAlign: TextAlign.center,
@@ -444,19 +444,19 @@ class DashboardScreen extends StatelessWidget {
                                 children: [
                                     Text(
                                         title,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontWeight: FontWeight.w800,
                                             fontSize: 16,
-                                            color: const Color(0xFF3C3C3C),
+                                            color: Color(0xFF3C3C3C),
                                         ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                         subtitle,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w500,
-                                            color: const Color(0xFF777777),
+                                            color: Color(0xFF777777),
                                         ),
                                     ),
                                 ],
