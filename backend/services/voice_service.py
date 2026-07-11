@@ -157,8 +157,8 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
     
     # Tier 1: GPT-SoVITS API Server (Zero Two model trên cổng 9880)
     ref_wav = os.environ.get("ZEROTWO_REF_WAV") or "/home/tringuyen/AI_Voice_Workspace/GPT-SoVITS/output/slicer_opt/Every Time Zero Two Says Darling in DARLING in the FRANXX - Crunchyroll (youtube).mp3_0001797440_0001964160.wav"
-    is_vi = any(c in text.lower() for c in "àáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụăâđêôơư")
-    target_lang = "vi" if is_vi else "ja"
+    is_ja = any(0x3040 <= ord(c) <= 0x30FF or 0x4E00 <= ord(c) <= 0x9FAF for c in text)
+    target_lang = "ja" if is_ja else "auto"
     
     gpt_sovits_payload = {
         "text": text,
@@ -174,6 +174,7 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
         "temperature": 0.85,
         "text_split_method": "cut0",
         "speed": speed,
+        "speed_factor": speed,
         "streaming_mode": False
     }
 
@@ -186,8 +187,10 @@ def _synthesize_cloned_voice(text: str, speaker_id: str = "sensei_va_01", speed:
                 if res.status_code == 200 and len(res.content) > 100:
                     logger.info(f"✅ Synthesized voice via GPT-SoVITS POST /tts successfully from {base_url}.")
                     return res.content
+                else:
+                    logger.warning(f"⚠️ GPT-SoVITS {base_url}/tts returned status {res.status_code}: {res.text[:300]}")
         except Exception as e:
-            logger.debug(f"GPT-SoVITS POST {base_url}/tts skipped: {e}")
+            logger.warning(f"⚠️ GPT-SoVITS POST {base_url}/tts connection skipped/error: {e}")
 
     # Tier 2: ElevenLabs API Voice Cloning
     eleven_key = os.environ.get("ELEVENLABS_API_KEY")
