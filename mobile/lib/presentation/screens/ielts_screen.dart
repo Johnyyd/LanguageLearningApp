@@ -7,6 +7,7 @@ import '../blocs/ielts/ielts_state.dart';
 import '../widgets/ielts/ielts_evaluation_report_view.dart';
 import '../widgets/common/shimmer_loading_card.dart';
 import '../../core/theme/app_theme.dart';
+import '../../data/datasources/remote_ai_datasource.dart';
 
 class IeltsScreen extends StatefulWidget {
     const IeltsScreen({super.key});
@@ -19,7 +20,10 @@ class _IeltsScreenState extends State<IeltsScreen> {
     final TextEditingController _essayController = TextEditingController();
     bool _isOcrMode = false;
 
-    final List<Map<String, String>> _prompts = [
+    bool _isLoadingPrompts = true;
+    List<Map<String, String>> _prompts = [];
+
+    final List<Map<String, String>> _fallbackPrompts = [
         {
             "id": "task1_bar_chart_01",
             "title": "Car Ownership Trends (2000-2020)",
@@ -36,6 +40,31 @@ class _IeltsScreenState extends State<IeltsScreen> {
     void initState() {
         super.initState();
         _essayController.text = "The provided bar chart illustrates the comparison between the number of cars owned per 1000 inhabitants across three European nations from 2000 to 2020. Overall, it is evident that car ownership witnessed an upward trend in all three countries over the given period. In 2000, the amount of cars in Country A was approximately 400, which increase dramatically to nearly 650 by 2020.";
+        _loadPromptsFromApi();
+    }
+
+    Future<void> _loadPromptsFromApi() async {
+        try {
+            final remoteAiDs = context.read<RemoteAiDataSource>();
+            final data = await remoteAiDs.fetchIeltsPrompts();
+            if (data.isNotEmpty) {
+                _prompts = data.map((json) => {
+                    "id": (json['id'] ?? '').toString(),
+                    "title": (json['title'] ?? '').toString(),
+                    "desc": (json['prompt_text'] ?? json['desc'] ?? '').toString(),
+                }).toList();
+            } else {
+                _prompts = List.from(_fallbackPrompts);
+            }
+        } catch (_) {
+            _prompts = List.from(_fallbackPrompts);
+        } finally {
+            if (mounted) {
+                setState(() {
+                    _isLoadingPrompts = false;
+                });
+            }
+        }
     }
 
     @override
@@ -107,7 +136,8 @@ class _IeltsScreenState extends State<IeltsScreen> {
 
                     // Initial Input Form View
                     final currentPromptId = state is IeltsInitial ? state.selectedPromptId : "task1_bar_chart_01";
-                    final currentPrompt = _prompts.firstWhere((p) => p['id'] == currentPromptId, orElse: () => _prompts[0]);
+                    final activePrompts = _prompts.isNotEmpty ? _prompts : _fallbackPrompts;
+                    final currentPrompt = activePrompts.firstWhere((p) => p['id'] == currentPromptId, orElse: () => activePrompts[0]);
 
                     return SingleChildScrollView(
                         padding: const EdgeInsets.all(16),
@@ -131,7 +161,7 @@ class _IeltsScreenState extends State<IeltsScreen> {
                                         fillColor: Theme.of(context).cardColor,
                                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                     ),
-                                    items: _prompts.map((p) => DropdownMenuItem(
+                                    items: activePrompts.map((p) => DropdownMenuItem(
                                         value: p['id'],
                                         child: Text(
                                             p['title']!,
@@ -141,7 +171,7 @@ class _IeltsScreenState extends State<IeltsScreen> {
                                     )).toList(),
                                     onChanged: (val) {
                                         if (val != null) {
-                                            final selected = _prompts.firstWhere((p) => p['id'] == val);
+                                            final selected = activePrompts.firstWhere((p) => p['id'] == val);
                                             context.read<IeltsBloc>().add(SelectIeltsPrompt(val, selected['title']!));
                                         }
                                     },

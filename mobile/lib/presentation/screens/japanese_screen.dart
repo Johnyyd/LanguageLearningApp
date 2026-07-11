@@ -6,6 +6,7 @@ import '../blocs/vocab/vocab_state.dart';
 import '../widgets/vocab/flip_flashcard.dart';
 import '../widgets/vocab/handwriting_canvas.dart';
 import '../widgets/vocab/vocab_quiz_view.dart';
+import '../widgets/common/responsive_container.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
 
@@ -229,143 +230,145 @@ class _JapaneseScreenState extends State<JapaneseScreen> with SingleTickerProvid
                                 ),
                                 // Main Tab Content
                                 Expanded(
-                                    child: TabBarView(
-                                        controller: _tabController,
-                                        children: [
-                                            // Tab 1: Flashcard SRS
-                                            SingleChildScrollView(
-                                                padding: const EdgeInsets.all(20),
-                                                child: Column(
-                                                    children: [
-                                                        Row(
-                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                            children: [
-                                                                Text("Thẻ ${_currentIndex + 1}/${vocabList.length}", style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7))),
-                                                                Container(
-                                                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                                                    decoration: BoxDecoration(color: AppColors.successGreen.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                                                                    child: Text("🔥 Streak: ${state.streakCount} ngày", style: const TextStyle(color: AppColors.successGreen, fontWeight: FontWeight.bold)),
-                                                                ),
-                                                            ],
-                                                        ),
-                                                        const SizedBox(height: 16),
-                                                        FlipFlashcard(
-                                                            item: currentItem,
-                                                            onSrsReviewed: (quality) {
-                                                                context.read<VocabBloc>().add(SubmitSrsReview(currentItem, quality));
-                                                                if (_currentIndex >= vocabList.length - 1) {
-                                                                    _showLessonCompletionDialog();
-                                                                } else {
-                                                                    setState(() {
-                                                                        _currentIndex = (_currentIndex + 1) % vocabList.length;
-                                                                    });
-                                                                }
-                                                            },
-                                                        ),
-                                                        const SizedBox(height: 20),
-                                                        Row(
-                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                            children: [
-                                                                ElevatedButton.icon(
-                                                                    onPressed: () => setState(() => _currentIndex = (_currentIndex - 1 + vocabList.length) % vocabList.length),
-                                                                    icon: const Icon(Icons.arrow_back, size: 20),
-                                                                    label: const Text("Trước"),
-                                                                    style: ElevatedButton.styleFrom(
-                                                                        backgroundColor: Theme.of(context).cardColor,
-                                                                        foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
-                                                                        elevation: 2,
-                                                                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                                                        shape: RoundedRectangleBorder(
-                                                                            borderRadius: BorderRadius.circular(16),
-                                                                            side: BorderSide(color: AppColors.slateGray.withValues(alpha: 0.3)),
-                                                                        ),
-                                                                    ),
-                                                                ),
-                                                                ElevatedButton.icon(
+                                    child: ResponsiveContainer(
+                                        child: TabBarView(
+                                            controller: _tabController,
+                                            children: [
+                                                // Tab 1: Flashcard SRS
+                                                SingleChildScrollView(
+                                                    padding: const EdgeInsets.all(20),
+                                                    child: Column(
+                                                        children: [
+                                                            Row(
+                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                 children: [
+                                                                     Text("Thẻ ${_currentIndex + 1}/${vocabList.length}", style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7))),
+                                                                     Container(
+                                                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                                                         decoration: BoxDecoration(color: AppColors.successGreen.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                                                                         child: Text("🔥 Streak: ${state.streakCount} ngày", style: const TextStyle(color: AppColors.successGreen, fontWeight: FontWeight.bold)),
+                                                                     ),
+                                                                 ],
+                                                            ),
+                                                            const SizedBox(height: 16),
+                                                            FlipFlashcard(
+                                                                 item: currentItem,
+                                                                 onSrsReviewed: (quality) {
+                                                                     context.read<VocabBloc>().add(SubmitSrsReview(currentItem, quality));
+                                                                     if (_currentIndex >= vocabList.length - 1) {
+                                                                         _showLessonCompletionDialog();
+                                                                     } else {
+                                                                         setState(() {
+                                                                             _currentIndex = (_currentIndex + 1) % vocabList.length;
+                                                                         });
+                                                                     }
+                                                                 },
+                                                            ),
+                                                            const SizedBox(height: 20),
+                                                            Row(
+                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                 children: [
+                                                                     ElevatedButton.icon(
+                                                                         onPressed: () => setState(() => _currentIndex = (_currentIndex - 1 + vocabList.length) % vocabList.length),
+                                                                         icon: const Icon(Icons.arrow_back, size: 20),
+                                                                         label: const Text("Trước"),
+                                                                         style: ElevatedButton.styleFrom(
+                                                                             backgroundColor: Theme.of(context).cardColor,
+                                                                             foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
+                                                                             elevation: 2,
+                                                                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                                                             shape: RoundedRectangleBorder(
+                                                                                 borderRadius: BorderRadius.circular(16),
+                                                                                 side: BorderSide(color: AppColors.slateGray.withValues(alpha: 0.3)),
+                                                                             ),
+                                                                         ),
+                                                                     ),
+                                                                     ElevatedButton.icon(
+                                                                         onPressed: () {
+                                                                             if (_currentIndex >= vocabList.length - 1) {
+                                                                                 _showLessonCompletionDialog();
+                                                                             } else {
+                                                                                 setState(() => _currentIndex = (_currentIndex + 1) % vocabList.length);
+                                                                             }
+                                                                         },
+                                                                         icon: const Icon(Icons.arrow_forward, size: 20),
+                                                                         label: const Text("Tiếp theo"),
+                                                                         style: ElevatedButton.styleFrom(
+                                                                             backgroundColor: AppColors.sakuraPink,
+                                                                             foregroundColor: AppColors.deepIndigo,
+                                                                             elevation: 4,
+                                                                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                                                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                                                             textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                                         ),
+                                                                     ),
+                                                                 ],
+                                                            ),
+                                                        ],
+                                                    ),
+                                                ),
+                                                // Tab 2: Handwriting Practice
+                                                SingleChildScrollView(
+                                                    padding: const EdgeInsets.all(20),
+                                                    child: Column(
+                                                        children: [
+                                                            Text("Hãy dùng ngón tay vẽ lại chữ \"${currentItem.character}\"", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                            const SizedBox(height: 8),
+                                                            Text("Nghĩa: ${currentItem.meaning}", style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8))),
+                                                            const SizedBox(height: 20),
+                                                            HandwritingCanvas(
+                                                                key: ValueKey('${currentItem.id}_$_currentIndex'),
+                                                                targetCharacter: currentItem.character,
+                                                                onClear: () {
+                                                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Đã làm mới bảng vẽ!"), duration: Duration(seconds: 1)));
+                                                                },
+                                                            ),
+                                                            const SizedBox(height: 20),
+                                                            SizedBox(
+                                                                width: double.infinity,
+                                                                child: ElevatedButton.icon(
                                                                     onPressed: () {
+                                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                                            const SnackBar(
+                                                                                content: Text("🎉 Nét vẽ rất tốt! Hệ thống đã ghi nhận tiến bộ viết chữ Kana/Kanji."),
+                                                                                backgroundColor: AppColors.successGreen,
+                                                                            ),
+                                                                        );
                                                                         if (_currentIndex >= vocabList.length - 1) {
                                                                             _showLessonCompletionDialog();
                                                                         } else {
                                                                             setState(() => _currentIndex = (_currentIndex + 1) % vocabList.length);
                                                                         }
                                                                     },
-                                                                    icon: const Icon(Icons.arrow_forward, size: 20),
-                                                                    label: const Text("Tiếp theo"),
+                                                                    icon: const Icon(Icons.check_circle),
+                                                                    label: const Text("Hoàn thành & Sang chữ tiếp theo"),
                                                                     style: ElevatedButton.styleFrom(
-                                                                        backgroundColor: AppColors.sakuraPink,
-                                                                        foregroundColor: AppColors.deepIndigo,
-                                                                        elevation: 4,
-                                                                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                                                        backgroundColor: AppColors.successGreen,
+                                                                        foregroundColor: Colors.white,
+                                                                        padding: const EdgeInsets.symmetric(vertical: 14),
                                                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                                                         textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                                                     ),
                                                                 ),
-                                                            ],
-                                                        ),
-                                                    ],
-                                                ),
-                                            ),
-                                            // Tab 2: Handwriting Practice
-                                            SingleChildScrollView(
-                                                padding: const EdgeInsets.all(20),
-                                                child: Column(
-                                                    children: [
-                                                        Text("Hãy dùng ngón tay vẽ lại chữ \"${currentItem.character}\"", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                                        const SizedBox(height: 8),
-                                                        Text("Nghĩa: ${currentItem.meaning}", style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8))),
-                                                        const SizedBox(height: 20),
-                                                        HandwritingCanvas(
-                                                            key: ValueKey('${currentItem.id}_$_currentIndex'),
-                                                            targetCharacter: currentItem.character,
-                                                            onClear: () {
-                                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Đã làm mới bảng vẽ!"), duration: Duration(seconds: 1)));
-                                                            },
-                                                        ),
-                                                        const SizedBox(height: 20),
-                                                        SizedBox(
-                                                            width: double.infinity,
-                                                            child: ElevatedButton.icon(
-                                                                onPressed: () {
-                                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                                        const SnackBar(
-                                                                            content: Text("🎉 Nét vẽ rất tốt! Hệ thống đã ghi nhận tiến bộ viết chữ Kana/Kanji."),
-                                                                            backgroundColor: AppColors.successGreen,
-                                                                        ),
-                                                                    );
-                                                                    if (_currentIndex >= vocabList.length - 1) {
-                                                                        _showLessonCompletionDialog();
-                                                                    } else {
-                                                                        setState(() => _currentIndex = (_currentIndex + 1) % vocabList.length);
-                                                                    }
-                                                                },
-                                                                icon: const Icon(Icons.check_circle),
-                                                                label: const Text("Hoàn thành & Sang chữ tiếp theo"),
-                                                                style: ElevatedButton.styleFrom(
-                                                                    backgroundColor: AppColors.successGreen,
-                                                                    foregroundColor: Colors.white,
-                                                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                                                    textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                                                ),
                                                             ),
-                                                        ),
-                                                    ],
+                                                        ],
+                                                    ),
                                                 ),
-                                            ),
-                                            // Tab 3: Multiple Choice Quiz
-                                            VocabQuizView(
-                                                vocabList: vocabList,
-                                                onQuizCompleted: () {
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                        const SnackBar(
-                                                            content: Text("🎉 Chúc mừng! Bạn đã hoàn thành bài kiểm tra trắc nghiệm từ vựng N5!"),
-                                                            backgroundColor: AppColors.goldAccent,
-                                                        ),
-                                                    );
-                                                },
-                                                onNextLesson: _advanceToNextLesson,
-                                            ),
-                                        ],
+                                                // Tab 3: Multiple Choice Quiz
+                                                VocabQuizView(
+                                                    vocabList: vocabList,
+                                                    onQuizCompleted: () {
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                            const SnackBar(
+                                                                content: Text("🎉 Chúc mừng! Bạn đã hoàn thành bài kiểm tra trắc nghiệm từ vựng N5!"),
+                                                                backgroundColor: AppColors.goldAccent,
+                                                            ),
+                                                        );
+                                                    },
+                                                    onNextLesson: _advanceToNextLesson,
+                                                ),
+                                            ],
+                                        ),
                                     ),
                                 ),
                             ],

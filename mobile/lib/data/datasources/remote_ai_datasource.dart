@@ -96,4 +96,47 @@ class RemoteAiDataSource {
             rethrow;
         }
     }
+
+    Future<List<Map<String, dynamic>>> fetchN5GrammarExercises() async {
+        try {
+            final response = await _apiClient.dio.get('/exercises/n5/grammar');
+            return List<Map<String, dynamic>>.from(response.data);
+        } catch (e) {
+            debugPrint("❌ Error fetching N5 grammar exercises: $e");
+            rethrow;
+        }
+    }
+
+    Future<List<Map<String, dynamic>>> fetchN5Dialogues() async {
+        try {
+            final response = await _apiClient.dio.get('/exercises/n5/dialogues');
+            return List<Map<String, dynamic>>.from(response.data);
+        } catch (e) {
+            debugPrint("❌ Error fetching N5 dialogues: $e");
+            rethrow;
+        }
+    }
+
+    Future<List<Map<String, dynamic>>> fetchN5MockExamQuestions({String? section}) async {
+        try {
+            final response = await _apiClient.dio.get(
+                '/exercises/n5/mock-exam',
+                queryParameters: section != null ? {'section': section} : null,
+            );
+            return List<Map<String, dynamic>>.from(response.data);
+        } catch (e) {
+            debugPrint("❌ Error fetching N5 mock exam questions: $e");
+            rethrow;
+        }
+    }
+
+    Future<List<Map<String, dynamic>>> fetchIeltsPrompts() async {
+        try {
+            final response = await _apiClient.dio.get('/exercises/ielts/prompts');
+            return List<Map<String, dynamic>>.from(response.data);
+        } catch (e) {
+            debugPrint("❌ Error fetching IELTS prompts: $e");
+            rethrow;
+        }
+    }
 }

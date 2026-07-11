@@ -6,6 +6,7 @@ import '../blocs/chat/chat_bloc.dart';
 import '../blocs/chat/chat_event.dart';
 import '../blocs/chat/chat_state.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
+import '../widgets/common/responsive_container.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/tts_helper.dart';
 import '../../core/utils/stt_helper.dart';
@@ -224,14 +225,15 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                     final emotion = state is ChatActive ? state.currentAvatarEmotion : "idle";
                     final suggestions = state is ChatActive ? state.currentSuggestions : [];
 
-                    return Column(
-                        children: [
-                            // Top 3D Avatar Viewer (Grok Ani style Showcase Frame with Anime VA Voice Cloning)
-                            Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    return ResponsiveContainer(
+                        child: Column(
+                            children: [
+                                // Top 3D Avatar Viewer (Compact Showcase Frame)
+                                Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                 child: Avatar3dViewer(
                                     emotion: _isSpeaking ? "talking" : (_isListening ? "listening" : emotion),
-                                    height: 320,
+                                    height: 150,
                                     isVoiceCloned: _enableVoiceCloning,
                                     voiceActorName: _currentVoiceActor,
                                     customAvatarUrl: _customAvatarUrl,
@@ -341,7 +343,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                             // Suggested Follow-up Questions Chips
                             if (suggestions.isNotEmpty)
                                 SizedBox(
-                                    height: 44,
+                                    height: 38,
                                     child: ListView.builder(
                                         scrollDirection: Axis.horizontal,
                                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -496,6 +498,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                 ),
                             ),
                         ],
+                    ),
                     );
                 },
             ),

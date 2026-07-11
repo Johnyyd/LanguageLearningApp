@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/tts_helper.dart';
 import '../../core/utils/stt_helper.dart';
+import '../../data/datasources/remote_ai_datasource.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
+import '../widgets/common/responsive_container.dart';
 
 class DialogueScenario {
     final String id;
@@ -50,8 +53,10 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
     int? _selectedScenarioIndex;
     int _currentTurnIndex = 0;
     bool _isListeningMic = false;
+    bool _isLoading = true;
+    List<DialogueScenario> _scenarios = [];
 
-    final List<DialogueScenario> _scenarios = [
+    final List<DialogueScenario> _fallbackScenarios = [
         DialogueScenario(
             id: 'konbini',
             title: 'Mua sắm tại Konbini',
@@ -168,10 +173,69 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
         ),
     ];
 
+    IconData _iconFromName(String? name) {
+        switch (name) {
+            case 'storefront':
+            case 'shopping': return Icons.storefront;
+            case 'train': return Icons.train;
+            case 'people_alt':
+            case 'greeting': return Icons.people_alt;
+            case 'restaurant': return Icons.restaurant;
+            default: return Icons.chat_bubble_outline;
+        }
+    }
+
+    Color _colorFromHex(String? hexString, Color defaultColor) {
+        if (hexString == null || hexString.isEmpty) return defaultColor;
+        try {
+            final hex = hexString.replaceAll('#', '');
+            return Color(int.parse('FF$hex', radix: 16));
+        } catch (_) {
+            return defaultColor;
+        }
+    }
+
     @override
     void initState() {
         super.initState();
         _initTts();
+        _loadDialoguesFromApi();
+    }
+
+    Future<void> _loadDialoguesFromApi() async {
+        try {
+            final remoteAiDs = context.read<RemoteAiDataSource>();
+            final data = await remoteAiDs.fetchN5Dialogues();
+            if (data.isNotEmpty) {
+                _scenarios = data.map((json) {
+                    final rawTurns = (json['turns'] as List<dynamic>?) ?? [];
+                    final turnsList = rawTurns.map((t) => DialogueTurn(
+                        speaker: t['speaker'] ?? 'Sensei',
+                        japanese: t['japanese'] ?? '',
+                        romaji: t['romaji'] ?? '',
+                        vietnamese: t['vietnamese'] ?? '',
+                    )).toList();
+                    return DialogueScenario(
+                        id: json['id'] ?? '',
+                        title: json['title'] ?? 'Bài hội thoại N5',
+                        subtitle: json['subtitle'] ?? '',
+                        icon: _iconFromName(json['icon']),
+                        color: _colorFromHex(json['color'], AppColors.duoGreen),
+                        turns: turnsList,
+                    );
+                }).toList();
+            } else {
+                _scenarios = List.from(_fallbackScenarios);
+            }
+        } catch (_) {
+            _scenarios = List.from(_fallbackScenarios);
+        } finally {
+            if (mounted) {
+                setState(() {
+                    _isLoading = false;
+                });
+            }
+        }
     }
 
     void _initTts() async {
@@ -265,24 +329,25 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                 ),
                 body: Column(
                     children: [
-                        // 3D Avatar Sensei Header
+                        // 3D Avatar Sensei Header (Compact)
                         Container(
-                            height: 160,
+                            height: 100,
                             width: double.infinity,
                             decoration: const BoxDecoration(
                                 color: Color(0xFFE5F6DF),
-                                border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5), width: 2)),
+                                border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5), width: 1.5)),
                             ),
                             child: Avatar3dViewer(
                                 emotion: _isSpeaking ? "talking" : (_isListeningMic ? "thinking" : "happy"),
-                                height: 160,
+                                height: 100,
                             ),
                         ),
                         // Dialogue Turn Display
                         Expanded(
-                            child: SingleChildScrollView(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
+                            child: ResponsiveContainer(
+                                child: SingleChildScrollView(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
                                         Row(
@@ -425,6 +490,7 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                                 ),
                             ),
                         ),
+                        ),
                     ],
                 ),
             );
@@ -437,73 +503,78 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                 foregroundColor: const Color(0xFF3C3C3C),
                 elevation: 0,
             ),
-            body: ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: _scenarios.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (context, idx) {
-                    final sc = _scenarios[idx];
-                    final shadowColor = sc.color == AppColors.duoGreen ? AppColors.duoGreenShadow
-                                      : sc.color == AppColors.duoBlue ? AppColors.duoBlueShadow
-                                      : sc.color == AppColors.duoYellow ? AppColors.duoYellowShadow
-                                      : sc.color.withValues(alpha: 0.6);
+            body: ResponsiveContainer(
+                child: _isLoading || _scenarios.isEmpty
+                    ? const Center(child: CircularProgressIndicator())
+                    : ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _scenarios.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 16),
+                    itemBuilder: (context, idx) {
+                        final sc = _scenarios[idx];
+                        final shadowColor = sc.color == AppColors.duoGreen ? AppColors.duoGreenShadow
+                                          : sc.color == AppColors.duoBlue ? AppColors.duoBlueShadow
+                                          : sc.color == AppColors.duoYellow ? AppColors.duoYellowShadow
+                                          : sc.color.withValues(alpha: 0.6);
 
-                    return InkWell(
-                        onTap: () => setState(() {
-                            _selectedScenarioIndex = idx;
-                            _currentTurnIndex = 0;
-                        }),
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                                color: Theme.of(context).cardColor,
+                        return Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                                onTap: () => setState(() {
+                                    _selectedScenarioIndex = idx;
+                                    _currentTurnIndex = 0;
+                                }),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: sc.color, width: 2),
-                                boxShadow: [
-                                    BoxShadow(
-                                        color: shadowColor,
-                                        blurRadius: 0,
-                                        offset: const Offset(0, 4),
+                                child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                        color: Theme.of(context).cardColor,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: sc.color, width: 2),
+                                        boxShadow: [
+                                            BoxShadow(color: shadowColor, blurRadius: 0, offset: const Offset(0, 4)),
+                                        ],
                                     ),
-                                ],
-                            ),
-                            child: Row(
-                                children: [
-                                    Container(
-                                        padding: const EdgeInsets.all(14),
-                                        decoration: BoxDecoration(
-                                            color: sc.color.withValues(alpha: 0.15),
-                                            shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(sc.icon, color: sc.color, size: 30),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                        child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                                Text(sc.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF3C3C3C))),
-                                                const SizedBox(height: 4),
-                                                Text(sc.subtitle, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF777777))),
-                                                const SizedBox(height: 8),
-                                                Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                        color: sc.color.withValues(alpha: 0.15),
-                                                        borderRadius: BorderRadius.circular(8),
-                                                    ),
-                                                    child: Text("Đàm Thoại Ngữ Cảnh", style: TextStyle(fontSize: 11, color: sc.color, fontWeight: FontWeight.bold)),
+                                    child: Row(
+                                        children: [
+                                            Container(
+                                                width: 50,
+                                                height: 50,
+                                                decoration: BoxDecoration(
+                                                    color: sc.color.withValues(alpha: 0.15),
+                                                    borderRadius: BorderRadius.circular(14),
                                                 ),
-                                            ],
-                                        ),
+                                                child: Icon(sc.icon, color: sc.color, size: 28),
+                                            ),
+                                            const SizedBox(width: 14),
+                                            Expanded(
+                                                child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                        Text(sc.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF3C3C3C))),
+                                                        const SizedBox(height: 4),
+                                                        Text(sc.subtitle, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF777777))),
+                                                        const SizedBox(height: 8),
+                                                        Container(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                            decoration: BoxDecoration(
+                                                                color: sc.color.withValues(alpha: 0.15),
+                                                                borderRadius: BorderRadius.circular(8),
+                                                            ),
+                                                            child: Text("Đàm Thoại Ngữ Cảnh", style: TextStyle(fontSize: 11, color: sc.color, fontWeight: FontWeight.bold)),
+                                                        ),
+                                                    ],
+                                                ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Icon(Icons.arrow_forward_ios, size: 16, color: sc.color),
+                                        ],
                                     ),
-                                    Icon(Icons.arrow_forward_ios, size: 16, color: sc.color),
-                                ],
+                                ),
                             ),
-                        ),
-                    );
+                        );
                 },
+            ),
             ),
         );
     }

@@ -54,6 +54,32 @@ class MockRemoteAiDataSource implements RemoteAiDataSource {
       suggestedQuestions: const [],
     );
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchN5GrammarExercises() async => [];
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchN5Dialogues() async => [];
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchN5MockExamQuestions({String? section}) async => [];
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchIeltsPrompts() async => [];
+}
+
+class MockLocalVocabDataSource implements LocalVocabDataSource {
+  @override
+  Future<void> init() async {}
+
+  @override
+  Future<List<VocabItem>> getLocalVocab({int lessonId = 1}) async => [];
+
+  @override
+  Future<void> cacheVocabList(List<VocabItem> list) async {}
+
+  @override
+  Future<void> updateVocabItem(VocabItem item) async {}
 }
 
 void main() {
@@ -61,7 +87,7 @@ void main() {
       (WidgetTester tester) async {
     // Build our app and trigger a frame.
     final remoteAiDs = MockRemoteAiDataSource();
-    final localVocabDs = LocalVocabDataSource();
+    final localVocabDs = MockLocalVocabDataSource();
     await localVocabDs.init();
     final vocabRepo = VocabRepositoryImpl(localVocabDs, remoteAiDs);
     final ieltsRepo = IeltsRepositoryImpl(remoteAiDs);
@@ -70,6 +96,7 @@ void main() {
       vocabRepo: vocabRepo,
       ieltsRepo: ieltsRepo,
       chatRepo: chatRepo,
+      remoteAiDs: remoteAiDs,
     ));
 
     // Verify that our LanguageLearningApp widget is built.

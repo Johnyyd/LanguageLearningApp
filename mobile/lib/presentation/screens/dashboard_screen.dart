@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/vocab/vocab_bloc.dart';
 import '../blocs/vocab/vocab_state.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
+import '../widgets/common/responsive_container.dart';
 import '../../core/theme/app_theme.dart';
 import 'n5_dialogue_roleplay_screen.dart';
 import 'n5_grammar_builder_screen.dart';
@@ -20,109 +21,115 @@ class DashboardScreen extends StatelessWidget {
         return Scaffold(
             body: SafeArea(
                 child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                            // Header Title
-                            Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                    Expanded(
-                                        child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                                Text(
-                                                    "Trang Chủ Học Tập",
-                                                    style: TextStyle(
-                                                        fontSize: 24,
-                                                        fontWeight: FontWeight.w800,
-                                                        color: textColor,
-                                                    ),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                    "Hệ thống theo dõi tiến độ & năng lực cá nhân",
-                                                    style: TextStyle(
-                                                        fontSize: 14,
-                                                        color: AppColors.slateGray.withValues(alpha: 0.9),
-                                                    ),
-                                                    maxLines: 2,
-                                                    overflow: TextOverflow.ellipsis,
-                                                ),
-                                            ],
-                                        ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                        decoration: BoxDecoration(
-                                            color: AppColors.successGreen.withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(20),
-                                            border: Border.all(color: AppColors.successGreen.withValues(alpha: 0.3)),
-                                        ),
-                                        child: const Row(
-                                            children: [
-                                                Icon(Icons.auto_awesome, size: 16, color: AppColors.successGreen),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                    "PRO AI",
-                                                    style: TextStyle(
-                                                        color: AppColors.successGreen,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 12,
-                                                    ),
-                                                ),
-                                            ],
-                                        ),
-                                    ),
-                                ],
-                            ),
-                            const SizedBox(height: 20),
-
-                            // 3D Avatar Sensei Hero Greeting Card (REQ-3D-01)
-                            Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                        colors: [AppColors.duoGreen.withValues(alpha: 0.1), Colors.white],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                    ),
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(
-                                        color: AppColors.duoGreen.withValues(alpha: 0.3),
-                                        width: 1.5,
-                                    ),
-                                    boxShadow: [
-                                        BoxShadow(
-                                            color: AppColors.duoGreen.withValues(alpha: 0.1),
-                                            blurRadius: 15,
-                                            offset: const Offset(0, 6),
-                                        ),
-                                    ],
-                                ),
-                                child: const Column(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: ResponsiveContainer(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                                // Header Title
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                        Avatar3dViewer(
-                                            emotion: "happy",
-                                            height: 180,
-                                        ),
-                                        SizedBox(height: 12),
-                                        Text(
-                                            "\"Chào mừng quay trở lại! Sensei đã chuẩn bị sẵn các từ vựng N5 theo lịch ôn tập SRS SuperMemo-2 cho hôm nay.\"",
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                fontStyle: FontStyle.italic,
-                                                color: Color(0xFF3C3C3C),
-                                                height: 1.4,
+                                        Expanded(
+                                            child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                    Text(
+                                                        "Trang Chủ Học Tập",
+                                                        style: TextStyle(
+                                                            fontSize: 22,
+                                                            fontWeight: FontWeight.w800,
+                                                            color: textColor,
+                                                        ),
+                                                    ),
+                                                    const SizedBox(height: 2),
+                                                    Text(
+                                                        "Hệ thống theo dõi tiến độ & năng lực cá nhân",
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: AppColors.slateGray.withValues(alpha: 0.9),
+                                                        ),
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                ],
                                             ),
-                                            textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                            decoration: BoxDecoration(
+                                                color: AppColors.successGreen.withValues(alpha: 0.15),
+                                                borderRadius: BorderRadius.circular(20),
+                                                border: Border.all(color: AppColors.successGreen.withValues(alpha: 0.3)),
+                                            ),
+                                            child: const Row(
+                                                children: [
+                                                    Icon(Icons.auto_awesome, size: 14, color: AppColors.successGreen),
+                                                    SizedBox(width: 4),
+                                                    Text(
+                                                        "PRO AI",
+                                                        style: TextStyle(
+                                                            color: AppColors.successGreen,
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 11,
+                                                        ),
+                                                    ),
+                                                ],
+                                            ),
                                         ),
                                     ],
                                 ),
-                            ),
-                            const SizedBox(height: 24),
+                                const SizedBox(height: 14),
+
+                                // Compact 3D Avatar Sensei Hero Greeting Card (REQ-3D-01)
+                                Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                    decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                            colors: [AppColors.duoGreen.withValues(alpha: 0.08), Colors.white],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                        ),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                            color: AppColors.duoGreen.withValues(alpha: 0.25),
+                                            width: 1.2,
+                                        ),
+                                        boxShadow: [
+                                            BoxShadow(
+                                                color: AppColors.duoGreen.withValues(alpha: 0.06),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, 4),
+                                            ),
+                                        ],
+                                    ),
+                                    child: const Row(
+                                        children: [
+                                            SizedBox(
+                                                width: 90,
+                                                height: 100,
+                                                child: Avatar3dViewer(
+                                                    emotion: "happy",
+                                                    height: 100,
+                                                ),
+                                            ),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                                child: Text(
+                                                    "\"Chào mừng quay trở lại! Sensei đã chuẩn bị sẵn các từ vựng N5 theo lịch ôn tập SRS SuperMemo-2 cho hôm nay.\"",
+                                                    style: TextStyle(
+                                                        fontSize: 13,
+                                                        fontStyle: FontStyle.italic,
+                                                        color: Color(0xFF3C3C3C),
+                                                        height: 1.35,
+                                                    ),
+                                                ),
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                                const SizedBox(height: 18),
 
                             // Section Title: Progress Stats (REQ-SEC-02)
                             Text(
@@ -393,8 +400,9 @@ class DashboardScreen extends StatelessWidget {
                     ),
                 ),
             ),
-        );
-    }
+        ),
+    );
+}
 
     Widget _buildQuickActionCard({
         required BuildContext context,

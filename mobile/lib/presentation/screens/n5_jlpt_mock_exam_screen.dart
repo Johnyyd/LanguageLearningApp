@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/theme/app_theme.dart';
+import '../../data/datasources/remote_ai_datasource.dart';
 
 class MockQuestion {
     final String id;
@@ -33,7 +35,10 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
     bool _isSubmitted = false;
     final Map<int, int> _selectedAnswers = {}; // questionIdx -> selectedOptionIdx
 
-    final List<MockQuestion> _questions = [
+    bool _isLoading = true;
+    List<MockQuestion> _questions = [];
+
+    final List<MockQuestion> _fallbackQuestions = [
         // Từ vựng & Chữ Hán
         MockQuestion(
             id: 'q1',
@@ -107,6 +112,34 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
     void initState() {
         super.initState();
         _startTimer();
+        _loadQuestionsFromApi();
+    }
+
+    Future<void> _loadQuestionsFromApi() async {
+        try {
+            final remoteAiDs = context.read<RemoteAiDataSource>();
+            final data = await remoteAiDs.fetchN5MockExamQuestions();
+            if (data.isNotEmpty) {
+                _questions = data.map((json) => MockQuestion(
+                    id: json['id'] ?? '',
+                    section: json['section'] ?? 'Từ vựng & Chữ Hán',
+                    question: json['question'] ?? '',
+                    options: List<String>.from(json['options'] ?? []),
+                    correctOptionIndex: json['correctOptionIndex'] ?? 0,
+                    explanation: json['explanation'] ?? '',
+                )).toList();
+            } else {
+                _questions = List.from(_fallbackQuestions);
+            }
+        } catch (_) {
+            _questions = List.from(_fallbackQuestions);
+        } finally {
+            if (mounted) {
+                setState(() {
+                    _isLoading = false;
+                });
+            }
+        }
     }
 
     void _startTimer() {
@@ -260,7 +293,9 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                         ),
                     ),
                     Expanded(
-                        child: ListView.separated(
+                        child: _isLoading || _questions.isEmpty
+                            ? const Center(child: CircularProgressIndicator())
+                            : ListView.separated(
                             padding: const EdgeInsets.all(16),
                             itemCount: _questions.length,
                             separatorBuilder: (_, __) => const SizedBox(height: 20),

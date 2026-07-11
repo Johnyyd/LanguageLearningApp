@@ -34,6 +34,7 @@ void main() async {
         vocabRepo: vocabRepo,
         ieltsRepo: ieltsRepo,
         chatRepo: chatRepo,
+        remoteAiDs: remoteAiDs,
     ));
 }
 
@@ -41,35 +42,40 @@ class LanguageLearningApp extends StatelessWidget {
     final VocabRepositoryImpl vocabRepo;
     final IeltsRepositoryImpl ieltsRepo;
     final ChatRepositoryImpl chatRepo;
+    final RemoteAiDataSource? remoteAiDs;
 
     const LanguageLearningApp({
         super.key,
         required this.vocabRepo,
         required this.ieltsRepo,
         required this.chatRepo,
+        this.remoteAiDs,
     });
 
     @override
     Widget build(BuildContext context) {
-        return MultiBlocProvider(
-            providers: [
-                BlocProvider<VocabBloc>(
-                    create: (context) => VocabBloc(vocabRepo),
+        return RepositoryProvider<RemoteAiDataSource>(
+            create: (_) => remoteAiDs ?? RemoteAiDataSource(ApiClient()),
+            child: MultiBlocProvider(
+                providers: [
+                    BlocProvider<VocabBloc>(
+                        create: (context) => VocabBloc(vocabRepo),
+                    ),
+                    BlocProvider<IeltsBloc>(
+                        create: (context) => IeltsBloc(ieltsRepo),
+                    ),
+                    BlocProvider<ChatBloc>(
+                        create: (context) => ChatBloc(chatRepo),
+                    ),
+                ],
+                child: MaterialApp(
+                    title: 'Japanese N5 AI Coach (3D Avatar)',
+                    debugShowCheckedModeBanner: false,
+                    theme: AppTheme.lightTheme,
+                    darkTheme: AppTheme.lightTheme,
+                    themeMode: ThemeMode.light,
+                    home: const HomeScreen(),
                 ),
-                BlocProvider<IeltsBloc>(
-                    create: (context) => IeltsBloc(ieltsRepo),
-                ),
-                BlocProvider<ChatBloc>(
-                    create: (context) => ChatBloc(chatRepo),
-                ),
-            ],
-            child: MaterialApp(
-                title: 'Japanese N5 AI Coach (3D Avatar)',
-                debugShowCheckedModeBanner: false,
-                theme: AppTheme.lightTheme,
-                darkTheme: AppTheme.lightTheme,
-                themeMode: ThemeMode.light,
-                home: const HomeScreen(),
             ),
         );
     }

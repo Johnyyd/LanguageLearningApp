@@ -13,16 +13,18 @@ class DuoButton extends StatefulWidget {
   final double borderRadius;
   final Widget? icon;
   final bool isFullWidth;
+  final bool isCompact;
 
   const DuoButton({
     super.key,
     required this.text,
     required this.onPressed,
     this.color = DuoButtonColor.green,
-    this.height = 54,
-    this.borderRadius = 16,
+    this.height = 44,
+    this.borderRadius = 14,
     this.icon,
     this.isFullWidth = true,
+    this.isCompact = false,
   });
 
   @override
@@ -90,8 +92,9 @@ class _DuoButtonState extends State<DuoButton> {
 
   @override
   Widget build(BuildContext context) {
-    final double shadowHeight = _isPressed ? 0.0 : 5.0;
-    final double topOffset = _isPressed ? 5.0 : 0.0;
+    final double targetHeight = widget.isCompact ? 38.0 : widget.height;
+    final double shadowHeight = _isPressed ? 0.0 : 3.0;
+    final double topOffset = _isPressed ? 3.0 : 0.0;
 
     Widget buttonContent = Row(
       mainAxisSize: widget.isFullWidth ? MainAxisSize.max : MainAxisSize.min,
@@ -99,15 +102,15 @@ class _DuoButtonState extends State<DuoButton> {
       children: [
         if (widget.icon != null) ...[
           widget.icon!,
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
         ],
         Text(
           widget.text.toUpperCase(),
           style: GoogleFonts.outfit(
             color: _textColor,
-            fontSize: 16,
+            fontSize: widget.isCompact ? 13 : 14.5,
             fontWeight: FontWeight.w800,
-            letterSpacing: 0.8,
+            letterSpacing: 0.6,
           ),
         ),
       ],
@@ -119,13 +122,13 @@ class _DuoButtonState extends State<DuoButton> {
       onTapCancel: _handleTapCancel,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 60),
-        height: widget.height + 5.0,
+        height: targetHeight + 3.0,
         width: widget.isFullWidth ? double.infinity : null,
         padding: EdgeInsets.only(top: topOffset),
         child: Container(
           decoration: BoxDecoration(
             color: _mainColor,
-            borderRadius: BorderRadius.circular(widget.borderRadius),
+            borderRadius: BorderRadius.circular(widget.isCompact ? 10 : widget.borderRadius),
             boxShadow: [
               BoxShadow(
                 color: _shadowColor,

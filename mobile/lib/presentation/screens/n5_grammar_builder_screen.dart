@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/theme/app_theme.dart';
+import '../../data/datasources/remote_ai_datasource.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
+import '../widgets/common/responsive_container.dart';
 
 class GrammarExercise {
     final String id;
@@ -36,7 +39,10 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
     bool? _isCorrect;
     bool _showExplanation = false;
 
-    final List<GrammarExercise> _exercises = [
+    bool _isLoading = true;
+    List<GrammarExercise> _exercises = [];
+
+    final List<GrammarExercise> _fallbackExercises = [
         GrammarExercise(
             id: 'gram_01',
             title: 'Cấu trúc Danh từ cơ bản N1 は N2 です',
@@ -78,7 +84,36 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
     @override
     void initState() {
         super.initState();
-        _loadExercise(_currentExerciseIndex);
+        _loadExercisesFromApi();
+    }
+
+    Future<void> _loadExercisesFromApi() async {
+        try {
+            final remoteAiDs = context.read<RemoteAiDataSource>();
+            final data = await remoteAiDs.fetchN5GrammarExercises();
+            if (data.isNotEmpty) {
+                _exercises = data.map((json) => GrammarExercise(
+                    id: json['id'] ?? '',
+                    title: json['grammarPoint'] ?? 'Bài tập Ngữ pháp N5',
+                    grammarPoint: json['grammarPoint'] ?? '',
+                    vietnamesePrompt: json['sentence'] ?? '',
+                    correctWords: List<String>.from(json['correctWords'] ?? []),
+                    shuffledWords: List<String>.from(json['shuffledWords'] ?? []),
+                    aiExplanation: json['explanation'] ?? json['meaning'] ?? '',
+                )).toList();
+            } else {
+                _exercises = List.from(_fallbackExercises);
+            }
+        } catch (_) {
+            _exercises = List.from(_fallbackExercises);
+        } finally {
+            if (mounted) {
+                setState(() {
+                    _isLoading = false;
+                });
+                _loadExercise(0);
+            }
+        }
     }
 
     void _loadExercise(int index) {
@@ -131,23 +166,26 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
             ),
             body: Column(
                 children: [
-                    // Top AI Sensei Feedback Header
+                    // Top AI Sensei Feedback Header (Compact)
                     Container(
-                        height: 140,
+                        height: 100,
                         width: double.infinity,
                         decoration: const BoxDecoration(
                             color: Color(0xFFE5F6DF),
-                            border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5), width: 2)),
+                            border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5), width: 1.5)),
                         ),
                         child: Avatar3dViewer(
                             emotion: _isCorrect == true ? "happy" : (_isCorrect == false ? "thinking" : "idle"),
-                            height: 140,
+                            height: 100,
                         ),
                     ),
                     Expanded(
-                        child: SingleChildScrollView(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
+                        child: ResponsiveContainer(
+                            child: _isLoading || _exercises.isEmpty
+                                ? const Center(child: CircularProgressIndicator())
+                                : SingleChildScrollView(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                     // Progress and Lesson Badge
@@ -310,9 +348,9 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                                     icon: const Icon(Icons.refresh),
                                                     label: const Text("Làm lại", style: TextStyle(fontWeight: FontWeight.bold)),
                                                     style: OutlinedButton.styleFrom(
-                                                        padding: const EdgeInsets.symmetric(vertical: 14),
-                                                        side: const BorderSide(color: Color(0xFFE5E5E5), width: 2),
-                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                                        padding: const EdgeInsets.symmetric(vertical: 11),
+                                                        side: const BorderSide(color: Color(0xFFE5E5E5), width: 1.5),
+                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                                     ),
                                                 ),
                                             ),
@@ -334,15 +372,15 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                                                 }
                                                             }
                                                             : _checkAnswer),
-                                                    icon: Icon(_isCorrect == true ? Icons.arrow_forward : Icons.auto_awesome),
+                                                    icon: Icon(_isCorrect == true ? Icons.arrow_forward : Icons.auto_awesome, size: 20),
                                                     label: Text(_isCorrect == true ? "Bài tiếp theo" : "Kiểm tra với Sensei"),
                                                     style: ElevatedButton.styleFrom(
                                                         backgroundColor: _isCorrect == true ? AppColors.duoGreen : AppColors.duoYellow,
                                                         foregroundColor: _isCorrect == true ? Colors.white : const Color(0xFF3C3C3C),
-                                                        padding: const EdgeInsets.symmetric(vertical: 14),
-                                                        textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                                                        padding: const EdgeInsets.symmetric(vertical: 11),
+                                                        textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
                                                         shape: RoundedRectangleBorder(
-                                                            borderRadius: BorderRadius.circular(16),
+                                                            borderRadius: BorderRadius.circular(14),
                                                             side: BorderSide(color: _isCorrect == true ? AppColors.duoGreenShadow : AppColors.duoYellowShadow, width: 2),
                                                         ),
                                                     ),
@@ -355,6 +393,7 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                             ),
                         ),
                     ),
+                ),
                 ],
             ),
         );
