@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/tts_helper.dart';
 import '../../core/utils/stt_helper.dart';
@@ -54,6 +56,7 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
     int _currentTurnIndex = 0;
     bool _isListeningMic = false;
     bool _isLoading = true;
+    Set<String> _completedScenarioIds = {};
     List<DialogueScenario> _scenarios = [];
 
     final List<DialogueScenario> _fallbackScenarios = [
@@ -199,36 +202,74 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
     void initState() {
         super.initState();
         _initTts();
+        _loadCompletedScenarios();
         _loadDialoguesFromApi();
     }
 
-    Future<void> _loadDialoguesFromApi() async {
+    Future<void> _loadCompletedScenarios() async {
         try {
+            final prefs = await SharedPreferences.getInstance();
+            final savedList = prefs.getStringList('n5_dialogue_completed_ids');
+            if (savedList != null && mounted) {
+                setState(() {
+                    _completedScenarioIds = savedList.toSet();
+                });
+            }
+        } catch (_) {}
+    }
+
+    Future<void> _markScenarioCompleted(String scenarioId) async {
+        setState(() {
+            _completedScenarioIds.add(scenarioId);
+        });
+        try {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setStringList('n5_dialogue_completed_ids', _completedScenarioIds.toList());
+        } catch (_) {}
+    }
+
+    Future<void> _loadDialoguesFromApi({bool forceRefresh = false}) async {
+        if (forceRefresh && mounted) {
+            setState(() => _isLoading = true);
+        }
+        try {
+            if (!forceRefresh) {
+                try {
+                    final prefs = await SharedPreferences.getInstance();
+                    final cachedStr = prefs.getString('cache_n5_dialogues_screen');
+                    if (cachedStr != null) {
+                        final List<dynamic> decoded = jsonDecode(cachedStr);
+                        final cachedScenarios = _parseScenariosList(decoded);
+                        if (cachedScenarios.isNotEmpty && mounted) {
+                            setState(() {
+                                _scenarios = cachedScenarios;
+                                _isLoading = false;
+                            });
+                        }
+                    }
+                } catch (_) {}
+            }
+
             final remoteAiDs = context.read<RemoteAiDataSource>();
             final data = await remoteAiDs.fetchN5Dialogues();
             if (data.isNotEmpty) {
-                _scenarios = data.map((json) {
-                    final rawTurns = (json['turns'] as List<dynamic>?) ?? [];
-                    final turnsList = rawTurns.map((t) => DialogueTurn(
-                        speaker: t['speaker'] ?? 'Sensei',
-                        japanese: t['japanese'] ?? '',
-                        romaji: t['romaji'] ?? '',
-                        vietnamese: t['vietnamese'] ?? '',
-                    )).toList();
-                    return DialogueScenario(
-                        id: json['id'] ?? '',
-                        title: json['title'] ?? 'Bài hội thoại N5',
-                        subtitle: json['subtitle'] ?? '',
-                        icon: _iconFromName(json['icon']),
-                        color: _colorFromHex(json['color'], AppColors.duoGreen),
-                        turns: turnsList,
-                    );
-                }).toList();
-            } else {
+                try {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString('cache_n5_dialogues_screen', jsonEncode(data));
+                } catch (_) {}
+                final parsed = _parseScenariosList(data);
+                if (mounted) {
+                    setState(() {
+                        _scenarios = parsed;
+                    });
+                }
+            } else if (_scenarios.isEmpty) {
                 _scenarios = List.from(_fallbackScenarios);
             }
         } catch (_) {
-            _scenarios = List.from(_fallbackScenarios);
+            if (_scenarios.isEmpty) {
+                _scenarios = List.from(_fallbackScenarios);
+            }
         } finally {
             if (mounted) {
                 setState(() {
@@ -236,6 +277,26 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                 });
             }
         }
+    }
+
+    List<DialogueScenario> _parseScenariosList(List<dynamic> rawList) {
+        return rawList.map((json) {
+            final rawTurns = (json['turns'] as List<dynamic>?) ?? [];
+            final turnsList = rawTurns.map((t) => DialogueTurn(
+                speaker: t['speaker'] ?? 'Sensei',
+                japanese: t['japanese'] ?? '',
+                romaji: t['romaji'] ?? '',
+                vietnamese: t['vietnamese'] ?? '',
+            )).toList();
+            return DialogueScenario(
+                id: json['id'] ?? '',
+                title: json['title'] ?? 'Bài hội thoại N5',
+                subtitle: json['subtitle'] ?? '',
+                icon: _iconFromName(json['icon']),
+                color: _colorFromHex(json['color'], AppColors.duoGreen),
+                turns: turnsList,
+            );
+        }).toList();
     }
 
     void _initTts() async {
@@ -462,9 +523,10 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                                                     onPressed: _currentTurnIndex < scenario.turns.length - 1
                                                         ? () => setState(() => _currentTurnIndex++)
                                                         : () {
+                                                            _markScenarioCompleted(scenario.id);
                                                             ScaffoldMessenger.of(context).showSnackBar(
                                                                 const SnackBar(
-                                                                    content: Text("Chúc mừng! Bạn đã hoàn thành bài đàm thoại!"),
+                                                                    content: Text("Chúc mừng! Bạn đã hoàn thành bài đàm thoại này!"),
                                                                     backgroundColor: AppColors.duoGreen,
                                                                 ),
                                                             );
@@ -502,6 +564,13 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                 backgroundColor: AppColors.surfaceWhite,
                 foregroundColor: const Color(0xFF3C3C3C),
                 elevation: 0,
+                actions: [
+                    IconButton(
+                        icon: const Icon(Icons.refresh),
+                        tooltip: "Tải lại từ API",
+                        onPressed: () => _loadDialoguesFromApi(forceRefresh: true),
+                    ),
+                ],
             ),
             body: ResponsiveContainer(
                 child: _isLoading || _scenarios.isEmpty
@@ -517,6 +586,8 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                                           : sc.color == AppColors.duoYellow ? AppColors.duoYellowShadow
                                           : sc.color.withValues(alpha: 0.6);
 
+                        final isCompleted = _completedScenarioIds.contains(sc.id);
+
                         return Material(
                             color: Colors.transparent,
                             child: InkWell(
@@ -530,7 +601,7 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                                     decoration: BoxDecoration(
                                         color: Theme.of(context).cardColor,
                                         borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(color: sc.color, width: 2),
+                                        border: Border.all(color: isCompleted ? AppColors.successGreen : sc.color, width: 2),
                                         boxShadow: [
                                             BoxShadow(color: shadowColor, blurRadius: 0, offset: const Offset(0, 4)),
                                         ],
@@ -541,10 +612,10 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                                                 width: 50,
                                                 height: 50,
                                                 decoration: BoxDecoration(
-                                                    color: sc.color.withValues(alpha: 0.15),
+                                                    color: (isCompleted ? AppColors.successGreen : sc.color).withValues(alpha: 0.15),
                                                     borderRadius: BorderRadius.circular(14),
                                                 ),
-                                                child: Icon(sc.icon, color: sc.color, size: 28),
+                                                child: Icon(sc.icon, color: isCompleted ? AppColors.successGreen : sc.color, size: 28),
                                             ),
                                             const SizedBox(width: 14),
                                             Expanded(
@@ -558,16 +629,26 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                                                         Container(
                                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                                             decoration: BoxDecoration(
-                                                                color: sc.color.withValues(alpha: 0.15),
+                                                                color: (isCompleted ? AppColors.successGreen : sc.color).withValues(alpha: 0.15),
                                                                 borderRadius: BorderRadius.circular(8),
                                                             ),
-                                                            child: Text("Đàm Thoại Ngữ Cảnh", style: TextStyle(fontSize: 11, color: sc.color, fontWeight: FontWeight.bold)),
+                                                            child: Row(
+                                                                mainAxisSize: MainAxisSize.min,
+                                                                children: [
+                                                                    if (isCompleted) ...[
+                                                                        const Icon(Icons.check_circle, size: 13, color: AppColors.successGreen),
+                                                                        const SizedBox(width: 4),
+                                                                        const Text("Đã hoàn thành", style: TextStyle(fontSize: 11, color: AppColors.successGreen, fontWeight: FontWeight.bold)),
+                                                                    ] else
+                                                                        Text("Chưa hoàn thành", style: TextStyle(fontSize: 11, color: sc.color, fontWeight: FontWeight.bold)),
+                                                                ],
+                                                            ),
                                                         ),
                                                     ],
                                                 ),
                                             ),
                                             const SizedBox(width: 8),
-                                            Icon(Icons.arrow_forward_ios, size: 16, color: sc.color),
+                                            Icon(Icons.arrow_forward_ios, size: 16, color: isCompleted ? AppColors.successGreen : sc.color),
                                         ],
                                     ),
                                 ),

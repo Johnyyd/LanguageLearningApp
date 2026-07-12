@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/datasources/remote_ai_datasource.dart';
 
@@ -115,24 +117,48 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
         _loadQuestionsFromApi();
     }
 
-    Future<void> _loadQuestionsFromApi() async {
+    Future<void> _loadQuestionsFromApi({bool forceRefresh = false}) async {
+        if (forceRefresh && mounted) {
+            setState(() => _isLoading = true);
+        }
         try {
+            if (!forceRefresh) {
+                try {
+                    final prefs = await SharedPreferences.getInstance();
+                    final cachedStr = prefs.getString('cache_n5_mock_exam_screen');
+                    if (cachedStr != null) {
+                        final List<dynamic> decoded = jsonDecode(cachedStr);
+                        final cachedQuestions = _parseQuestionsList(decoded);
+                        if (cachedQuestions.isNotEmpty && mounted) {
+                            setState(() {
+                                _questions = cachedQuestions;
+                                _isLoading = false;
+                            });
+                        }
+                    }
+                } catch (_) {}
+            }
+
             final remoteAiDs = context.read<RemoteAiDataSource>();
             final data = await remoteAiDs.fetchN5MockExamQuestions();
             if (data.isNotEmpty) {
-                _questions = data.map((json) => MockQuestion(
-                    id: json['id'] ?? '',
-                    section: json['section'] ?? 'Từ vựng & Chữ Hán',
-                    question: json['question'] ?? '',
-                    options: List<String>.from(json['options'] ?? []),
-                    correctOptionIndex: json['correctOptionIndex'] ?? 0,
-                    explanation: json['explanation'] ?? '',
-                )).toList();
-            } else {
+                try {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString('cache_n5_mock_exam_screen', jsonEncode(data));
+                } catch (_) {}
+                final parsed = _parseQuestionsList(data);
+                if (mounted) {
+                    setState(() {
+                        _questions = parsed;
+                    });
+                }
+            } else if (_questions.isEmpty) {
                 _questions = List.from(_fallbackQuestions);
             }
         } catch (_) {
-            _questions = List.from(_fallbackQuestions);
+            if (_questions.isEmpty) {
+                _questions = List.from(_fallbackQuestions);
+            }
         } finally {
             if (mounted) {
                 setState(() {
@@ -140,6 +166,17 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                 });
             }
         }
+    }
+
+    List<MockQuestion> _parseQuestionsList(List<dynamic> rawList) {
+        return rawList.map((json) => MockQuestion(
+            id: json['id'] ?? '',
+            section: json['section'] ?? 'Từ vựng & Chữ Hán',
+            question: json['question'] ?? '',
+            options: List<String>.from(json['options'] ?? []),
+            correctOptionIndex: json['correctOptionIndex'] ?? 0,
+            explanation: json['explanation'] ?? '',
+        )).toList();
     }
 
     void _startTimer() {
@@ -251,6 +288,11 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                 backgroundColor: AppColors.duoBlue,
                 foregroundColor: Colors.white,
                 actions: [
+                    IconButton(
+                        icon: const Icon(Icons.refresh),
+                        tooltip: "Tải lại từ API",
+                        onPressed: () => _loadQuestionsFromApi(forceRefresh: true),
+                    ),
                     Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),

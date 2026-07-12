@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/network/api_client.dart';
 import '../../domain/entities/vocab_item.dart';
 import '../../domain/entities/ielts_report.dart';
@@ -98,34 +100,76 @@ class RemoteAiDataSource {
     }
 
     Future<List<Map<String, dynamic>>> fetchN5GrammarExercises() async {
+        const cacheKey = 'api_cache_n5_grammar_exercises';
         try {
             final response = await _apiClient.dio.get('/exercises/n5/grammar');
-            return List<Map<String, dynamic>>.from(response.data);
+            final data = List<Map<String, dynamic>>.from(response.data);
+            try {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString(cacheKey, jsonEncode(data));
+            } catch (_) {}
+            return data;
         } catch (e) {
-            debugPrint("❌ Error fetching N5 grammar exercises: $e");
+            debugPrint("❌ Error fetching N5 grammar exercises, attempting cache load: $e");
+            try {
+                final prefs = await SharedPreferences.getInstance();
+                final cachedStr = prefs.getString(cacheKey);
+                if (cachedStr != null) {
+                    final List<dynamic> decoded = jsonDecode(cachedStr);
+                    return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+                }
+            } catch (_) {}
             rethrow;
         }
     }
 
     Future<List<Map<String, dynamic>>> fetchN5Dialogues() async {
+        const cacheKey = 'api_cache_n5_dialogues';
         try {
             final response = await _apiClient.dio.get('/exercises/n5/dialogues');
-            return List<Map<String, dynamic>>.from(response.data);
+            final data = List<Map<String, dynamic>>.from(response.data);
+            try {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString(cacheKey, jsonEncode(data));
+            } catch (_) {}
+            return data;
         } catch (e) {
-            debugPrint("❌ Error fetching N5 dialogues: $e");
+            debugPrint("❌ Error fetching N5 dialogues, attempting cache load: $e");
+            try {
+                final prefs = await SharedPreferences.getInstance();
+                final cachedStr = prefs.getString(cacheKey);
+                if (cachedStr != null) {
+                    final List<dynamic> decoded = jsonDecode(cachedStr);
+                    return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+                }
+            } catch (_) {}
             rethrow;
         }
     }
 
     Future<List<Map<String, dynamic>>> fetchN5MockExamQuestions({String? section}) async {
+        final cacheKey = 'api_cache_n5_mock_exam_${section ?? "all"}';
         try {
             final response = await _apiClient.dio.get(
                 '/exercises/n5/mock-exam',
                 queryParameters: section != null ? {'section': section} : null,
             );
-            return List<Map<String, dynamic>>.from(response.data);
+            final data = List<Map<String, dynamic>>.from(response.data);
+            try {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString(cacheKey, jsonEncode(data));
+            } catch (_) {}
+            return data;
         } catch (e) {
-            debugPrint("❌ Error fetching N5 mock exam questions: $e");
+            debugPrint("❌ Error fetching N5 mock exam questions, attempting cache load: $e");
+            try {
+                final prefs = await SharedPreferences.getInstance();
+                final cachedStr = prefs.getString(cacheKey);
+                if (cachedStr != null) {
+                    final List<dynamic> decoded = jsonDecode(cachedStr);
+                    return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+                }
+            } catch (_) {}
             rethrow;
         }
     }

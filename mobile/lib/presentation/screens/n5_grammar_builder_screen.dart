@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/datasources/remote_ai_datasource.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
@@ -40,6 +42,7 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
     bool _showExplanation = false;
 
     bool _isLoading = true;
+    Set<String> _completedExerciseIds = {};
     List<GrammarExercise> _exercises = [];
 
     final List<GrammarExercise> _fallbackExercises = [
@@ -84,28 +87,75 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
     @override
     void initState() {
         super.initState();
+        _loadCompletedExercises();
         _loadExercisesFromApi();
     }
 
-    Future<void> _loadExercisesFromApi() async {
+    Future<void> _loadCompletedExercises() async {
         try {
+            final prefs = await SharedPreferences.getInstance();
+            final savedList = prefs.getStringList('n5_grammar_completed_ids');
+            if (savedList != null && mounted) {
+                setState(() {
+                    _completedExerciseIds = savedList.toSet();
+                });
+            }
+        } catch (_) {}
+    }
+
+    Future<void> _markExerciseCompleted(String exId) async {
+        setState(() {
+            _completedExerciseIds.add(exId);
+        });
+        try {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setStringList('n5_grammar_completed_ids', _completedExerciseIds.toList());
+        } catch (_) {}
+    }
+
+    Future<void> _loadExercisesFromApi({bool forceRefresh = false}) async {
+        if (forceRefresh && mounted) {
+            setState(() => _isLoading = true);
+        }
+        try {
+            if (!forceRefresh) {
+                try {
+                    final prefs = await SharedPreferences.getInstance();
+                    final cachedStr = prefs.getString('cache_n5_grammar_screen');
+                    if (cachedStr != null) {
+                        final List<dynamic> decoded = jsonDecode(cachedStr);
+                        final cachedEx = _parseExercisesList(decoded);
+                        if (cachedEx.isNotEmpty && mounted) {
+                            setState(() {
+                                _exercises = cachedEx;
+                                _isLoading = false;
+                            });
+                            _loadExercise(0);
+                        }
+                    }
+                } catch (_) {}
+            }
+
             final remoteAiDs = context.read<RemoteAiDataSource>();
             final data = await remoteAiDs.fetchN5GrammarExercises();
             if (data.isNotEmpty) {
-                _exercises = data.map((json) => GrammarExercise(
-                    id: json['id'] ?? '',
-                    title: json['grammarPoint'] ?? 'Bài tập Ngữ pháp N5',
-                    grammarPoint: json['grammarPoint'] ?? '',
-                    vietnamesePrompt: json['sentence'] ?? '',
-                    correctWords: List<String>.from(json['correctWords'] ?? []),
-                    shuffledWords: List<String>.from(json['shuffledWords'] ?? []),
-                    aiExplanation: json['explanation'] ?? json['meaning'] ?? '',
-                )).toList();
-            } else {
+                try {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString('cache_n5_grammar_screen', jsonEncode(data));
+                } catch (_) {}
+                final parsed = _parseExercisesList(data);
+                if (mounted) {
+                    setState(() {
+                        _exercises = parsed;
+                    });
+                }
+            } else if (_exercises.isEmpty) {
                 _exercises = List.from(_fallbackExercises);
             }
         } catch (_) {
-            _exercises = List.from(_fallbackExercises);
+            if (_exercises.isEmpty) {
+                _exercises = List.from(_fallbackExercises);
+            }
         } finally {
             if (mounted) {
                 setState(() {
@@ -114,6 +164,18 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                 _loadExercise(0);
             }
         }
+    }
+
+    List<GrammarExercise> _parseExercisesList(List<dynamic> rawList) {
+        return rawList.map((json) => GrammarExercise(
+            id: json['id'] ?? '',
+            title: json['grammarPoint'] ?? 'Bài tập Ngữ pháp N5',
+            grammarPoint: json['grammarPoint'] ?? '',
+            vietnamesePrompt: json['sentence'] ?? '',
+            correctWords: List<String>.from(json['correctWords'] ?? []),
+            shuffledWords: List<String>.from(json['shuffledWords'] ?? []),
+            aiExplanation: json['explanation'] ?? json['meaning'] ?? '',
+        )).toList();
     }
 
     void _loadExercise(int index) {
@@ -163,6 +225,13 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                 backgroundColor: AppColors.surfaceWhite,
                 foregroundColor: const Color(0xFF3C3C3C),
                 elevation: 0,
+                actions: [
+                    IconButton(
+                        icon: const Icon(Icons.refresh),
+                        tooltip: "Tải lại từ API",
+                        onPressed: () => _loadExercisesFromApi(forceRefresh: true),
+                    ),
+                ],
             ),
             body: Column(
                 children: [
@@ -188,6 +257,45 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                 child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
+                                    // Horizontal Exercise Pills Selector
+                                    SizedBox(
+                                        height: 38,
+                                        child: ListView.separated(
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: _exercises.length,
+                                            separatorBuilder: (_, __) => const SizedBox(width: 8),
+                                            itemBuilder: (context, idx) {
+                                                final ex = _exercises[idx];
+                                                final isDone = _completedExerciseIds.contains(ex.id);
+                                                final isSelected = idx == _currentExerciseIndex;
+
+                                                return ChoiceChip(
+                                                    label: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                            if (isDone) ...[
+                                                                const Icon(Icons.check_circle, size: 14, color: AppColors.successGreen),
+                                                                const SizedBox(width: 4),
+                                                            ],
+                                                            Text(
+                                                                "Bài ${idx + 1}",
+                                                                style: TextStyle(
+                                                                    fontSize: 12,
+                                                                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                                                    color: isSelected ? Colors.white : const Color(0xFF3C3C3C),
+                                                                ),
+                                                            ),
+                                                        ],
+                                                    ),
+                                                    selected: isSelected,
+                                                    selectedColor: AppColors.duoGreen,
+                                                    backgroundColor: isDone ? AppColors.successGreen.withValues(alpha: 0.12) : AppColors.surfaceWhite,
+                                                    onSelected: (_) => _loadExercise(idx),
+                                                );
+                                            },
+                                        ),
+                                    ),
+                                    const SizedBox(height: 12),
                                     // Progress and Lesson Badge
                                     Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -362,6 +470,7 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                                         ? null
                                                         : (_isCorrect == true
                                                             ? () {
+                                                                _markExerciseCompleted(currentEx.id);
                                                                 if (_currentExerciseIndex < _exercises.length - 1) {
                                                                     _loadExercise(_currentExerciseIndex + 1);
                                                                 } else {

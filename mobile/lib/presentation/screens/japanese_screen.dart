@@ -9,6 +9,7 @@ import '../widgets/vocab/vocab_quiz_view.dart';
 import '../widgets/common/responsive_container.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class JapaneseScreen extends StatefulWidget {
     const JapaneseScreen({super.key});
@@ -21,12 +22,36 @@ class _JapaneseScreenState extends State<JapaneseScreen> with SingleTickerProvid
     late TabController _tabController;
     int _currentIndex = 0;
     int _currentLesson = 1;
+    Set<int> _completedLessons = {};
 
     @override
     void initState() {
         super.initState();
         _tabController = TabController(length: 3, vsync: this);
+        _loadCompletedLessons();
         context.read<VocabBloc>().add(LoadVocabList(lessonId: _currentLesson));
+    }
+
+    Future<void> _loadCompletedLessons() async {
+        try {
+            final prefs = await SharedPreferences.getInstance();
+            final list = prefs.getStringList('japanese_completed_lessons');
+            if (list != null && mounted) {
+                setState(() {
+                    _completedLessons = list.map((e) => int.tryParse(e) ?? 0).where((e) => e > 0).toSet();
+                });
+            }
+        } catch (_) {}
+    }
+
+    Future<void> _markLessonCompleted(int lessonId) async {
+        setState(() {
+            _completedLessons.add(lessonId);
+        });
+        try {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setStringList('japanese_completed_lessons', _completedLessons.map((e) => e.toString()).toList());
+        } catch (_) {}
     }
 
     @override
@@ -65,6 +90,7 @@ class _JapaneseScreenState extends State<JapaneseScreen> with SingleTickerProvid
     }
 
     void _showLessonCompletionDialog() {
+        _markLessonCompleted(_currentLesson);
         showModalBottomSheet(
             context: context,
             backgroundColor: Theme.of(context).cardColor,
@@ -202,11 +228,21 @@ class _JapaneseScreenState extends State<JapaneseScreen> with SingleTickerProvid
                                         itemBuilder: (context, idx) {
                                             final lessonNum = idx + 1;
                                             final isSelected = _currentLesson == lessonNum;
+                                            final isDone = _completedLessons.contains(lessonNum);
                                             final titles = ["Bài 1: Hiragana", "Bài 2: Katakana", "Bài 3: Kanji Cơ bản", "Bài 4: Số đếm & Thời gian", "Bài 5: Gia đình & Chào hỏi"];
                                             return Padding(
                                                 padding: const EdgeInsets.only(right: 8),
                                                 child: ChoiceChip(
-                                                    label: Text(titles[idx]),
+                                                    label: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                            if (isDone) ...[
+                                                                const Icon(Icons.check_circle, size: 14, color: AppColors.successGreen),
+                                                                const SizedBox(width: 4),
+                                                            ],
+                                                            Text(titles[idx]),
+                                                        ],
+                                                    ),
                                                     selected: isSelected,
                                                     onSelected: (selected) {
                                                         if (selected) _switchLesson(lessonNum);
