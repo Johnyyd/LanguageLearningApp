@@ -14,6 +14,9 @@ class User(Base):
     username = Column(String(50), unique=True, index=True)
     email = Column(String(100), unique=True, index=True)
     hashed_password = Column(String(200))
+    full_name = Column(String(100), nullable=True)
+    streak_count = Column(Integer, default=0)
+    last_activity_date = Column(String(20), nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class EssaySubmission(Base):
@@ -38,6 +41,18 @@ class ChatHistory(Base):
 def init_db():
     try:
         Base.metadata.create_all(bind=engine)
-        print("✅ [Models] Database schema verified.")
+        # Safely migrate existing SQLite table if columns are missing
+        if "sqlite" in settings.DATABASE_URL:
+            with engine.connect() as conn:
+                for col_name, col_type in [
+                    ("full_name", "VARCHAR(100)"),
+                    ("streak_count", "INTEGER DEFAULT 0"),
+                    ("last_activity_date", "VARCHAR(20)")
+                ]:
+                    try:
+                        conn.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}")
+                    except Exception:
+                        pass
+        print("[Models] Database schema verified.")
     except Exception as e:
-        print(f"⚠️ [Models] Could not connect to database during startup ({e}). Continuing in Fallback/Demo mode.")
+        print(f"[Models] Could not connect to database during startup ({e}). Continuing in Fallback/Demo mode.")

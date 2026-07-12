@@ -183,4 +183,67 @@ class RemoteAiDataSource {
             rethrow;
         }
     }
+
+    Future<Map<String, dynamic>> registerUser({required String username, required String email, required String password, String? fullName}) async {
+        try {
+            final response = await _apiClient.dio.post('/auth/register', data: {
+                "username": username,
+                "email": email,
+                "password": password,
+                "full_name": fullName ?? username,
+            });
+            final data = Map<String, dynamic>.from(response.data);
+            try {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('auth_token', data['access_token'] ?? '');
+                await prefs.setString('auth_username', data['username'] ?? username);
+                await prefs.setInt('streak_count', data['effective_streak'] ?? data['streak_count'] ?? 1);
+                await prefs.setString('last_activity_date', data['last_activity_date'] ?? '');
+            } catch (_) {}
+            return data;
+        } catch (e) {
+            debugPrint("Error registering user: $e");
+            rethrow;
+        }
+    }
+
+    Future<Map<String, dynamic>> loginUser({required String username, required String password}) async {
+        try {
+            final response = await _apiClient.dio.post('/auth/login', data: {
+                "username": username,
+                "password": password,
+            });
+            final data = Map<String, dynamic>.from(response.data);
+            try {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('auth_token', data['access_token'] ?? '');
+                await prefs.setString('auth_username', data['username'] ?? username);
+                await prefs.setInt('streak_count', data['effective_streak'] ?? data['streak_count'] ?? 0);
+                await prefs.setString('last_activity_date', data['last_activity_date'] ?? '');
+            } catch (_) {}
+            return data;
+        } catch (e) {
+            debugPrint("Error logging in: $e");
+            rethrow;
+        }
+    }
+
+    Future<Map<String, dynamic>> recordUserActivity({required String username, String? activityDate}) async {
+        try {
+            final response = await _apiClient.dio.post('/auth/activity', data: {
+                "username": username,
+                "activity_date": activityDate,
+            });
+            final data = Map<String, dynamic>.from(response.data);
+            try {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setInt('streak_count', data['effective_streak'] ?? data['streak_count'] ?? 1);
+                await prefs.setString('last_activity_date', data['last_activity_date'] ?? '');
+            } catch (_) {}
+            return data;
+        } catch (e) {
+            debugPrint("Error recording activity: $e");
+            rethrow;
+        }
+    }
 }

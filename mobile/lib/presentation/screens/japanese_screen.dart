@@ -9,6 +9,7 @@ import '../widgets/vocab/vocab_quiz_view.dart';
 import '../widgets/common/responsive_container.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
+import 'dart:ui';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class JapaneseScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class JapaneseScreen extends StatefulWidget {
 
 class _JapaneseScreenState extends State<JapaneseScreen> with SingleTickerProviderStateMixin {
     late TabController _tabController;
+    final ScrollController _lessonScrollController = ScrollController();
     int _currentIndex = 0;
     int _currentLesson = 1;
     Set<int> _completedLessons = {};
@@ -57,6 +59,7 @@ class _JapaneseScreenState extends State<JapaneseScreen> with SingleTickerProvid
     @override
     void dispose() {
         _tabController.dispose();
+        _lessonScrollController.dispose();
         super.dispose();
     }
 
@@ -217,51 +220,93 @@ class _JapaneseScreenState extends State<JapaneseScreen> with SingleTickerProvid
 
                         return Column(
                             children: [
-                                // Horizontal Lesson Selector Bar
+                                // Horizontal Lesson Selector Bar with Arrows & Mouse Scroll
                                 Container(
-                                    height: 56,
+                                    height: 58,
                                     margin: const EdgeInsets.only(top: 8, bottom: 4),
-                                    child: ListView.builder(
-                                        scrollDirection: Axis.horizontal,
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        itemCount: 5,
-                                        itemBuilder: (context, idx) {
-                                            final lessonNum = idx + 1;
-                                            final isSelected = _currentLesson == lessonNum;
-                                            final isDone = _completedLessons.contains(lessonNum);
-                                            final titles = ["Bài 1: Hiragana", "Bài 2: Katakana", "Bài 3: Kanji Cơ bản", "Bài 4: Số đếm & Thời gian", "Bài 5: Gia đình & Chào hỏi"];
-                                            return Padding(
-                                                padding: const EdgeInsets.only(right: 8),
-                                                child: ChoiceChip(
-                                                    label: Row(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                            if (isDone) ...[
-                                                                const Icon(Icons.check_circle, size: 14, color: AppColors.successGreen),
-                                                                const SizedBox(width: 4),
-                                                            ],
-                                                            Text(titles[idx]),
-                                                        ],
+                                    child: Row(
+                                        children: [
+                                            // Left scroll arrow
+                                            IconButton(
+                                                icon: const Icon(Icons.chevron_left, color: AppColors.deepIndigo),
+                                                tooltip: "Trượt sang trái",
+                                                onPressed: () {
+                                                    _lessonScrollController.animateTo(
+                                                        (_lessonScrollController.offset - 160).clamp(0.0, _lessonScrollController.position.maxScrollExtent),
+                                                        duration: const Duration(milliseconds: 250),
+                                                        curve: Curves.easeInOut,
+                                                    );
+                                                },
+                                            ),
+                                            Expanded(
+                                                child: ScrollConfiguration(
+                                                    behavior: ScrollConfiguration.of(context).copyWith(
+                                                        dragDevices: {
+                                                            PointerDeviceKind.touch,
+                                                            PointerDeviceKind.mouse,
+                                                            PointerDeviceKind.trackpad,
+                                                        },
                                                     ),
-                                                    selected: isSelected,
-                                                    onSelected: (selected) {
-                                                        if (selected) _switchLesson(lessonNum);
-                                                    },
-                                                    selectedColor: AppColors.sakuraPink,
-                                                    labelStyle: TextStyle(
-                                                        color: isSelected ? AppColors.deepIndigo : Theme.of(context).textTheme.bodyLarge?.color,
-                                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                                    ),
-                                                    backgroundColor: Theme.of(context).cardColor,
-                                                    shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(20),
-                                                        side: BorderSide(
-                                                            color: isSelected ? AppColors.sakuraPink : AppColors.slateGray.withValues(alpha: 0.3),
+                                                    child: Scrollbar(
+                                                        controller: _lessonScrollController,
+                                                        thumbVisibility: true,
+                                                        child: ListView.builder(
+                                                            controller: _lessonScrollController,
+                                                            scrollDirection: Axis.horizontal,
+                                                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                                            itemCount: 5,
+                                                            itemBuilder: (context, idx) {
+                                                                final lessonNum = idx + 1;
+                                                                final isSelected = _currentLesson == lessonNum;
+                                                                final isDone = _completedLessons.contains(lessonNum);
+                                                                final titles = [
+                                                                    "Bài 1: Hiragana",
+                                                                    "Bài 2: Katakana",
+                                                                    "Bài 3: Kanji Cơ bản",
+                                                                    "Bài 4: Số đếm & Thời gian",
+                                                                    "Bài 5: Gia đình & Chào hỏi",
+                                                                ];
+                                                                return Padding(
+                                                                    padding: const EdgeInsets.only(right: 8),
+                                                                    child: ChoiceChip(
+                                                                        avatar: isDone ? const Icon(Icons.check_circle, size: 16, color: AppColors.successGreen) : null,
+                                                                        label: Text(titles[idx]),
+                                                                        selected: isSelected,
+                                                                        onSelected: (selected) {
+                                                                            if (selected) _switchLesson(lessonNum);
+                                                                        },
+                                                                        selectedColor: AppColors.sakuraPink,
+                                                                        labelStyle: TextStyle(
+                                                                            color: isSelected ? AppColors.deepIndigo : Theme.of(context).textTheme.bodyLarge?.color,
+                                                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                                                        ),
+                                                                        backgroundColor: Theme.of(context).cardColor,
+                                                                        shape: RoundedRectangleBorder(
+                                                                            borderRadius: BorderRadius.circular(20),
+                                                                            side: BorderSide(
+                                                                                color: isSelected ? AppColors.sakuraPink : AppColors.slateGray.withValues(alpha: 0.3),
+                                                                            ),
+                                                                        ),
+                                                                    ),
+                                                                );
+                                                            },
                                                         ),
                                                     ),
                                                 ),
-                                            );
-                                        },
+                                            ),
+                                            // Right scroll arrow
+                                            IconButton(
+                                                icon: const Icon(Icons.chevron_right, color: AppColors.deepIndigo),
+                                                tooltip: "Trượt sang phải (Xem Bài 5)",
+                                                onPressed: () {
+                                                    _lessonScrollController.animateTo(
+                                                        (_lessonScrollController.offset + 160).clamp(0.0, _lessonScrollController.position.maxScrollExtent),
+                                                        duration: const Duration(milliseconds: 250),
+                                                        curve: Curves.easeInOut,
+                                                    );
+                                                },
+                                            ),
+                                        ],
                                     ),
                                 ),
                                 // Main Tab Content

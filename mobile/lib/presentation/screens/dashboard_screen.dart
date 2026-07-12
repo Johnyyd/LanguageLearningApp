@@ -1,17 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../blocs/vocab/vocab_bloc.dart';
 import '../blocs/vocab/vocab_state.dart';
 import '../widgets/common/responsive_container.dart';
+import '../widgets/auth/auth_modal.dart';
 import '../../core/theme/app_theme.dart';
 import 'n5_dialogue_roleplay_screen.dart';
 import 'n5_grammar_builder_screen.dart';
 import 'n5_jlpt_mock_exam_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
     final Function(int) onNavigate;
 
     const DashboardScreen({super.key, required this.onNavigate});
+
+    @override
+    State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+    String _authUsername = '';
+    int _streakCount = 1;
+    String _lastActivityDate = '';
+    int _effectiveStreak = 1;
+    bool _isTodayActive = false;
+    bool _isStreakLost = false;
+
+    @override
+    void initState() {
+        super.initState();
+        _loadAuthAndStreak();
+    }
+
+    Future<void> _loadAuthAndStreak() async {
+        try {
+            final prefs = await SharedPreferences.getInstance();
+            final username = prefs.getString('auth_username') ?? '';
+            final storedStreak = prefs.getInt('streak_count') ?? 1;
+            final lastDate = prefs.getString('last_activity_date') ?? '';
+
+            final now = DateTime.now();
+            final todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+            final yesterday = now.subtract(const Duration(days: 1));
+            final yesterdayStr = "${yesterday.year}-${yesterday.month.toString().padLeft(2, '0')}-${yesterday.day.toString().padLeft(2, '0')}";
+
+            int calculatedStreak = storedStreak;
+            bool todayActive = false;
+            bool streakLost = false;
+
+            if (lastDate.isNotEmpty) {
+                if (lastDate == todayStr) {
+                    todayActive = true;
+                } else if (lastDate == yesterdayStr) {
+                    todayActive = false;
+                } else {
+                    calculatedStreak = 0;
+                    streakLost = true;
+                }
+            } else {
+                todayActive = true;
+            }
+
+            if (mounted) {
+                setState(() {
+                    _authUsername = username;
+                    _streakCount = storedStreak;
+                    _lastActivityDate = lastDate;
+                    _effectiveStreak = calculatedStreak;
+                    _isTodayActive = todayActive;
+                    _isStreakLost = streakLost;
+                });
+            }
+        } catch (_) {}
+    }
+
+    void _openAuthModal() {
+        showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => AuthModal(onAuthSuccess: _loadAuthAndStreak),
+        );
+    }
 
     @override
     Widget build(BuildContext context) {
@@ -55,26 +126,35 @@ class DashboardScreen extends StatelessWidget {
                                             ),
                                         ),
                                         const SizedBox(width: 8),
-                                        Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                            decoration: BoxDecoration(
-                                                color: AppColors.successGreen.withValues(alpha: 0.15),
-                                                borderRadius: BorderRadius.circular(20),
-                                                border: Border.all(color: AppColors.successGreen.withValues(alpha: 0.3)),
-                                            ),
-                                            child: const Row(
-                                                children: [
-                                                    Icon(Icons.auto_awesome, size: 14, color: AppColors.successGreen),
-                                                    SizedBox(width: 4),
-                                                    Text(
-                                                        "PRO AI",
-                                                        style: TextStyle(
-                                                            color: AppColors.successGreen,
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 11,
+                                        InkWell(
+                                            onTap: _openAuthModal,
+                                            borderRadius: BorderRadius.circular(20),
+                                            child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                                decoration: BoxDecoration(
+                                                    color: AppColors.sakuraPink.withValues(alpha: 0.15),
+                                                    borderRadius: BorderRadius.circular(20),
+                                                    border: Border.all(color: AppColors.sakuraPink.withValues(alpha: 0.4)),
+                                                ),
+                                                child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                        Icon(
+                                                            _authUsername.isNotEmpty ? Icons.person : Icons.login_rounded,
+                                                            size: 14,
+                                                            color: AppColors.sakuraPink,
                                                         ),
-                                                    ),
-                                                ],
+                                                        const SizedBox(width: 4),
+                                                        Text(
+                                                            _authUsername.isNotEmpty ? _authUsername : "Đăng nhập",
+                                                            style: const TextStyle(
+                                                                color: AppColors.sakuraPink,
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 11,
+                                                            ),
+                                                        ),
+                                                    ],
+                                                ),
                                             ),
                                         ),
                                     ],
@@ -158,6 +238,9 @@ class DashboardScreen extends StatelessWidget {
                                     }
                                     final double vocabProgress = totalWords > 0 ? (masteredWords / totalWords).clamp(0.0, 1.0) : 0.0;
 
+                                    final currentWeekday = DateTime.now().weekday;
+                                    final daysList = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+
                                     return Column(
                                         children: [
                                             // Streak Card
@@ -200,7 +283,7 @@ class DashboardScreen extends StatelessWidget {
                                                                         borderRadius: BorderRadius.circular(12),
                                                                     ),
                                                                     child: Text(
-                                                                        "$streak Ngày",
+                                                                        "$_effectiveStreak Ngày",
                                                                         style: const TextStyle(color: AppColors.goldAccent, fontWeight: FontWeight.bold),
                                                                     ),
                                                                 ),
@@ -209,34 +292,70 @@ class DashboardScreen extends StatelessWidget {
                                                         const SizedBox(height: 16),
                                                         Row(
                                                             mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                                            children: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((day) {
-                                                                final isToday = day == "CN";
+                                                            children: daysList.asMap().entries.map((entry) {
+                                                                final idx = entry.key;
+                                                                final day = entry.value;
+                                                                final isToday = (idx + 1) == currentWeekday;
+                                                                final isPastActive = (idx + 1) < currentWeekday && _effectiveStreak > 0;
                                                                 return Column(
                                                                     children: [
-                                                                        Text(day, style: TextStyle(fontSize: 12, color: AppColors.slateGray.withValues(alpha: 0.8))),
+                                                                        Text(
+                                                                            day,
+                                                                            style: TextStyle(
+                                                                                fontSize: 12,
+                                                                                color: isToday ? AppColors.goldAccent : AppColors.slateGray.withValues(alpha: 0.8),
+                                                                                fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                                                                            ),
+                                                                        ),
                                                                         const SizedBox(height: 6),
                                                                         Container(
                                                                             width: 32,
                                                                             height: 32,
                                                                             decoration: BoxDecoration(
                                                                                 color: isToday
-                                                                                    ? AppColors.goldAccent
-                                                                                    : AppColors.successGreen.withValues(alpha: 0.2),
+                                                                                    ? (_isTodayActive ? AppColors.goldAccent : AppColors.goldAccent.withValues(alpha: 0.2))
+                                                                                    : (isPastActive ? AppColors.successGreen.withValues(alpha: 0.2) : AppColors.slateGray.withValues(alpha: 0.1)),
                                                                                 shape: BoxShape.circle,
                                                                                 boxShadow: isToday
-                                                                                    ? [BoxShadow(color: AppColors.goldAccent.withValues(alpha: 0.4), blurRadius: 8)]
+                                                                                    ? [BoxShadow(color: AppColors.goldAccent.withValues(alpha: 0.3), blurRadius: 6)]
                                                                                     : [],
                                                                             ),
                                                                             child: Icon(
-                                                                                isToday ? Icons.star : Icons.check,
+                                                                                isToday
+                                                                                    ? (_isTodayActive ? Icons.star : Icons.local_fire_department)
+                                                                                    : (isPastActive ? Icons.check : Icons.circle_outlined),
                                                                                 size: 16,
-                                                                                color: isToday ? Colors.white : AppColors.successGreen,
+                                                                                color: isToday
+                                                                                    ? (_isTodayActive ? Colors.white : AppColors.goldAccent)
+                                                                                    : (isPastActive ? AppColors.successGreen : AppColors.slateGray),
                                                                             ),
                                                                         ),
                                                                     ],
                                                                 );
                                                             }).toList(),
                                                         ),
+                                                        if (_isStreakLost)
+                                                            Container(
+                                                                margin: const EdgeInsets.only(top: 14),
+                                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                                                decoration: BoxDecoration(
+                                                                    color: AppColors.crimsonRed.withValues(alpha: 0.1),
+                                                                    borderRadius: BorderRadius.circular(12),
+                                                                    border: Border.all(color: AppColors.crimsonRed.withValues(alpha: 0.3)),
+                                                                ),
+                                                                child: const Row(
+                                                                    children: [
+                                                                        Icon(Icons.warning_amber_rounded, color: AppColors.crimsonRed, size: 18),
+                                                                        SizedBox(width: 8),
+                                                                        Expanded(
+                                                                            child: Text(
+                                                                                "Bạn đã mất streak do không có hoạt động học tập ngày qua. Hãy học ngay hôm nay để bắt đầu streak mới!",
+                                                                                style: TextStyle(color: AppColors.crimsonRed, fontSize: 12, fontWeight: FontWeight.w600),
+                                                                            ),
+                                                                        ),
+                                                                    ],
+                                                                ),
+                                                            ),
                                                     ],
                                                 ),
                                             ),
@@ -386,7 +505,7 @@ class DashboardScreen extends StatelessWidget {
                                 subtitle: "Ôn tập flashcard xoay 3D, kiểm tra nét vẽ Kana/Kanji",
                                 icon: Icons.language,
                                 color: AppColors.sakuraPink,
-                                onTap: () => onNavigate(1),
+                                onTap: () => widget.onNavigate(1),
                             ),
                             const SizedBox(height: 12),
                             // Ẩn Chấm Điểm IELTS Writing Task 1 theo yêu cầu tập trung Tiếng Nhật
@@ -396,7 +515,7 @@ class DashboardScreen extends StatelessWidget {
                                 subtitle: "Trò chuyện giọng nói (Speech-to-Text & TTS)",
                                 icon: Icons.smart_toy,
                                 color: AppColors.successGreen,
-                                onTap: () => onNavigate(2),
+                                onTap: () => widget.onNavigate(2),
                             ),
                             const SizedBox(height: 20),
                         ],

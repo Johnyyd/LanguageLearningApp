@@ -21,6 +21,7 @@ class AppColors {
   // Status Colors
   static const Color successGreen = Color(0xFF10B981);
   static const Color errorRed = Color(0xFFEF4444);
+  static const Color crimsonRed = Color(0xFFE11D48);
   static const Color warningOrange = Color(0xFFF97316);
 
   // Duolingo-Inspired Gamified & Clean UI Colors (Tham chiếu Duolingo)

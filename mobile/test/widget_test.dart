@@ -66,6 +66,21 @@ class MockRemoteAiDataSource implements RemoteAiDataSource {
 
   @override
   Future<List<Map<String, dynamic>>> fetchIeltsPrompts() async => [];
+
+  @override
+  Future<Map<String, dynamic>> registerUser({required String username, required String email, required String password, String? fullName}) async {
+    return {"access_token": "mock_token", "username": username, "effective_streak": 1};
+  }
+
+  @override
+  Future<Map<String, dynamic>> loginUser({required String username, required String password}) async {
+    return {"access_token": "mock_token", "username": username, "effective_streak": 1};
+  }
+
+  @override
+  Future<Map<String, dynamic>> recordUserActivity({required String username, String? activityDate}) async {
+    return {"effective_streak": 1, "last_activity_date": activityDate ?? "2026-07-12"};
+  }
 }
 
 class MockLocalVocabDataSource implements LocalVocabDataSource {

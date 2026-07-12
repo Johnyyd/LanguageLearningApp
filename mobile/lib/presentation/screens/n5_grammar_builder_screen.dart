@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -260,9 +261,17 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                     // Horizontal Exercise Pills Selector
                                     SizedBox(
                                         height: 38,
-                                        child: ListView.separated(
-                                            scrollDirection: Axis.horizontal,
-                                            itemCount: _exercises.length,
+                                        child: ScrollConfiguration(
+                                            behavior: ScrollConfiguration.of(context).copyWith(
+                                                dragDevices: {
+                                                    PointerDeviceKind.touch,
+                                                    PointerDeviceKind.mouse,
+                                                    PointerDeviceKind.trackpad,
+                                                },
+                                            ),
+                                            child: ListView.separated(
+                                                scrollDirection: Axis.horizontal,
+                                                itemCount: _exercises.length,
                                             separatorBuilder: (_, __) => const SizedBox(width: 8),
                                             itemBuilder: (context, idx) {
                                                 final ex = _exercises[idx];
@@ -270,22 +279,14 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                                 final isSelected = idx == _currentExerciseIndex;
 
                                                 return ChoiceChip(
-                                                    label: Row(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                            if (isDone) ...[
-                                                                const Icon(Icons.check_circle, size: 14, color: AppColors.successGreen),
-                                                                const SizedBox(width: 4),
-                                                            ],
-                                                            Text(
-                                                                "Bài ${idx + 1}",
-                                                                style: TextStyle(
-                                                                    fontSize: 12,
-                                                                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                                                    color: isSelected ? Colors.white : const Color(0xFF3C3C3C),
-                                                                ),
-                                                            ),
-                                                        ],
+                                                    avatar: isDone ? const Icon(Icons.check_circle, size: 14, color: AppColors.successGreen) : null,
+                                                    label: Text(
+                                                        "Bài ${idx + 1}",
+                                                        style: TextStyle(
+                                                            fontSize: 12,
+                                                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                                            color: isSelected ? Colors.white : const Color(0xFF3C3C3C),
+                                                        ),
                                                     ),
                                                     selected: isSelected,
                                                     selectedColor: AppColors.duoGreen,
@@ -295,7 +296,8 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                             },
                                         ),
                                     ),
-                                    const SizedBox(height: 12),
+                                ),
+                                const SizedBox(height: 12),
                                     // Progress and Lesson Badge
                                     Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
