@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/vocab/vocab_bloc.dart';
 import '../blocs/vocab/vocab_state.dart';
-import '../widgets/common/3d_avatar_viewer.dart';
 import '../widgets/common/responsive_container.dart';
 import '../../core/theme/app_theme.dart';
 import 'n5_dialogue_roleplay_screen.dart';
@@ -82,12 +81,12 @@ class DashboardScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 14),
 
-                                // Compact 3D Avatar Sensei Hero Greeting Card (REQ-3D-01)
+                                // Compact Greeting Card
                                 Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                     decoration: BoxDecoration(
                                         gradient: LinearGradient(
-                                            colors: [AppColors.duoGreen.withValues(alpha: 0.08), Colors.white],
+                                            colors: [AppColors.duoGreen.withValues(alpha: 0.12), Colors.white],
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
                                         ),
@@ -104,18 +103,22 @@ class DashboardScreen extends StatelessWidget {
                                             ),
                                         ],
                                     ),
-                                    child: const Row(
+                                    child: Row(
                                         children: [
-                                            SizedBox(
-                                                width: 90,
-                                                height: 100,
-                                                child: Avatar3dViewer(
-                                                    emotion: "happy",
-                                                    height: 100,
+                                            Container(
+                                                padding: const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                    color: AppColors.duoGreen.withValues(alpha: 0.15),
+                                                    shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(
+                                                    Icons.tips_and_updates_rounded,
+                                                    color: AppColors.duoGreen,
+                                                    size: 24,
                                                 ),
                                             ),
-                                            SizedBox(width: 12),
-                                            Expanded(
+                                            const SizedBox(width: 14),
+                                            const Expanded(
                                                 child: Text(
                                                     "\"Chào mừng quay trở lại! Sensei đã chuẩn bị sẵn các từ vựng N5 theo lịch ôn tập SRS SuperMemo-2 cho hôm nay.\"",
                                                     style: TextStyle(

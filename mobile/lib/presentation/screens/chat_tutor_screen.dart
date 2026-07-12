@@ -23,6 +23,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
     final FlutterTts _flutterTts = FlutterTts();
     String _moduleContext = "japanese_n5";
     bool _isJapaneseKaiwaMode = false;
+    bool _isVoiceCallMode = false;
     bool _isSpeaking = false;
     bool _isListening = false;
     String? _lastSpokenMessageId;
@@ -177,6 +178,8 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
 
     @override
     Widget build(BuildContext context) {
+        final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? AppColors.deepIndigo;
+
         return Scaffold(
             appBar: AppBar(
                 title: const Text("Sensei 3D Tutor Q&A"),
@@ -184,7 +187,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                     IconButton(
                         icon: const Icon(Icons.palette, color: AppColors.duoGreen),
                         onPressed: _showAvatarAndVoiceSelector,
-                        tooltip: "Đổi Avatar & Giọng nói VA",
+                        tooltip: "Chọn Nhân Vật & Giọng Đọc AI",
                     ),
                     Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -228,277 +231,459 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                     return ResponsiveContainer(
                         child: Column(
                             children: [
-                                // Top 3D Avatar Viewer (Compact Showcase Frame)
+                                // Mode Selector: Nhắn tin vs Trò chuyện Giọng nói Trực tiếp
                                 Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                child: Avatar3dViewer(
-                                    emotion: _isSpeaking ? "talking" : (_isListening ? "listening" : emotion),
-                                    height: 150,
-                                    isVoiceCloned: _enableVoiceCloning,
-                                    voiceActorName: _currentVoiceActor,
-                                    customAvatarUrl: _customAvatarUrl,
-                                    onTap: () => _speak(
-                                        _isJapaneseKaiwaMode
-                                            ? "こんにちは！私は日本語AIチューターのセンセイです。一緒に楽しく日本語を話しましょう！"
-                                            : "Konnichiwa! Mình là Sensei ($_currentVoiceActor) với công nghệ lồng tiếng AI Anime. Bạn hãy đặt câu hỏi nhé!"
-                                    ),
-                                    onUploadTap: _pickAndUpload3dFile,
-                                ),
-                            ),
-
-                            // Duolingo-inspired Customization Button
-                            Padding(
-                                padding: const EdgeInsets.only(bottom: 6),
-                                child: ElevatedButton.icon(
-                                    onPressed: _showAvatarAndVoiceSelector,
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.duoGreen,
-                                        foregroundColor: Colors.white,
-                                        elevation: 0,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
-                                            side: const BorderSide(color: AppColors.duoGreenShadow, width: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    child: Container(
+                                        decoration: BoxDecoration(
+                                            color: Theme.of(context).cardColor,
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(color: AppColors.duoGreen.withValues(alpha: 0.3)),
                                         ),
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                    ),
-                                    icon: const Icon(Icons.auto_awesome, size: 16),
-                                    label: Text(
-                                        "Đổi Avatar & Giọng VA ($_currentVoiceActor)",
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                    ),
-                                ),
-                            ),
-
-                            // Trò chuyện 100% Tiếng Nhật Mode Switcher
-                            Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                child: Container(
-                                    decoration: BoxDecoration(
-                                        color: Theme.of(context).cardColor,
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(color: AppColors.duoGreen.withValues(alpha: 0.4)),
-                                    ),
-                                    padding: const EdgeInsets.all(4),
-                                    child: Row(
-                                        children: [
-                                            Expanded(
-                                                child: GestureDetector(
-                                                    onTap: () {
-                                                        setState(() {
-                                                            _isJapaneseKaiwaMode = false;
-                                                            _moduleContext = "japanese_n5";
-                                                        });
-                                                    },
-                                                    child: Container(
-                                                        padding: const EdgeInsets.symmetric(vertical: 8),
-                                                        decoration: BoxDecoration(
-                                                            color: !_isJapaneseKaiwaMode ? AppColors.duoGreen : Colors.transparent,
-                                                            borderRadius: BorderRadius.circular(16),
-                                                        ),
-                                                        child: Center(
-                                                            child: Text(
-                                                                "🇻🇳 Giải Thích N5",
-                                                                style: TextStyle(
-                                                                    fontSize: 12,
-                                                                    fontWeight: FontWeight.bold,
-                                                                    color: !_isJapaneseKaiwaMode ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
-                                                                ),
-                                                            ),
-                                                        ),
-                                                    ),
-                                                ),
-                                            ),
-                                            Expanded(
-                                                child: GestureDetector(
-                                                    onTap: () {
-                                                        setState(() {
-                                                            _isJapaneseKaiwaMode = true;
-                                                            _moduleContext = "japanese_kaiwa";
-                                                        });
-                                                    },
-                                                    child: Container(
-                                                        padding: const EdgeInsets.symmetric(vertical: 8),
-                                                        decoration: BoxDecoration(
-                                                            color: _isJapaneseKaiwaMode ? AppColors.duoGreen : Colors.transparent,
-                                                            borderRadius: BorderRadius.circular(16),
-                                                        ),
-                                                        child: Center(
-                                                            child: Text(
-                                                                "🇯🇵 100% Tiếng Nhật",
-                                                                style: TextStyle(
-                                                                    fontSize: 12,
-                                                                    fontWeight: FontWeight.bold,
-                                                                    color: _isJapaneseKaiwaMode ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
-                                                                ),
-                                                            ),
-                                                        ),
-                                                    ),
-                                                ),
-                                            ),
-                                        ],
-                                    ),
-                                ),
-                            ),
-
-                            // Suggested Follow-up Questions Chips
-                            if (suggestions.isNotEmpty)
-                                SizedBox(
-                                    height: 38,
-                                    child: ListView.builder(
-                                        scrollDirection: Axis.horizontal,
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        itemCount: suggestions.length,
-                                        itemBuilder: (context, index) {
-                                            return Padding(
-                                                padding: const EdgeInsets.only(right: 8),
-                                                child: ActionChip(
-                                                    avatar: const Icon(Icons.lightbulb_outline, size: 16, color: AppColors.duoGreen),
-                                                    label: Text(suggestions[index], style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                                                    backgroundColor: Theme.of(context).cardColor,
-                                                    onPressed: () {
-                                                        context.read<ChatBloc>().add(SendChatMessage(suggestions[index], moduleContext: _moduleContext, speakerId: _currentSpeakerId));
-                                                    },
-                                                ),
-                                            );
-                                        },
-                                    ),
-                                ),
-                            const Divider(height: 12),
-
-                            // Messages List
-                            Expanded(
-                                child: messages.isEmpty
-                                    ? Center(
-                                        child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                        padding: const EdgeInsets.all(4),
+                                        child: Row(
                                             children: [
-                                                Icon(Icons.chat_bubble_outline, size: 48, color: AppColors.slateGray.withValues(alpha: 0.4)),
-                                                const SizedBox(height: 12),
-                                                const Text("Hãy hỏi bất kỳ thắc mắc nào về ngữ pháp hay từ vựng!", style: TextStyle(color: AppColors.slateGray)),
+                                                Expanded(
+                                                    child: GestureDetector(
+                                                        onTap: () => setState(() => _isVoiceCallMode = false),
+                                                        child: Container(
+                                                            padding: const EdgeInsets.symmetric(vertical: 8),
+                                                            decoration: BoxDecoration(
+                                                                color: !_isVoiceCallMode ? AppColors.duoGreen : Colors.transparent,
+                                                                borderRadius: BorderRadius.circular(16),
+                                                            ),
+                                                            child: Center(
+                                                                child: Text(
+                                                                    "💬 Hỏi Đáp Văn Bản",
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        fontWeight: FontWeight.bold,
+                                                                        color: !_isVoiceCallMode ? Colors.white : textColor,
+                                                                    ),
+                                                                ),
+                                                            ),
+                                                        ),
+                                                    ),
+                                                ),
+                                                Expanded(
+                                                    child: GestureDetector(
+                                                        onTap: () => setState(() => _isVoiceCallMode = true),
+                                                        child: Container(
+                                                            padding: const EdgeInsets.symmetric(vertical: 8),
+                                                            decoration: BoxDecoration(
+                                                                color: _isVoiceCallMode ? AppColors.duoGreen : Colors.transparent,
+                                                                borderRadius: BorderRadius.circular(16),
+                                                            ),
+                                                            child: Center(
+                                                                child: Text(
+                                                                    "🎙️ Trò Chuyện Giọng Nói",
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        fontWeight: FontWeight.bold,
+                                                                        color: _isVoiceCallMode ? Colors.white : textColor,
+                                                                    ),
+                                                                ),
+                                                            ),
+                                                        ),
+                                                    ),
+                                                ),
                                             ],
                                         ),
-                                    )
-                                    : ListView.builder(
-                                        padding: const EdgeInsets.all(16),
-                                        itemCount: messages.length,
-                                        itemBuilder: (context, index) {
-                                            final msg = messages[index];
-                                            return Align(
-                                                alignment: msg.isUser ? Alignment.centerRight : Alignment.centerLeft,
-                                                child: Container(
-                                                    margin: const EdgeInsets.only(bottom: 12),
-                                                    padding: const EdgeInsets.all(14),
-                                                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-                                                    decoration: BoxDecoration(
-                                                        color: msg.isUser ? AppColors.deepIndigo : Theme.of(context).cardColor,
-                                                        borderRadius: BorderRadius.only(
-                                                            topLeft: const Radius.circular(16),
-                                                            topRight: const Radius.circular(16),
-                                                            bottomLeft: Radius.circular(msg.isUser ? 16 : 4),
-                                                            bottomRight: Radius.circular(msg.isUser ? 4 : 16),
+                                    ),
+                                ),
+
+                                // Top 3D Avatar Viewer (Enlarged Model Display)
+                                Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                    child: Avatar3dViewer(
+                                        emotion: _isSpeaking ? "talking" : (_isListening ? "listening" : emotion),
+                                        height: _isVoiceCallMode ? 380 : 250,
+                                        isVoiceCloned: _enableVoiceCloning,
+                                        voiceActorName: _currentVoiceActor,
+                                        customAvatarUrl: _customAvatarUrl,
+                                        onTap: () => _speak(
+                                            _isJapaneseKaiwaMode
+                                                ? "こんにちは！私は日本語AIチューターのセンセイです。一緒に楽しく日本語を話しましょう！"
+                                                : "Konnichiwa! Mình là Sensei ($_currentVoiceActor) với công nghệ lồng tiếng AI Anime. Bạn hãy đặt câu hỏi nhé!"
+                                        ),
+                                        onUploadTap: _pickAndUpload3dFile,
+                                    ),
+                                ),
+
+                                // Compact & Well-Named Action Bar right below the 3D Model
+                                Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                    child: Row(
+                                        children: [
+                                            Expanded(
+                                                child: ElevatedButton.icon(
+                                                    onPressed: _showAvatarAndVoiceSelector,
+                                                    style: ElevatedButton.styleFrom(
+                                                        backgroundColor: AppColors.duoGreen.withValues(alpha: 0.12),
+                                                        foregroundColor: AppColors.duoGreen,
+                                                        elevation: 0,
+                                                        shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(14),
+                                                            side: BorderSide(color: AppColors.duoGreen.withValues(alpha: 0.4)),
                                                         ),
-                                                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6)],
+                                                        padding: const EdgeInsets.symmetric(vertical: 10),
                                                     ),
-                                                    child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                            Text(
-                                                                msg.text,
-                                                                style: TextStyle(
-                                                                    color: msg.isUser ? Colors.white : (Theme.of(context).textTheme.bodyLarge?.color ?? AppColors.deepIndigo),
-                                                                    fontSize: 15,
-                                                                    height: 1.3,
-                                                                ),
+                                                    icon: const Icon(Icons.face_retouching_natural, size: 16),
+                                                    label: const Text(
+                                                        "Chọn Nhân Vật & Giọng AI",
+                                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                                        overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                                child: ElevatedButton.icon(
+                                                    onPressed: () {
+                                                        setState(() {
+                                                            _isJapaneseKaiwaMode = !_isJapaneseKaiwaMode;
+                                                            _moduleContext = _isJapaneseKaiwaMode ? "japanese_kaiwa" : "japanese_n5";
+                                                        });
+                                                    },
+                                                    style: ElevatedButton.styleFrom(
+                                                        backgroundColor: _isJapaneseKaiwaMode
+                                                            ? AppColors.duoGreen
+                                                            : Theme.of(context).cardColor,
+                                                        foregroundColor: _isJapaneseKaiwaMode ? Colors.white : textColor,
+                                                        elevation: 0,
+                                                        shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(14),
+                                                            side: BorderSide(color: AppColors.duoGreen.withValues(alpha: 0.4)),
+                                                        ),
+                                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                                    ),
+                                                    icon: Icon(
+                                                        _isJapaneseKaiwaMode ? Icons.translate : Icons.language,
+                                                        size: 16,
+                                                        color: _isJapaneseKaiwaMode ? Colors.white : AppColors.duoGreen,
+                                                    ),
+                                                    label: Text(
+                                                        _isJapaneseKaiwaMode ? "🇯🇵 100% Tiếng Nhật" : "🇻🇳 Việt - Nhật (N5)",
+                                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                                        overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                ),
+                                            ),
+                                        ],
+                                    ),
+                                ),
+
+                                // VOICE CALL MODE (Trò chuyện hoàn toàn bằng giọng nói giữa người và AI)
+                                if (_isVoiceCallMode)
+                                    Expanded(
+                                        child: Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                            child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                    // Spoken Conversation Transcript Card (Hiển thị lại toàn bộ lời nói của Người dùng và AI)
+                                                    Expanded(
+                                                        child: Container(
+                                                            width: double.infinity,
+                                                            padding: const EdgeInsets.all(14),
+                                                            decoration: BoxDecoration(
+                                                                color: Theme.of(context).cardColor,
+                                                                borderRadius: BorderRadius.circular(20),
+                                                                border: Border.all(color: AppColors.duoGreen.withValues(alpha: 0.3)),
                                                             ),
-                                                            if (!msg.isUser) ...[
-                                                                const SizedBox(height: 8),
-                                                                Row(
-                                                                    mainAxisSize: MainAxisSize.min,
-                                                                    children: [
-                                                                        GestureDetector(
-                                                                            onTap: () => _speak(msg.text, audioUrl: msg.speechAudioUrl),
-                                                                            child: Icon(
-                                                                                _isSpeaking ? Icons.volume_up : Icons.volume_up_outlined,
-                                                                                size: 18,
-                                                                                color: AppColors.duoGreen,
+                                                            child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                    Row(
+                                                                        children: [
+                                                                            const Icon(Icons.record_voice_over, size: 16, color: AppColors.duoGreen),
+                                                                            const SizedBox(width: 6),
+                                                                            Text(
+                                                                                "Nội dung đàm thoại trực tiếp (Bạn & AI):",
+                                                                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.slateGray.withValues(alpha: 0.9)),
                                                                             ),
-                                                                        ),
-                                                                        const SizedBox(width: 4),
-                                                                        Text("Đọc bằng giọng AI Voice Clone VA", style: TextStyle(fontSize: 11, color: AppColors.slateGray.withValues(alpha: 0.8))),
-                                                                    ],
+                                                                        ],
+                                                                    ),
+                                                                    const Divider(height: 14),
+                                                                    Expanded(
+                                                                        child: messages.isEmpty
+                                                                            ? const Center(
+                                                                                child: Text(
+                                                                                    "🎙️ Chế độ Thoại Trực Tiếp\nNhấn nút mic bên dưới và nói chuyện tự nhiên với Sensei!",
+                                                                                    textAlign: TextAlign.center,
+                                                                                    style: TextStyle(fontSize: 14, color: AppColors.slateGray, height: 1.5),
+                                                                                ),
+                                                                            )
+                                                                            : ListView.builder(
+                                                                                itemCount: messages.length,
+                                                                                itemBuilder: (context, index) {
+                                                                                    final msg = messages[index];
+                                                                                    return Container(
+                                                                                        margin: const EdgeInsets.only(bottom: 10),
+                                                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                                                                        decoration: BoxDecoration(
+                                                                                            color: msg.isUser
+                                                                                                ? AppColors.deepIndigo.withValues(alpha: 0.08)
+                                                                                                : AppColors.duoGreen.withValues(alpha: 0.08),
+                                                                                            borderRadius: BorderRadius.circular(12),
+                                                                                            border: Border.all(
+                                                                                                color: msg.isUser
+                                                                                                    ? AppColors.deepIndigo.withValues(alpha: 0.2)
+                                                                                                    : AppColors.duoGreen.withValues(alpha: 0.25),
+                                                                                            ),
+                                                                                        ),
+                                                                                        child: Column(
+                                                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                            children: [
+                                                                                                Row(
+                                                                                                    children: [
+                                                                                                        Text(
+                                                                                                            msg.isUser ? "🗣️ Bạn nói:" : "🤖 Sensei AI trả lời:",
+                                                                                                            style: TextStyle(
+                                                                                                                fontSize: 11,
+                                                                                                                fontWeight: FontWeight.bold,
+                                                                                                                color: msg.isUser ? AppColors.deepIndigo : AppColors.duoGreen,
+                                                                                                            ),
+                                                                                                        ),
+                                                                                                        const Spacer(),
+                                                                                                        if (!msg.isUser)
+                                                                                                            GestureDetector(
+                                                                                                                onTap: () => _speak(msg.text, audioUrl: msg.speechAudioUrl),
+                                                                                                                child: const Row(
+                                                                                                                    mainAxisSize: MainAxisSize.min,
+                                                                                                                    children: [
+                                                                                                                        Icon(Icons.volume_up, size: 14, color: AppColors.duoGreen),
+                                                                                                                        SizedBox(width: 3),
+                                                                                                                        Text("Nghe lại", style: TextStyle(fontSize: 10, color: AppColors.duoGreen, fontWeight: FontWeight.bold)),
+                                                                                                                    ],
+                                                                                                                ),
+                                                                                                            ),
+                                                                                                    ],
+                                                                                                ),
+                                                                                                const SizedBox(height: 4),
+                                                                                                Text(
+                                                                                                    msg.text,
+                                                                                                    style: TextStyle(fontSize: 14, color: textColor, height: 1.35),
+                                                                                                ),
+                                                                                            ],
+                                                                                        ),
+                                                                                    );
+                                                                                },
+                                                                            ),
+                                                                    ),
+                                                                ],
+                                                            ),
+                                                        ),
+                                                    ),
+                                                    const SizedBox(height: 12),
+
+                                                    // Voice Studio Control Button
+                                                    GestureDetector(
+                                                        onTap: _toggleVoiceInput,
+                                                        child: AnimatedContainer(
+                                                            duration: const Duration(milliseconds: 250),
+                                                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                                            decoration: BoxDecoration(
+                                                                color: _isListening
+                                                                    ? AppColors.errorRed
+                                                                    : (_isSpeaking ? AppColors.duoGreen : AppColors.duoGreen),
+                                                                borderRadius: BorderRadius.circular(30),
+                                                                boxShadow: [
+                                                                    BoxShadow(
+                                                                        color: (_isListening ? AppColors.errorRed : AppColors.duoGreen).withValues(alpha: 0.35),
+                                                                        blurRadius: 14,
+                                                                        offset: const Offset(0, 6),
+                                                                    ),
+                                                                ],
+                                                            ),
+                                                            child: Row(
+                                                                mainAxisSize: MainAxisSize.min,
+                                                                children: [
+                                                                    Icon(
+                                                                        _isListening ? Icons.stop_circle : (_isSpeaking ? Icons.volume_up : Icons.mic),
+                                                                        color: Colors.white,
+                                                                        size: 26,
+                                                                    ),
+                                                                    const SizedBox(width: 10),
+                                                                    Text(
+                                                                        _isListening
+                                                                            ? "Đang nghe... (Nhấn để gửi)"
+                                                                            : (_isSpeaking
+                                                                                ? "Sensei đang nói... (Nhấn dừng)"
+                                                                                : "Nhấn để nói chuyện với Sensei"),
+                                                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                                                    ),
+                                                                ],
+                                                            ),
+                                                        ),
+                                                    ),
+                                                    const SizedBox(height: 12),
+                                                ],
+                                            ),
+                                        ),
+                                    )
+
+                                // TEXT CHAT MODE (Hỏi đáp văn bản)
+                                else ...[
+                                    // Suggested Follow-up Questions Chips
+                                    if (suggestions.isNotEmpty)
+                                        SizedBox(
+                                            height: 38,
+                                            child: ListView.builder(
+                                                scrollDirection: Axis.horizontal,
+                                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                itemCount: suggestions.length,
+                                                itemBuilder: (context, index) {
+                                                    return Padding(
+                                                        padding: const EdgeInsets.only(right: 8),
+                                                        child: ActionChip(
+                                                            avatar: const Icon(Icons.lightbulb_outline, size: 16, color: AppColors.duoGreen),
+                                                            label: Text(suggestions[index], style: TextStyle(fontSize: 12, color: textColor)),
+                                                            backgroundColor: Theme.of(context).cardColor,
+                                                            onPressed: () {
+                                                                context.read<ChatBloc>().add(SendChatMessage(suggestions[index], moduleContext: _moduleContext, speakerId: _currentSpeakerId));
+                                                            },
+                                                        ),
+                                                    );
+                                                },
+                                            ),
+                                        ),
+
+                                    // Messages List
+                                    Expanded(
+                                        child: messages.isEmpty
+                                            ? Center(
+                                                child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                        Icon(Icons.chat_bubble_outline, size: 44, color: AppColors.slateGray.withValues(alpha: 0.4)),
+                                                        const SizedBox(height: 10),
+                                                        const Text("Hãy nhập câu hỏi hoặc nhấn biểu tượng micro để nói!", style: TextStyle(color: AppColors.slateGray)),
+                                                    ],
+                                                ),
+                                            )
+                                            : ListView.builder(
+                                                padding: const EdgeInsets.all(16),
+                                                itemCount: messages.length,
+                                                itemBuilder: (context, index) {
+                                                    final msg = messages[index];
+                                                    return Align(
+                                                        alignment: msg.isUser ? Alignment.centerRight : Alignment.centerLeft,
+                                                        child: Container(
+                                                            margin: const EdgeInsets.only(bottom: 12),
+                                                            padding: const EdgeInsets.all(14),
+                                                            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+                                                            decoration: BoxDecoration(
+                                                                color: msg.isUser ? AppColors.deepIndigo : Theme.of(context).cardColor,
+                                                                borderRadius: BorderRadius.only(
+                                                                    topLeft: const Radius.circular(16),
+                                                                    topRight: const Radius.circular(16),
+                                                                    bottomLeft: Radius.circular(msg.isUser ? 16 : 4),
+                                                                    bottomRight: Radius.circular(msg.isUser ? 4 : 16),
                                                                 ),
-                                                            ]
-                                                        ],
+                                                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6)],
+                                                            ),
+                                                            child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                    Text(
+                                                                        msg.text,
+                                                                        style: TextStyle(
+                                                                            color: msg.isUser ? Colors.white : textColor,
+                                                                            fontSize: 15,
+                                                                            height: 1.3,
+                                                                        ),
+                                                                    ),
+                                                                    if (!msg.isUser) ...[
+                                                                        const SizedBox(height: 8),
+                                                                        Row(
+                                                                            mainAxisSize: MainAxisSize.min,
+                                                                            children: [
+                                                                                GestureDetector(
+                                                                                    onTap: () => _speak(msg.text, audioUrl: msg.speechAudioUrl),
+                                                                                    child: Icon(
+                                                                                        _isSpeaking ? Icons.volume_up : Icons.volume_up_outlined,
+                                                                                        size: 18,
+                                                                                        color: AppColors.duoGreen,
+                                                                                    ),
+                                                                                ),
+                                                                                const SizedBox(width: 4),
+                                                                                Text("Nghe lại giọng Sensei AI", style: TextStyle(fontSize: 11, color: AppColors.slateGray.withValues(alpha: 0.8))),
+                                                                            ],
+                                                                        ),
+                                                                    ]
+                                                                ],
+                                                            ),
+                                                        ),
+                                                    );
+                                                },
+                                            ),
+                                    ),
+
+                                    // AI Thinking / Listening Indicator
+                                    if (state is ChatActive && state.isAiThinking)
+                                        const Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                            child: Row(
+                                                children: [
+                                                    SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.duoGreen)),
+                                                    SizedBox(width: 10),
+                                                    Text("Sensei đang suy nghĩ câu trả lời...", style: TextStyle(color: AppColors.slateGray, fontStyle: FontStyle.italic, fontSize: 13)),
+                                                ],
+                                            ),
+                                        )
+                                    else if (_isListening)
+                                        const Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                            child: Row(
+                                                children: [
+                                                    Icon(Icons.mic, size: 18, color: AppColors.errorRed),
+                                                    SizedBox(width: 8),
+                                                    Text("Đang thu âm giọng nói...", style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold, fontSize: 13)),
+                                                ],
+                                            ),
+                                        ),
+
+                                    // Message Input Field
+                                    Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                        decoration: BoxDecoration(color: Theme.of(context).cardColor),
+                                        child: Row(
+                                            children: [
+                                                Expanded(
+                                                    child: TextField(
+                                                        controller: _msgController,
+                                                        style: TextStyle(color: textColor, fontSize: 15),
+                                                        decoration: InputDecoration(
+                                                            hintText: "Hỏi Sensei (VD: Trợ từ Wa vs Ga?)...",
+                                                            hintStyle: const TextStyle(color: AppColors.slateGray),
+                                                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                                                            filled: true,
+                                                            fillColor: Theme.of(context).scaffoldBackgroundColor,
+                                                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                                        ),
+                                                        onSubmitted: (_) => _send(),
                                                     ),
                                                 ),
-                                            );
-                                        },
-                                    ),
-                            ),
-
-                            // AI Thinking / Listening Indicator
-                            if (state is ChatActive && state.isAiThinking)
-                                const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                    child: Row(
-                                        children: [
-                                            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.duoGreen)),
-                                            SizedBox(width: 10),
-                                            Text("Sensei đang suy nghĩ câu trả lời...", style: TextStyle(color: AppColors.slateGray, fontStyle: FontStyle.italic, fontSize: 13)),
-                                        ],
-                                    ),
-                                )
-                            else if (_isListening)
-                                const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                    child: Row(
-                                        children: [
-                                            Icon(Icons.mic, size: 18, color: AppColors.errorRed),
-                                            SizedBox(width: 8),
-                                            Text("Đang thu âm giọng nói (Speech-to-Text)...", style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold, fontSize: 13)),
-                                        ],
-                                    ),
-                                ),
-
-                            // Message Input Field
-                            Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                decoration: BoxDecoration(color: Theme.of(context).cardColor),
-                                child: Row(
-                                    children: [
-                                        Expanded(
-                                            child: TextField(
-                                                controller: _msgController,
-                                                style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 15),
-                                                decoration: InputDecoration(
-                                                    hintText: "Hỏi Sensei (VD: Trợ từ Wa vs Ga?)...",
-                                                    hintStyle: const TextStyle(color: AppColors.slateGray),
-                                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
-                                                    filled: true,
-                                                    fillColor: Theme.of(context).scaffoldBackgroundColor,
-                                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                                const SizedBox(width: 4),
+                                                IconButton(
+                                                    icon: Icon(
+                                                        _isListening ? Icons.mic : Icons.mic_none,
+                                                        color: _isListening ? AppColors.errorRed : AppColors.slateGray,
+                                                    ),
+                                                    onPressed: _toggleVoiceInput,
+                                                    tooltip: "Nói trực tiếp",
                                                 ),
-                                                onSubmitted: (_) => _send(),
-                                            ),
+                                                IconButton(
+                                                    icon: const Icon(Icons.send, color: AppColors.duoGreen),
+                                                    onPressed: _send,
+                                                ),
+                                            ],
                                         ),
-                                        const SizedBox(width: 4),
-                                        IconButton(
-                                            icon: Icon(
-                                                _isListening ? Icons.mic : Icons.mic_none,
-                                                color: _isListening ? AppColors.errorRed : AppColors.slateGray,
-                                            ),
-                                            onPressed: _toggleVoiceInput,
-                                            tooltip: "Nhập bằng giọng nói",
-                                        ),
-                                        IconButton(
-                                            icon: const Icon(Icons.send, color: AppColors.duoGreen),
-                                            onPressed: _send,
-                                        ),
-                                    ],
-                                ),
-                            ),
-                        ],
-                    ),
+                                    ),
+                                ],
+                            ],
+                        ),
                     );
                 },
             ),
