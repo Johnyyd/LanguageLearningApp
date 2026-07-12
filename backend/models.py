@@ -45,9 +45,11 @@ def init_db():
         if "sqlite" in settings.DATABASE_URL:
             with engine.connect() as conn:
                 for col_name, col_type in [
+                    ("email", "VARCHAR(100)"),
                     ("full_name", "VARCHAR(100)"),
                     ("streak_count", "INTEGER DEFAULT 0"),
-                    ("last_activity_date", "VARCHAR(20)")
+                    ("last_activity_date", "VARCHAR(20)"),
+                    ("created_at", "DATETIME")
                 ]:
                     try:
                         conn.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}")

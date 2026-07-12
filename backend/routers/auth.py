@@ -125,9 +125,13 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 def login(user: UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(
-        (User.username == user.username) | (User.email == user.username)
-    ).first()
+    try:
+        db_user = db.query(User).filter(
+            (User.username == user.username) | (User.email == user.username)
+        ).first()
+    except Exception:
+        db.rollback()
+        db_user = db.query(User).filter(User.username == user.username).first()
     
     if not db_user or not verify_password(user.password, db_user.hashed_password or ""):
         raise HTTPException(status_code=401, detail="Tên đăng nhập hoặc mật khẩu không chính xác")
