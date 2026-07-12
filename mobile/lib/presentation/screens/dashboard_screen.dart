@@ -228,12 +228,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             // Streak Card & N5 Vocabulary Progress Cards with dynamic data
                             BlocBuilder<VocabBloc, VocabState>(
                                 builder: (context, state) {
-                                    int streak = 7;
-                                    int totalWords = 12;
-                                    int masteredWords = 5;
+                                    int totalWords = 0;
+                                    int masteredWords = 0;
                                     if (state is VocabLoaded) {
-                                        streak = state.streakCount;
-                                        totalWords = state.vocabList.isNotEmpty ? state.vocabList.length : 12;
+                                        totalWords = state.vocabList.length;
                                         masteredWords = state.vocabList.where((item) => item.srsRepetition > 0).length;
                                     }
                                     final double vocabProgress = totalWords > 0 ? (masteredWords / totalWords).clamp(0.0, 1.0) : 0.0;
@@ -352,6 +350,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                                 "Bạn đã mất streak do không có hoạt động học tập ngày qua. Hãy học ngay hôm nay để bắt đầu streak mới!",
                                                                                 style: TextStyle(color: AppColors.crimsonRed, fontSize: 12, fontWeight: FontWeight.w600),
                                                                             ),
+                                                                        ),
+                                                                    ],
+                                                                ),
+                                                            ),
+                                                        if (_authUsername.isEmpty)
+                                                            Container(
+                                                                margin: const EdgeInsets.only(top: 14),
+                                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                                                decoration: BoxDecoration(
+                                                                    color: AppColors.goldAccent.withValues(alpha: 0.1),
+                                                                    borderRadius: BorderRadius.circular(12),
+                                                                    border: Border.all(color: AppColors.goldAccent.withValues(alpha: 0.3)),
+                                                                ),
+                                                                child: Row(
+                                                                    children: [
+                                                                        const Icon(Icons.lock_outline_rounded, color: AppColors.goldAccent, size: 18),
+                                                                        const SizedBox(width: 8),
+                                                                        const Expanded(
+                                                                            child: Text(
+                                                                                "Đăng nhập để lưu lại chuỗi Streak & đồng bộ trên máy chủ!",
+                                                                                style: TextStyle(color: AppColors.goldAccent, fontSize: 12, fontWeight: FontWeight.w600),
+                                                                            ),
+                                                                        ),
+                                                                        TextButton(
+                                                                            onPressed: _openAuthModal,
+                                                                            style: TextButton.styleFrom(
+                                                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                                                minimumSize: Size.zero,
+                                                                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                                            ),
+                                                                            child: const Text("Đăng nhập", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.goldAccent)),
                                                                         ),
                                                                     ],
                                                                 ),

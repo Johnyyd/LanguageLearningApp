@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../domain/usecases/srs_calculator.dart';
 import '../../../../data/repositories/vocab_repository_impl.dart';
 import 'vocab_event.dart';
@@ -16,7 +17,12 @@ class VocabBloc extends Bloc<VocabEvent, VocabState> {
         emit(VocabLoading());
         try {
             final list = await _repository.getVocabularyList(forceRefresh: event.forceRefresh, lessonId: event.lessonId);
-            emit(VocabLoaded(list, lessonId: event.lessonId));
+            int storedStreak = 1;
+            try {
+                final prefs = await SharedPreferences.getInstance();
+                storedStreak = prefs.getInt('streak_count') ?? 1;
+            } catch (_) {}
+            emit(VocabLoaded(list, streakCount: storedStreak, lessonId: event.lessonId));
         } catch (e) {
             emit(VocabError("Không thể tải từ vựng N5: $e"));
         }

@@ -15,7 +15,7 @@ class VocabLoaded extends VocabState {
     final List<VocabItem> vocabList;
     final int streakCount;
     final int lessonId;
-    const VocabLoaded(this.vocabList, {this.streakCount = 5, this.lessonId = 1});
+    const VocabLoaded(this.vocabList, {this.streakCount = 1, this.lessonId = 1});
     @override
     List<Object?> get props => [vocabList, streakCount, lessonId];
 }
