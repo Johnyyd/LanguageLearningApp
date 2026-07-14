@@ -229,6 +229,7 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
     }
 
     Future<void> _loadDialoguesFromApi({bool forceRefresh = false}) async {
+        final remoteAiDs = context.read<RemoteAiDataSource>();
         if (forceRefresh && mounted) {
             setState(() => _isLoading = true);
         }
@@ -250,7 +251,7 @@ class _N5DialogueRoleplayScreenState extends State<N5DialogueRoleplayScreen> {
                 } catch (_) {}
             }
 
-            final remoteAiDs = context.read<RemoteAiDataSource>();
+            if (!mounted) return;
             final data = await remoteAiDs.fetchN5Dialogues();
             if (data.isNotEmpty) {
                 try {

@@ -20,7 +20,6 @@ class _IeltsScreenState extends State<IeltsScreen> {
     final TextEditingController _essayController = TextEditingController();
     bool _isOcrMode = false;
 
-    bool _isLoadingPrompts = true;
     List<Map<String, String>> _prompts = [];
 
     final List<Map<String, String>> _fallbackPrompts = [
@@ -60,9 +59,7 @@ class _IeltsScreenState extends State<IeltsScreen> {
             _prompts = List.from(_fallbackPrompts);
         } finally {
             if (mounted) {
-                setState(() {
-                    _isLoadingPrompts = false;
-                });
+                setState(() {});
             }
         }
     }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
+import '../../core/constants/app_constants.dart';
 import '../blocs/vocab/vocab_bloc.dart';
 import '../blocs/vocab/vocab_state.dart';
 import '../widgets/common/responsive_container.dart';
@@ -82,6 +84,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
             backgroundColor: Colors.transparent,
             builder: (_) => AuthModal(onAuthSuccess: _loadAuthAndStreak),
         );
+    }
+
+    Future<void> _checkInStreakToday() async {
+        final prefs = await SharedPreferences.getInstance();
+        final now = DateTime.now();
+        final todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+        final yesterday = now.subtract(const Duration(days: 1));
+        final yesterdayStr = "${yesterday.year}-${yesterday.month.toString().padLeft(2, '0')}-${yesterday.day.toString().padLeft(2, '0')}";
+
+        int newStreak = _streakCount;
+        if (_lastActivityDate == yesterdayStr) {
+            newStreak = _streakCount + 1;
+        } else if (_lastActivityDate != todayStr) {
+            newStreak = 1;
+        }
+
+        await prefs.setInt('streak_count', newStreak);
+        await prefs.setString('last_activity_date', todayStr);
+
+        if (_authUsername.isNotEmpty) {
+            try {
+                final dio = Dio();
+                await dio.post(
+                    "${AppConstants.baseUrl}/auth/activity",
+                    data: {"username": _authUsername},
+                );
+            } catch (_) {}
+        }
+
+        await _loadAuthAndStreak();
+        if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content: Text("🔥 Điểm danh thành công! Chuỗi học tập: $newStreak ngày liên tiếp."),
+                    backgroundColor: AppColors.successGreen,
+                ),
+            );
+        }
     }
 
     @override
@@ -332,9 +372,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                 );
                                                             }).toList(),
                                                         ),
+                                                        if (_lastActivityDate.isNotEmpty)
+                                                            Padding(
+                                                                padding: const EdgeInsets.only(top: 10),
+                                                                child: Text(
+                                                                    "Hoạt động gần nhất: $_lastActivityDate (Đang tích lũy: $_streakCount ngày)",
+                                                                    style: TextStyle(
+                                                                        fontSize: 12,
+                                                                        color: textColor.withValues(alpha: 0.65),
+                                                                        fontStyle: FontStyle.italic,
+                                                                    ),
+                                                                ),
+                                                            ),
+                                                        if (!_isTodayActive)
+                                                            Container(
+                                                                margin: const EdgeInsets.only(top: 12),
+                                                                width: double.infinity,
+                                                                child: ElevatedButton.icon(
+                                                                    onPressed: _checkInStreakToday,
+                                                                    style: ElevatedButton.styleFrom(
+                                                                        backgroundColor: AppColors.goldAccent,
+                                                                        foregroundColor: Colors.white,
+                                                                        padding: const EdgeInsets.symmetric(vertical: 11),
+                                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                                        elevation: 2,
+                                                                    ),
+                                                                    icon: const Icon(Icons.bolt_rounded, size: 18),
+                                                                    label: const Text(
+                                                                        "Điểm Danh Học Tập Hôm Nay (+1 Streak)",
+                                                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                                                    ),
+                                                                ),
+                                                            )
+                                                        else
+                                                            Container(
+                                                                margin: const EdgeInsets.only(top: 12),
+                                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                                decoration: BoxDecoration(
+                                                                    color: AppColors.successGreen.withValues(alpha: 0.12),
+                                                                    borderRadius: BorderRadius.circular(12),
+                                                                    border: Border.all(color: AppColors.successGreen.withValues(alpha: 0.3)),
+                                                                ),
+                                                                child: Row(
+                                                                    children: [
+                                                                        const Icon(Icons.check_circle_rounded, color: AppColors.successGreen, size: 18),
+                                                                        const SizedBox(width: 8),
+                                                                        Expanded(
+                                                                            child: Text(
+                                                                                "Đã điểm danh học tập hôm nay! Chuỗi Streak ($_effectiveStreak ngày) đang được duy trì.",
+                                                                                style: const TextStyle(color: AppColors.successGreen, fontSize: 12, fontWeight: FontWeight.w600),
+                                                                            ),
+                                                                        ),
+                                                                    ],
+                                                                ),
+                                                            ),
                                                         if (_isStreakLost)
                                                             Container(
-                                                                margin: const EdgeInsets.only(top: 14),
+                                                                margin: const EdgeInsets.only(top: 12),
                                                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                                                 decoration: BoxDecoration(
                                                                     color: AppColors.crimsonRed.withValues(alpha: 0.1),

@@ -118,6 +118,7 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
     }
 
     Future<void> _loadQuestionsFromApi({bool forceRefresh = false}) async {
+        final remoteAiDs = context.read<RemoteAiDataSource>();
         if (forceRefresh && mounted) {
             setState(() => _isLoading = true);
         }
@@ -139,7 +140,7 @@ class _N5JlptMockExamScreenState extends State<N5JlptMockExamScreen> {
                 } catch (_) {}
             }
 
-            final remoteAiDs = context.read<RemoteAiDataSource>();
+            if (!mounted) return;
             final data = await remoteAiDs.fetchN5MockExamQuestions();
             if (data.isNotEmpty) {
                 try {

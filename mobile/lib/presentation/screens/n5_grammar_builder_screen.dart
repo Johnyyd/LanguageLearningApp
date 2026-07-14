@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/datasources/remote_ai_datasource.dart';
-import '../widgets/common/3d_avatar_viewer.dart';
 import '../widgets/common/responsive_container.dart';
 
 class GrammarExercise {
@@ -115,6 +114,7 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
     }
 
     Future<void> _loadExercisesFromApi({bool forceRefresh = false}) async {
+        final remoteAiDs = context.read<RemoteAiDataSource>();
         if (forceRefresh && mounted) {
             setState(() => _isLoading = true);
         }
@@ -137,7 +137,7 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                 } catch (_) {}
             }
 
-            final remoteAiDs = context.read<RemoteAiDataSource>();
+            if (!mounted) return;
             final data = await remoteAiDs.fetchN5GrammarExercises();
             if (data.isNotEmpty) {
                 try {
@@ -234,24 +234,8 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                     ),
                 ],
             ),
-            body: Column(
-                children: [
-                    // Top AI Sensei Feedback Header (Compact)
-                    Container(
-                        height: 100,
-                        width: double.infinity,
-                        decoration: const BoxDecoration(
-                            color: Color(0xFFE5F6DF),
-                            border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5), width: 1.5)),
-                        ),
-                        child: Avatar3dViewer(
-                            emotion: _isCorrect == true ? "happy" : (_isCorrect == false ? "thinking" : "idle"),
-                            height: 100,
-                        ),
-                    ),
-                    Expanded(
-                        child: ResponsiveContainer(
-                            child: _isLoading || _exercises.isEmpty
+            body: ResponsiveContainer(
+                child: _isLoading || _exercises.isEmpty
                                 ? const Center(child: CircularProgressIndicator())
                                 : SingleChildScrollView(
                                 padding: const EdgeInsets.all(16),
@@ -503,9 +487,6 @@ class _N5GrammarBuilderScreenState extends State<N5GrammarBuilderScreen> {
                                 ],
                             ),
                         ),
-                    ),
-                ),
-                ],
             ),
         );
     }
