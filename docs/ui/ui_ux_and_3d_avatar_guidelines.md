@@ -97,6 +97,10 @@ stateDiagram-v2
 | `talking` | `Talk_LipSync` / `Explain_Gesture`| Đồng bộ chính xác với thời điểm luồng âm thanh TTS đang phát ra loa/tai nghe. |
 | `cheering` | `Clap_Hands` / `Happy_Jump` | Khi người dùng hoàn thành xuất sắc bài kiểm tra hoặc đạt Band IELTS từ 7.0 trở lên. |
 
+#### Quy Tắc Phân Bổ `Avatar3dViewer` Trên Các Màn Hình (`write-docs` Canonical Pointers)
+- **Trạm Trò chuyện 3D ([chat_tutor_screen.dart](file:///e:/GitHub/LanguageLearningApp/mobile/lib/presentation/screens/chat_tutor_screen.dart)) & Trạm Đàm thoại ([n5_dialogue_roleplay_screen.dart](file:///e:/GitHub/LanguageLearningApp/mobile/lib/presentation/screens/n5_dialogue_roleplay_screen.dart)):** Sử dụng đầy đủ `Avatar3dViewer` để mô phỏng tương tác VTuber và cảm xúc theo thời gian thực.
+- **Trạm Luyện Ngữ pháp Kéo-Thả ([n5_grammar_builder_screen.dart](file:///e:/GitHub/LanguageLearningApp/mobile/lib/presentation/screens/n5_grammar_builder_screen.dart)):** Loại bỏ header 3D Avatar, sử dụng `ResponsiveContainer` toàn màn hình để ưu tiên tối đa diện tích cho thao tác sắp xếp khối từ và sự tập trung cho bài tập.
+
 ### 3.3. Kiến trúc Clone Giọng nói Anime VA & Biểu cảm 3D Chuẩn VTuber (Open-Source Anime Voice Cloning & Real-Time Facial Expressions)
 Để mang lại trải nghiệm tương tác giọng nói (Voice Chat) sống động như người thật – nơi Sensei đóng vai trò là một nhân vật Anime đồng hành với chất giọng của một diễn viên lồng tiếng (Voice Actor - VA) chuyên nghiệp, hệ thống áp dụng tiêu chuẩn kiến trúc kỹ thuật sau:
 

@@ -1,56 +1,53 @@
-# Lộ Trình Triển Khai 3 Tính Năng Nâng Cao N5 (Japanese Learning Enhancement)
+# 🌟 Đặc Tả & Lý Do Kiến Trúc 3 Chuyên Đề Nâng Cao N5 (Japanese N5 Advanced Modules)
 
-Mục tiêu: Đưa ứng dụng học Tiếng Nhật N5 lên tầm cao mới với trải nghiệm tương tác thông minh, trực quan và chuẩn hóa theo kỳ thi JLPT N5.
-
----
-
-## 🌟 Tính năng 1: Luyện Nghe & Đàm Thoại Ngữ Cảnh N5 (AI Roleplay & Dialogue)
-- **Mục tiêu:** Tạo môi trường giao tiếp thực tế với AI Sensei trong các tình huống quen thuộc ở Nhật Bản.
-- **Tình huống mẫu:**
-  1. 🏪 **Mua sắm tại Konbini (Cửa hàng tiện lợi):** Hỏi giá cả, thanh toán, hâm nóng hộp cơm Bento.
-  2. 🚉 **Hỏi đường tại Nhà ga (Eki):** Tìm tàu đi Shinjuku, hỏi giờ tàu chạy, mua vé tàu.
-  3. 🍜 **Gọi món tại Nhà hàng (Ramen-ya):** Chọn món, yêu cầu độ cay/ít dầu mỡ, xin hóa đơn thanh toán.
-  4. 🤝 **Tự giới thiệu bản thân (Jikoshoukai):** Giới thiệu tên, tuổi, quốc tịch, sở thích và nghề nghiệp.
-- **Kiến trúc UI/UX:**
-  - Màn hình chọn tình huống đàm thoại thẻ card 3D hiện đại.
-  - Khung chat hội thoại 1-1 với hiệu ứng cảm xúc AI Sensei (vui mừng, suy nghĩ, ngạc nhiên).
-  - Nút luyện phát âm (Speech-to-Text) và tự động phát âm chuẩn bản xứ (TTS).
-  - Chấm điểm độ lưu loát và từ vựng sau mỗi tình huống.
+Tài liệu này ghi nhận **lý do thiết kế (WHY)** và **hợp đồng kiến trúc (Architectural Contracts)** của 3 chuyên đề học tập nâng cao dành cho trình độ Tiếng Nhật JLPT N5. Mã nguồn thực thi và danh sách câu hỏi cụ thể được quản lý bởi các lớp Presentation (Screens) và Data Layer tương ứng.
 
 ---
 
-## 🧩 Tính năng 2: Trạm Luyện Ngữ Pháp N5 & Sắp Xếp Câu (Grammar Sentence Builder)
-- **Mục tiêu:** Nắm vững cấu trúc câu ngữ pháp tiếng Nhật N5 thông qua phương pháp học tương tác trực quan.
-- **Các chuyên đề ngữ pháp N5 trọng tâm:**
-  1. **Danh từ & Trợ từ cơ bản:** `[N1] は [N2] です`, `[N] を / に / で / が`.
-  2. **Động từ thể Lịch sự (Masu-kei):** `~ます`, `~ません`, `~ました`, `~ませんでした`.
-  3. **Động từ thể Te (Te-kei):** `~てください` (Hãy làm...), `~ đang làm...`.
-  4. **Câu điều kiện & Phán đoán:** `~kará` (Vì...), `~ga` (Nhưng...).
-- **Kiến trúc UI/UX:**
-  - Bài tập sắp xếp thẻ từ (Drag & Drop / Tap to Order Sentence Builder): Người học bấm vào các khối từ rải rác để ráp thành câu hoàn chỉnh.
-  - AI Sensei lập tức xuất hiện giải thích lý do dùng trợ từ/thể từ đó khi người dùng chọn sai hoặc bấm "Hỏi Sensei".
+## 1. Trạm Nghe & Đàm Thoại Ngữ Cảnh (`AI Roleplay & Dialogue`)
+
+### 🎯 Lý do Tồn tại (Why)
+Học viên N5 thường nắm vững từ vựng và ngữ pháp trên giấy nhưng gặp rào cản lớn khi phản xạ giao tiếp thực tế. Chuyên đề này tạo ra **phòng thí nghiệm giao tiếp an toàn 1-1 với Sensei AI**, mô phỏng các tình huống sinh hoạt thường nhật tại Nhật Bản (Cửa hàng tiện lợi Konbini, Nhà ga Eki, Nhà hàng Ramen, Tự giới thiệu bản thân).
+
+### 🏛️ Hợp đồng & Nguyên tắc Kiến trúc
+- **Khối điều khiển & Giao diện:** Nằm tại [n5_dialogue_roleplay_screen.dart](file:///e:/GitHub/LanguageLearningApp/mobile/lib/presentation/screens/n5_dialogue_roleplay_screen.dart).
+- **Tương tác Đa phương thức (Multimodal):**
+  - **Nhập liệu bằng Giọng nói (Speech-to-Text):** Cho phép học viên luyện phát âm trực tiếp thay vì chỉ gõ phím.
+  - **Phản hồi bằng Âm thanh (Text-to-Speech):** Hệ thống phát âm chuẩn bản xứ Nhật Bản, đồng bộ với cử động môi (Lip-syncing).
+  - **Biểu cảm 3D Avatar:** Sử dụng [3D Avatar Viewer](file:///e:/GitHub/LanguageLearningApp/mobile/lib/presentation/widgets/common/3d_avatar_viewer.dart) hiển thị trạng thái cảm xúc của Sensei (`thinking`, `talking`, `happy`, `cheering`) dựa trên độ chính xác và trôi chảy của học viên.
 
 ---
 
-## 🏆 Tính năng 3: Đề Thi Thử JLPT N5 Tổng Hợp (Mock Exam & Real-time Timer)
-- **Mục tiêu:** Mô phỏng phòng thi chuẩn quốc tế JLPT N5 giúp học viên rèn luyện tâm lý và kiểm tra năng lực toàn diện.
-- **Cấu trúc đề thi thu nhỏ (Mini Mock Test N5):**
-  1. **Phần 1: Từ vựng & Chữ Hán (Moji - Goi):** 10 câu trắc nghiệm nhanh (Tìm cách đọc Kanji, điền từ vào chỗ trống).
-  2. **Phần 2: Ngữ pháp (Bunpou):** 10 câu trắc nghiệm chọn ngữ pháp đúng và bài tập dấu sao (đắp câu).
-  3. **Phần 3: Đọc hiểu (Dokkai):** 2 đoạn văn ngắn kèm câu hỏi suy luận.
-- **Kiến trúc UI/UX:**
-  - Thanh đếm ngược thời gian (Real-time Timer 30 phút) hiển thị trên Header.
-  - Bảng tổng kết điểm số kèm phân tích điểm mạnh/điểm yếu từ AI Sensei sau khi nộp bài.
-  - Biểu đồ radar hoặc thanh năng lực hiển thị tỷ lệ hoàn thành từng kỹ năng.
+## 2. Trạm Luyện Ngữ Pháp Kéo-Thả (`Grammar Sentence Builder`)
+
+### 🎯 Lý do Tồn tại (Why)
+Ngữ pháp tiếng Nhật N5 có trật tự từ SOV (Chủ - Tân - Động) và hệ thống trợ từ (`は`, `が`, `を`, `に`, `で`) khác biệt hoàn toàn so với tiếng Việt và tiếng Anh. Thay vì trắc nghiệm 4 đáp án thụ động, bài tập **Kéo - Thả / Chạm sắp xếp khối từ (Drag & Drop Sentence Builder)** buộc người học phải tự tư duy trật tự logic của toàn bộ câu.
+
+### 🏛️ Hợp đồng & Nguyên tắc Kiến trúc
+- **Khối điều khiển & Giao diện:** Nằm tại [n5_grammar_builder_screen.dart](file:///e:/GitHub/LanguageLearningApp/mobile/lib/presentation/screens/n5_grammar_builder_screen.dart).
+- **Nguyên tắc Tối ưu Không gian (Clean Workspace Focus):**
+  - Để đảm bảo diện tích hiển thị tối đa cho các khối từ (Pills) và khu vực xếp câu trên màn hình di động, giao diện này **chủ ý loại bỏ header 3D Avatar**.
+  - Toàn bộ body sử dụng `ResponsiveContainer` và khối phản hồi AI Sensei dạng thẻ chữ (Text Card) sắc nét, giúp học viên thao tác nhanh chóng không bị phân tâm.
+- **Nguồn Dữ liệu Ngữ pháp:** Xử lý qua [RemoteAiDataSource](file:///e:/GitHub/LanguageLearningApp/mobile/lib/data/datasources/remote_ai_datasource.dart) với khả năng tải động các bài tập từ AI Backend hoặc fallback về bộ câu hỏi chuẩn hóa offline.
 
 ---
 
-## 🏗️ Kế hoạch Tích hợp Kiến trúc & Hệ thống (Implementation Plan)
-1. **Khởi tạo Dữ liệu mẫu (Seed Data / Datasources):**
-   - Thêm các bộ dữ liệu tình huống hội thoại, mẫu câu ngữ pháp N5, và đề thi JLPT N5 mock vào tầng `data/datasources/`.
-2. **Xây dựng Màn hình & Components (Presentation Layer):**
-   - `DialogueRoleplayScreen` (Luyện Nghe & Đàm Thoại).
-   - `GrammarBuilderScreen` (Luyện Ngữ Pháp Kéo-Thả).
-   - `JlptMockExamScreen` (Thi Thử JLPT N5).
-3. **Cập nhật Dashboard & Quick Actions:**
-   - Thêm các lối tắt (Quick Action Cards) và tab điều hướng trên màn hình chính `DashboardScreen` để người học dễ dàng truy cập 3 tính năng mới.
+## 3. Đề Thi Thử JLPT N5 Tổng Hợp (`Mock Exam & Real-time Timer`)
+
+### 🎯 Lý do Tồn tại (Why)
+Mô phỏng áp lực thời gian và cấu trúc đa kỹ năng của kỳ thi JLPT N5 chuẩn quốc tế, giúp học viên đánh giá chính xác năng lực trước khi bước vào phòng thi thật.
+
+### 🏛️ Hợp đồng & Nguyên tắc Kiến trúc
+- **Khối điều khiển & Giao diện:** Nằm tại [n5_jlpt_mock_exam_screen.dart](file:///e:/GitHub/LanguageLearningApp/mobile/lib/presentation/screens/n5_jlpt_mock_exam_screen.dart).
+- **Cấu trúc Đa kỹ năng (Multi-Skill Assessment):**
+  1. **Moji - Goi (Từ vựng & Chữ Hán):** Kiểm tra cách đọc Kanji và chọn từ phù hợp ngữ cảnh.
+  2. **Bunpou (Ngữ pháp):** Bài tập điền trợ từ và trắc nghiệm cấu trúc.
+  3. **Dokkai (Đọc hiểu):** Đoạn văn ngắn kèm câu hỏi suy luận logic.
+- **Đồng hồ Canh giờ Thời gian thực (Real-time Timer):**
+  - Bộ đếm ngược tự động khóa bài thi khi hết giờ.
+  - Sau khi nộp bài, hệ thống tính toán điểm số và gọi API AI Sensei để tạo **Báo cáo Phân tích Điểm mạnh/Điểm yếu** cho học viên.
+
+---
+
+## 🧭 Điều Hướng Thao Tác (Navigation Pointers)
+- Trải nghiệm tổng hợp của cả 3 chuyên đề được kết nối liền mạch từ Dashboard thông qua các thẻ **Quick Action Cards** tại [dashboard_screen.dart](file:///e:/GitHub/LanguageLearningApp/mobile/lib/presentation/screens/dashboard_screen.dart).

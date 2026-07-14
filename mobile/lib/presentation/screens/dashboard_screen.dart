@@ -11,6 +11,7 @@ import '../../core/theme/app_theme.dart';
 import 'n5_dialogue_roleplay_screen.dart';
 import 'n5_grammar_builder_screen.dart';
 import 'n5_jlpt_mock_exam_screen.dart';
+import 'ai_custom_avatar_studio_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
     final Function(int) onNavigate;
@@ -639,6 +640,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 icon: Icons.smart_toy,
                                 color: AppColors.successGreen,
                                 onTap: () => widget.onNavigate(2),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildQuickActionCard(
+                                context: context,
+                                title: "3D VTuber Studio (Tiếng Nhật)",
+                                subtitle: "Tùy chỉnh Sensei, kiểm thử Visemes & giọng Anime VA",
+                                icon: Icons.face_retouching_natural,
+                                color: AppColors.sakuraPink,
+                                onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const AiCustomAvatarStudioScreen()),
+                                    );
+                                },
                             ),
                             const SizedBox(height: 20),
                         ],

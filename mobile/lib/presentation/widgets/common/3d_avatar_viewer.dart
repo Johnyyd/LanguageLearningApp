@@ -73,8 +73,8 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
         if (inputUrl == _lastInputUrl && _preparedModelUrl != null) return;
         _lastInputUrl = inputUrl;
 
-        // Nếu là URL web hoặc đã là Data URI thì sử dụng trực tiếp
-        if (inputUrl.startsWith("http://") || inputUrl.startsWith("https://") || inputUrl.startsWith("data:")) {
+        // Nếu là URL web, Data URI hoặc Blob URL thì sử dụng trực tiếp
+        if (inputUrl.startsWith("http://") || inputUrl.startsWith("https://") || inputUrl.startsWith("data:") || inputUrl.startsWith("blob:")) {
             if (mounted) {
                 setState(() {
                     _preparedModelUrl = inputUrl;
@@ -137,7 +137,7 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                 }
             }
             // 2. Xử lý mô hình từ file cục bộ (khi người dùng upload file từ điện thoại)
-            else {
+            else if (!kIsWeb) {
                 final file = File(cleanPath);
                 if (await file.exists()) {
                     if (cleanPath.endsWith(".glb")) {

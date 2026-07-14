@@ -1,7 +1,10 @@
+import 'dart:convert' show base64Encode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'ai_custom_avatar_studio_screen.dart';
 import '../blocs/chat/chat_bloc.dart';
 import '../blocs/chat/chat_event.dart';
 import '../blocs/chat/chat_state.dart';
@@ -39,6 +42,7 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
     }
 
     void _initTts() async {
+        await _loadSenseiSettingsFromPrefs();
         try {
             await _flutterTts.setLanguage("vi-VN");
             await _flutterTts.setSpeechRate(0.5);
@@ -69,6 +73,35 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
             debugPrint("⚠️ TTS not supported on this platform: $e");
         }
     }
+
+    Future<void> _loadSenseiSettingsFromPrefs() async {
+        final prefs = await SharedPreferences.getInstance();
+        if (mounted) {
+            setState(() {
+                final savedUrl = prefs.getString("custom_avatar_url");
+                if (savedUrl != null && savedUrl.isNotEmpty) {
+                    _customAvatarUrl = savedUrl;
+                }
+                _currentVoiceActor = prefs.getString("custom_va_name") ?? _currentVoiceActor;
+                _currentSpeakerId = prefs.getString("custom_speaker_id") ?? _currentSpeakerId;
+            });
+            final double rate = prefs.getDouble("custom_tts_speed") ?? 0.5;
+            final double pitch = prefs.getDouble("custom_tts_pitch") ?? 1.1;
+            await _flutterTts.setSpeechRate(rate);
+            await _flutterTts.setPitch(pitch);
+        }
+    }
+
+    Future<void> _openStudioScreen() async {
+        final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AiCustomAvatarStudioScreen()),
+        );
+        if (result == true) {
+            await _loadSenseiSettingsFromPrefs();
+        }
+    }
+
 
     void _speak(String text, {String? audioUrl}) async {
         if (_isSpeaking) {
@@ -733,6 +766,30 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                             child: Column(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
+                                                    // Nút nổi bật mở phòng Studio 3D VTuber
+                                                    Container(
+                                                        width: double.infinity,
+                                                        margin: const EdgeInsets.only(bottom: 14),
+                                                        child: ElevatedButton.icon(
+                                                            onPressed: () {
+                                                                Navigator.pop(ctx);
+                                                                _openStudioScreen();
+                                                            },
+                                                            style: ElevatedButton.styleFrom(
+                                                                backgroundColor: AppColors.sakuraPink,
+                                                                foregroundColor: Colors.white,
+                                                                elevation: 4,
+                                                                shadowColor: AppColors.sakuraPink.withValues(alpha: 0.5),
+                                                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                                            ),
+                                                            icon: const Icon(Icons.spatial_audio_off, size: 20),
+                                                            label: const Text(
+                                                                "🚀 Mở Studio 3D VTuber Toàn Màn Hình",
+                                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                                            ),
+                                                        ),
+                                                    ),
                                                     _buildPresetOption(
                                                         "Sensei Sakura (Nữ dịu dàng)",
                                                         "Kana Hanazawa (VA)",
@@ -833,24 +890,39 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
         try {
             final result = await FilePicker.platform.pickFiles(
                 type: FileType.any,
+                withData: true,
             );
-            if (result != null && result.files.single.path != null) {
-                String path = result.files.single.path!;
-                if (!path.startsWith("file://") && !path.startsWith("http") && !path.startsWith("assets")) {
-                    path = "file://$path";
+            if (result != null && result.files.isNotEmpty) {
+                final file = result.files.single;
+                String? targetUrl;
+                if (file.bytes != null) {
+                    final base64Str = base64Encode(file.bytes!);
+                    if (file.name.toLowerCase().endsWith('.gltf')) {
+                        targetUrl = 'data:model/gltf+json;base64,$base64Str';
+                    } else {
+                        targetUrl = 'data:model/gltf-binary;base64,$base64Str';
+                    }
+                } else if (file.path != null) {
+                    targetUrl = file.path!;
+                    if (!targetUrl.startsWith("file://") && !targetUrl.startsWith("http") && !targetUrl.startsWith("assets") && !targetUrl.startsWith("data:")) {
+                        targetUrl = "file://$targetUrl";
+                    }
                 }
-                setState(() {
-                    _customAvatarUrl = path;
-                    _currentVoiceActor = "Custom Anime VA";
-                });
-                if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text("Đã tải file '${result.files.single.name}' lên thành công!"),
-                            backgroundColor: AppColors.duoGreen,
-                        ),
-                    );
-                    _speak("Konnichiwa! Mình đã tải mô hình 3D từ máy của bạn thành công. Hãy bắt đầu trò chuyện nhé!");
+
+                if (targetUrl != null && targetUrl.isNotEmpty) {
+                    setState(() {
+                        _customAvatarUrl = targetUrl;
+                        _currentVoiceActor = "Custom Anime VA (${file.name})";
+                    });
+                    if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text("Đã tải file '${file.name}' lên thành công!"),
+                                backgroundColor: AppColors.duoGreen,
+                            ),
+                        );
+                        _speak("Konnichiwa! Mình đã tải mô hình 3D từ máy của bạn thành công. Hãy bắt đầu trò chuyện nhé!");
+                    }
                 }
             }
         } catch (e) {
