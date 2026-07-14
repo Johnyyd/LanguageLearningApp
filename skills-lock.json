@@ -1,6 +1,18 @@
 {
   "version": 1,
   "skills": {
+    "animation-vocabulary": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/animation-vocabulary/SKILL.md",
+      "computedHash": "280c6688ef2568ad92f40c4dc638f0cc5cde0f49bdd6debd097410aa9945f44f"
+    },
+    "apple-design": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/apple-design/SKILL.md",
+      "computedHash": "0d19303902efa64eace10e6b183eb29ef3220d424c1a7fd1eafc52adde216932"
+    },
     "claude": {
       "source": "dzhng/skills",
       "sourceType": "github",
@@ -31,6 +43,12 @@
       "skillPath": "skills/visual/compare-screenshots/SKILL.md",
       "computedHash": "e6429b2363bb4728a22bf9f0e04f7ac784a8f899c6ea650ec07193fa763ff60f"
     },
+    "emil-design-eng": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/emil-design-eng/SKILL.md",
+      "computedHash": "ac3fc5b4e206488ffc408a2806f829bb2e5eaf518fded09be34790685c2b3a0d"
+    },
     "eval-skills": {
       "source": "dzhng/skills",
       "sourceType": "github",
@@ -55,6 +73,12 @@
       "skillPath": "skills/engineering/implement-spec-with-codex/SKILL.md",
       "computedHash": "f39b3d1d38937bdcbb56615bc5f0323765693f77f4977a19354cf45c4933274a"
     },
+    "improve-animations": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/improve-animations/SKILL.md",
+      "computedHash": "ff9991a8d6dabb24411daaf6de570e3b6826323459d514d90d7f6371bbdbdbe1"
+    },
     "preview-shots": {
       "source": "dzhng/skills",
       "sourceType": "github",
@@ -78,6 +102,12 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/review/SKILL.md",
       "computedHash": "a5fc2f1368e20ebb825041b11df7d22ab4aebd23d7a47141ae941c397a350f49"
+    },
+    "review-animations": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/review-animations/SKILL.md",
+      "computedHash": "26bec85a9bfe7cfbfd500ff1ffebc7819ac0cef75cf068c4a97b5af865ccccf7"
     },
     "screenshot-critique": {
       "source": "dzhng/skills",
