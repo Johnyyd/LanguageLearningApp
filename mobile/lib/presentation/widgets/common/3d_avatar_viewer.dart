@@ -254,6 +254,7 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                                   )
                                 : _isWebViewSupported
                                     ? ModelViewer(
+                                        key: ValueKey(_preparedModelUrl ?? effectiveModelUrl),
                                         backgroundColor: const Color.fromARGB(0, 0, 0, 0),
                                         src: _preparedModelUrl ?? effectiveModelUrl,
                                         alt: "Grok Ani style 3D Sensei AI Tutor",
