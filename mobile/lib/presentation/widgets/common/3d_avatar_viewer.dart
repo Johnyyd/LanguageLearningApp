@@ -19,6 +19,7 @@ class Avatar3dViewer extends StatefulWidget {
     final String voiceActorName;
     final String? customAvatarUrl;
     final List<Map<String, dynamic>>? visemes;
+    final Map<String, dynamic>? rigMetadata;
 
     const Avatar3dViewer({
         super.key,
@@ -30,6 +31,7 @@ class Avatar3dViewer extends StatefulWidget {
         this.voiceActorName = "Kana Hanazawa (VA)",
         this.customAvatarUrl,
         this.visemes,
+        this.rigMetadata,
     });
 
     @override
@@ -463,6 +465,41 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                                     ),
                                     icon: const Icon(Icons.folder_open, size: 16),
                                     label: const Text("Tải File 3D", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                ),
+                            ),
+                        // AI Rigged Joints Badge (Top Right below Emotion badge)
+                        if (widget.rigMetadata != null || (_preparedModelUrl != null && _preparedModelUrl!.contains("gltf-binary")))
+                            Positioned(
+                                top: 52,
+                                right: 16,
+                                child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                            colors: [AppColors.deepIndigo, AppColors.sakuraPink],
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                            BoxShadow(
+                                                color: AppColors.sakuraPink.withValues(alpha: 0.4),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 2),
+                                            ),
+                                        ],
+                                    ),
+                                    child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                            const Icon(Icons.auto_awesome, color: Colors.white, size: 13),
+                                            const SizedBox(width: 5),
+                                            Text(
+                                                widget.rigMetadata != null
+                                                    ? "🌟 AI RIGGED: ${widget.rigMetadata!['skeleton']?['joints_count'] ?? 22} JOINTS (UNITY MECANIM READY)"
+                                                    : "⚡ 3D AVATAR READY (MECANIM RETARGETING)",
+                                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.4),
+                                            ),
+                                        ],
+                                    ),
                                 ),
                             ),
                     ],
