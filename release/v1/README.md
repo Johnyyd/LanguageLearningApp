@@ -52,6 +52,18 @@ class AppConstants {
 
 ### Cách 2: Truyền URL qua dòng lệnh khi build
 Không cần sửa code, bạn chỉ cần truyền URL vào tham số khi chạy script đóng gói:
+
+- **Trên Windows 11 (PowerShell):**
+```powershell
+cd release\v1
+.\build_release_apk.ps1 https://ai-gateway.your-tailnet.ts.net
+```
+- **Trên Windows 11 (Command Prompt / Double-Click):**
+```cmd
+cd release\v1
+build_release_apk.bat https://ai-gateway.your-tailnet.ts.net
+```
+- **Trên Linux/macOS:**
 ```bash
 cd release/v1
 chmod +x build_release_apk.sh
@@ -62,6 +74,18 @@ chmod +x build_release_apk.sh
 
 ## 📦 Bước 4: Đóng gói APK Release
 Chạy lệnh đóng gói trong thư mục `release/v1`:
+
+- **Trên Windows 11 (PowerShell):**
+```powershell
+cd release\v1
+.\build_release_apk.ps1
+```
+- **Trên Windows 11 (Command Prompt / Double-Click):**
+```cmd
+cd release\v1
+build_release_apk.bat
+```
+- **Trên Linux/macOS:**
 ```bash
 cd release/v1
 chmod +x build_release_apk.sh

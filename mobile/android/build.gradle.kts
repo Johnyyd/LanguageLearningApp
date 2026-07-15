@@ -1,3 +1,5 @@
+apply(from = "fix_jcenter.gradle")
+
 allprojects {
     repositories {
         google()

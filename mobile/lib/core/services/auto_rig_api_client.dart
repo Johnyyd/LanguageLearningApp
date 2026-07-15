@@ -88,6 +88,17 @@ class AutoRigApiClient {
                         "retargeting": {
                             "ready_for_unity": isVrm,
                             "mecanim_avatar_type": isVrm ? "Humanoid" : "None",
+                        },
+                        "facial_rigging": {
+                            "supported": true,
+                            "jaw_bone": "head",
+                            "visemes": [
+                                {"code": "mouth_a", "target": "Viseme_A", "fallback_jaw_angle": 15.0},
+                                {"code": "mouth_i", "target": "Viseme_I", "fallback_jaw_angle": 6.0},
+                                {"code": "mouth_u", "target": "Viseme_U", "fallback_jaw_angle": 10.0},
+                                {"code": "mouth_e", "target": "Viseme_E", "fallback_jaw_angle": 8.0},
+                                {"code": "mouth_o", "target": "Viseme_O", "fallback_jaw_angle": 12.0},
+                            ],
                         }
                     }
                 };
