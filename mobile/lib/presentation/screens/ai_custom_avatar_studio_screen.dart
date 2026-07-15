@@ -1,9 +1,11 @@
-import 'dart:convert' show base64Encode;
+import 'dart:io' show File;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/auto_rig_api_client.dart';
 import '../../core/theme/app_theme.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
 import '../widgets/common/responsive_container.dart';
@@ -17,6 +19,7 @@ class AiCustomAvatarStudioScreen extends StatefulWidget {
 
 class _AiCustomAvatarStudioScreenState extends State<AiCustomAvatarStudioScreen> {
     final FlutterTts _flutterTts = FlutterTts();
+    final AutoRigApiClient _autoRigClient = AutoRigApiClient();
     
     // State cấu hình Sensei
     String? _avatarUrl;
@@ -24,6 +27,8 @@ class _AiCustomAvatarStudioScreenState extends State<AiCustomAvatarStudioScreen>
     String _speakerId = "sensei_va_01";
     double _speechRate = 0.5;
     double _pitch = 1.1;
+    Map<String, dynamic>? _rigMetadata;
+    bool _isAutoRigging = false;
 
     // State kiểm thử trực tiếp
     String _currentEmotion = "idle";
@@ -157,44 +162,74 @@ class _AiCustomAvatarStudioScreenState extends State<AiCustomAvatarStudioScreen>
             );
             if (result != null && result.files.isNotEmpty) {
                 final file = result.files.single;
-                String? targetUrl;
-                if (file.bytes != null) {
-                    final base64Str = base64Encode(file.bytes!);
-                    if (file.name.toLowerCase().endsWith('.gltf')) {
-                        targetUrl = 'data:model/gltf+json;base64,$base64Str';
-                    } else if (file.name.toLowerCase().endsWith('.vrm')) {
-                        targetUrl = 'data:application/octet-stream;base64,$base64Str';
-                    } else {
-                        targetUrl = 'data:model/gltf-binary;base64,$base64Str';
-                    }
-                } else if (file.path != null) {
-                    targetUrl = file.path!;
-                    if (!targetUrl.startsWith("file://") && !targetUrl.startsWith("http") && !targetUrl.startsWith("assets") && !targetUrl.startsWith("data:")) {
-                        targetUrl = "file://$targetUrl";
-                    }
+                final bool isVrm = file.name.toLowerCase().endsWith('.vrm');
+
+                if (mounted) {
+                    setState(() => _isAutoRigging = true);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Row(
+                                children: [
+                                    const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                        child: Text(
+                                            isVrm
+                                                ? "⚙️ Đã phát hiện VRM '${file.name}'. Đang gửi lên AI Gateway phân tích cấu trúc..."
+                                                : "⚙️ Đang gửi '${file.name}' lên Server AI để tự động gắn xương 22 khớp Humanoid...",
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                    ),
+                                ],
+                            ),
+                            backgroundColor: AppColors.deepIndigo,
+                            duration: const Duration(seconds: 4),
+                        ),
+                    );
                 }
 
-                if (targetUrl != null && targetUrl.isNotEmpty) {
-                    final isVrm = file.name.toLowerCase().endsWith('.vrm');
+                File? localFile;
+                if (!kIsWeb && file.path != null && file.path!.isNotEmpty) {
+                    localFile = File(file.path!);
+                }
+
+                final response = await _autoRigClient.uploadAndAutoRigModel(
+                    file: localFile,
+                    bytes: file.bytes,
+                    filename: file.name,
+                );
+
+                if (mounted) {
                     setState(() {
-                        _avatarUrl = targetUrl;
-                        _vaName = isVrm ? "VRM Avatar (${file.name})" : "Custom 3D (${file.name})";
+                        _isAutoRigging = false;
+                        _avatarUrl = response['data_uri'];
+                        _rigMetadata = response['metadata'];
+                        _vaName = isVrm ? "VRM Avatar (${file.name})" : "AI Rigged 3D (${file.name})";
                     });
-                    if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(isVrm
-                                    ? "🌟 Đã nạp chuẩn VRM '${file.name}'! (UniVRM Lip-sync & Blendshapes sẵn sàng)"
-                                    : "⚡ Đã nạp file GLB '${file.name}'! (Hỗ trợ GLTFast Runtime Retargeting)"),
-                                backgroundColor: isVrm ? AppColors.sakuraPink : AppColors.duoGreen,
-                                duration: const Duration(seconds: 3),
+
+                    final bool isSuccess = response['status'] == 'success';
+                    final int joints = _rigMetadata?['skeleton']?['joints_count'] ?? (isVrm ? 22 : 0);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                isSuccess
+                                    ? "🌟 AI Auto-Rigging thành công cho '${file.name}'! ($joints khớp xương chuẩn Humanoid - Sẵn sàng cho Unity Mecanim Retargeting)"
+                                    : "⚡ ${response['message'] ?? 'Đã nạp file thành công (chế độ Fallback cục bộ)'}",
                             ),
-                        );
-                    }
+                            backgroundColor: isSuccess ? AppColors.sakuraPink : AppColors.warningOrange,
+                            duration: const Duration(seconds: 4),
+                        ),
+                    );
                 }
             }
         } catch (e) {
             if (mounted) {
+                setState(() => _isAutoRigging = false);
                 ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text("Lỗi tải file 3D: $e"), backgroundColor: AppColors.errorRed),
                 );
@@ -281,12 +316,28 @@ class _AiCustomAvatarStudioScreenState extends State<AiCustomAvatarStudioScreen>
                             ),
                             child: Column(
                                 children: [
+                                    if (_isAutoRigging)
+                                        Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                            decoration: const BoxDecoration(
+                                                gradient: LinearGradient(colors: [AppColors.deepIndigo, AppColors.sakuraPink]),
+                                            ),
+                                            child: const Row(
+                                                children: [
+                                                    SizedBox(width: 14, height: 14, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                                                    SizedBox(width: 10),
+                                                    Expanded(child: Text("AI Auto-Rigging (22 khớp Humanoid) đang tính toán...", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))),
+                                                ],
+                                            ),
+                                        ),
                                     Avatar3dViewer(
                                         height: 330,
                                         emotion: _currentEmotion,
                                         customAvatarUrl: _avatarUrl,
                                         voiceActorName: _vaName,
                                         isVoiceCloned: true,
+                                        rigMetadata: _rigMetadata,
                                         onUploadTap: _pickCustom3dFile,
                                     ),
                                     Container(

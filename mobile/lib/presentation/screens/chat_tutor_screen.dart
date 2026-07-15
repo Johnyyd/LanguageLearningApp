@@ -1,4 +1,5 @@
-import 'dart:convert' show base64Encode;
+import 'dart:io' show File;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -10,6 +11,7 @@ import '../blocs/chat/chat_event.dart';
 import '../blocs/chat/chat_state.dart';
 import '../widgets/common/3d_avatar_viewer.dart';
 import '../widgets/common/responsive_container.dart';
+import '../../core/services/auto_rig_api_client.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/tts_helper.dart';
 import '../../core/utils/stt_helper.dart';
@@ -24,11 +26,14 @@ class ChatTutorScreen extends StatefulWidget {
 class _ChatTutorScreenState extends State<ChatTutorScreen> {
     final TextEditingController _msgController = TextEditingController();
     final FlutterTts _flutterTts = FlutterTts();
+    final AutoRigApiClient _autoRigClient = AutoRigApiClient();
     String _moduleContext = "japanese_n5";
     bool _isJapaneseKaiwaMode = false;
     bool _isVoiceCallMode = false;
     bool _isSpeaking = false;
     bool _isListening = false;
+    bool _isAutoRigging = false;
+    Map<String, dynamic>? _rigMetadata;
     String? _lastSpokenMessageId;
     String _currentVoiceActor = "Kana Hanazawa (VA)";
     String _currentSpeakerId = "sensei_va_01";
@@ -328,18 +333,39 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                                 // Top 3D Avatar Viewer (Enlarged Model Display)
                                 Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                    child: Avatar3dViewer(
+                                    child: Column(
+                                        children: [
+                                            if (_isAutoRigging)
+                                                Container(
+                                                    margin: const EdgeInsets.only(bottom: 8),
+                                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                                    decoration: BoxDecoration(
+                                                        gradient: const LinearGradient(colors: [AppColors.deepIndigo, AppColors.sakuraPink]),
+                                                        borderRadius: BorderRadius.circular(16),
+                                                    ),
+                                                    child: const Row(
+                                                        children: [
+                                                            SizedBox(width: 14, height: 14, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                                                            SizedBox(width: 10),
+                                                            Expanded(child: Text("AI đang gắn xương 22 khớp Humanoid & chuẩn bị Unity Mecanim...", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))),
+                                                        ],
+                                                    ),
+                                                ),
+                                            Avatar3dViewer(
                                         emotion: _isSpeaking ? "talking" : (_isListening ? "listening" : emotion),
                                         height: _isVoiceCallMode ? 380 : 250,
                                         isVoiceCloned: _enableVoiceCloning,
                                         voiceActorName: _currentVoiceActor,
                                         customAvatarUrl: _customAvatarUrl,
+                                        rigMetadata: _rigMetadata,
                                         onTap: () => _speak(
                                             _isJapaneseKaiwaMode
                                                 ? "こんにちは！私は日本語AIチューターのセンセイです。一緒に楽しく日本語を話しましょう！"
                                                 : "Konnichiwa! Mình là Sensei ($_currentVoiceActor) với công nghệ lồng tiếng AI Anime. Bạn hãy đặt câu hỏi nhé!"
                                         ),
                                         onUploadTap: _pickAndUpload3dFile,
+                                            ),
+                                        ],
                                     ),
                                 ),
 
@@ -894,47 +920,77 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
             );
             if (result != null && result.files.isNotEmpty) {
                 final file = result.files.single;
-                String? targetUrl;
-                if (file.bytes != null) {
-                    final base64Str = base64Encode(file.bytes!);
-                    if (file.name.toLowerCase().endsWith('.gltf')) {
-                        targetUrl = 'data:model/gltf+json;base64,$base64Str';
-                    } else if (file.name.toLowerCase().endsWith('.vrm')) {
-                        targetUrl = 'data:application/octet-stream;base64,$base64Str';
-                    } else {
-                        targetUrl = 'data:model/gltf-binary;base64,$base64Str';
-                    }
-                } else if (file.path != null) {
-                    targetUrl = file.path!;
-                    if (!targetUrl.startsWith("file://") && !targetUrl.startsWith("http") && !targetUrl.startsWith("assets") && !targetUrl.startsWith("data:")) {
-                        targetUrl = "file://$targetUrl";
-                    }
+                final bool isVrm = file.name.toLowerCase().endsWith('.vrm');
+
+                if (mounted) {
+                    setState(() => _isAutoRigging = true);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Row(
+                                children: [
+                                    const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                        child: Text(
+                                            isVrm
+                                                ? "⚙️ Đang gửi VRM '${file.name}' lên AI Gateway..."
+                                                : "⚙️ Đang gửi '${file.name}' lên Server AI để tự động gắn xương 22 khớp Humanoid...",
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                    ),
+                                ],
+                            ),
+                            backgroundColor: AppColors.deepIndigo,
+                            duration: const Duration(seconds: 4),
+                        ),
+                    );
                 }
 
-                if (targetUrl != null && targetUrl.isNotEmpty) {
-                    final isVrm = file.name.toLowerCase().endsWith('.vrm');
+                File? localFile;
+                if (!kIsWeb && file.path != null && file.path!.isNotEmpty) {
+                    localFile = File(file.path!);
+                }
+
+                final response = await _autoRigClient.uploadAndAutoRigModel(
+                    file: localFile,
+                    bytes: file.bytes,
+                    filename: file.name,
+                );
+
+                if (mounted) {
                     setState(() {
-                        _customAvatarUrl = targetUrl;
-                        _currentVoiceActor = isVrm ? "VRM Anime VA (${file.name})" : "Custom Anime VA (${file.name})";
+                        _isAutoRigging = false;
+                        _customAvatarUrl = response['data_uri'];
+                        _rigMetadata = response['metadata'];
+                        _currentVoiceActor = isVrm ? "VRM Anime VA (${file.name})" : "AI Rigged VA (${file.name})";
                     });
-                    if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(isVrm
-                                    ? "🌟 Đã nạp chuẩn VRM '${file.name}'! (UniVRM Lip-sync & Blendshapes sẵn sàng)"
-                                    : "⚡ Đã tải file GLB '${file.name}'! (Hỗ trợ GLTFast Runtime Retargeting)"),
-                                backgroundColor: isVrm ? AppColors.sakuraPink : AppColors.duoGreen,
-                                duration: const Duration(seconds: 3),
+
+                    final bool isSuccess = response['status'] == 'success';
+                    final int joints = _rigMetadata?['skeleton']?['joints_count'] ?? (isVrm ? 22 : 0);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                isSuccess
+                                    ? "🌟 AI Auto-Rigging thành công cho '${file.name}'! ($joints khớp Humanoid - Unity Mecanim sẵn sàng)"
+                                    : "⚡ ${response['message'] ?? 'Đã nạp file thành công'}",
                             ),
-                        );
-                        _speak(isVrm
-                            ? "Konnichiwa! Mình đã tải mô hình chuẩn VRM từ máy của bạn. Khẩu hình và cơ mặt đã được chuẩn hóa!"
-                            : "Konnichiwa! Mình đã tải mô hình 3D từ máy của bạn. Hãy bắt đầu đàm thoại nhé!");
-                    }
+                            backgroundColor: isSuccess ? AppColors.sakuraPink : AppColors.warningOrange,
+                            duration: const Duration(seconds: 4),
+                        ),
+                    );
+                    _speak(isSuccess
+                        ? "Konnichiwa! Bộ xương 22 khớp chuẩn Humanoid cho mô hình của bạn đã được AI dựng xong và chuyển sang Unity Mecanim Retargeting!"
+                        : "Konnichiwa! Mình đã tải mô hình 3D từ máy của bạn. Hãy bắt đầu đàm thoại nhé!");
                 }
             }
         } catch (e) {
             if (mounted) {
+                setState(() => _isAutoRigging = false);
                 ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text("Lỗi tải file: $e"), backgroundColor: AppColors.errorRed),
                 );
