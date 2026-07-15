@@ -1,0 +1,8 @@
+// Intercept and redirect deprecated jcenter() calls from older plugins (like flutter_unity_widget) to mavenCentral()
+// This prevents Gradle 8/9 from throwing "Could not find method jcenter()" during subproject evaluation.
+org.gradle.api.artifacts.dsl.RepositoryHandler.metaClass.jcenter = { ->
+    delegate.mavenCentral()
+}
+org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.metaClass.jcenter = { ->
+    delegate.mavenCentral()
+}

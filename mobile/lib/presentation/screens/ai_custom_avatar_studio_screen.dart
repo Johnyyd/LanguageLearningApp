@@ -277,9 +277,12 @@ class _AiCustomAvatarStudioScreenState extends State<AiCustomAvatarStudioScreen>
                     children: [
                         Icon(Icons.face_retouching_natural, color: AppColors.sakuraPink),
                         SizedBox(width: 8),
-                        Text(
-                            "3D VTuber Studio (Tiếng Nhật)",
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        Expanded(
+                            child: Text(
+                                "3D VTuber Studio (Tiếng Nhật)",
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                overflow: TextOverflow.ellipsis,
+                            ),
                         ),
                     ],
                 ),
@@ -393,15 +396,17 @@ class _AiCustomAvatarStudioScreenState extends State<AiCustomAvatarStudioScreen>
                                         children: [
                                             Icon(Icons.spatial_audio_off, color: AppColors.sakuraPink, size: 20),
                                             SizedBox(width: 8),
-                                            Text(
-                                                "Kiểm Thử Khẩu Hình Âm Vị Tiếng Nhật (Visemes)",
-                                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.slateGray),
+                                            Expanded(
+                                                child: Text(
+                                                    "Kiểm Thử Khẩu Hình Âm Vị Tiếng Nhật (Visemes)",
+                                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.slateGray),
+                                                ),
                                             ),
                                         ],
                                     ),
                                     const SizedBox(height: 10),
                                     SizedBox(
-                                        height: 60,
+                                        height: 72,
                                         child: ListView.separated(
                                             scrollDirection: Axis.horizontal,
                                             itemCount: _visemes.length,
@@ -457,23 +462,29 @@ class _AiCustomAvatarStudioScreenState extends State<AiCustomAvatarStudioScreen>
                                         children: [
                                             Icon(Icons.emoji_emotions_outlined, color: AppColors.warningOrange, size: 20),
                                             SizedBox(width: 8),
-                                            Text(
-                                                "Kiểm Thử Biểu Cảm Khuôn Mặt (3D Emotions)",
-                                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.slateGray),
+                                            Expanded(
+                                                child: Text(
+                                                    "Kiểm Thử Biểu Cảm Khuôn Mặt (3D Emotions)",
+                                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.slateGray),
+                                                ),
                                             ),
                                         ],
                                     ),
                                     const SizedBox(height: 10),
-                                    Row(
-                                        children: [
-                                            _buildEmotionChip("Vui Mừng (Happy)", "happy", Icons.celebration, AppColors.sakuraPink),
-                                            const SizedBox(width: 8),
-                                            _buildEmotionChip("Suy Nghĩ (Thinking)", "thinking", Icons.psychology, AppColors.warningOrange),
-                                            const SizedBox(width: 8),
-                                            _buildEmotionChip("Nói Chuyện (Wave)", "talking", Icons.record_voice_over, AppColors.duoGreen),
-                                            const SizedBox(width: 8),
-                                            _buildEmotionChip("Trở Về (Idle)", "idle", Icons.pause_circle_outline, AppColors.slateGray),
-                                        ],
+                                    SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        physics: const BouncingScrollPhysics(),
+                                        child: Row(
+                                            children: [
+                                                _buildEmotionChip("Vui Mừng (Happy)", "happy", Icons.celebration, AppColors.sakuraPink),
+                                                const SizedBox(width: 8),
+                                                _buildEmotionChip("Suy Nghĩ (Thinking)", "thinking", Icons.psychology, AppColors.warningOrange),
+                                                const SizedBox(width: 8),
+                                                _buildEmotionChip("Nói Chuyện (Wave)", "talking", Icons.record_voice_over, AppColors.duoGreen),
+                                                const SizedBox(width: 8),
+                                                _buildEmotionChip("Trở Về (Idle)", "idle", Icons.pause_circle_outline, AppColors.slateGray),
+                                            ],
+                                        ),
                                     ),
 
                                     const Divider(height: 36, thickness: 1.5),
@@ -483,9 +494,11 @@ class _AiCustomAvatarStudioScreenState extends State<AiCustomAvatarStudioScreen>
                                         children: [
                                             Icon(Icons.mic_external_on, color: AppColors.duoBlue, size: 20),
                                             SizedBox(width: 8),
-                                            Text(
-                                                "Hồ Sơ Giọng Lồng Tiếng (Anime VA Voice Profile)",
-                                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.slateGray),
+                                            Expanded(
+                                                child: Text(
+                                                    "Hồ Sơ Giọng Lồng Tiếng (Anime VA Voice Profile)",
+                                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.slateGray),
+                                                ),
                                             ),
                                         ],
                                     ),

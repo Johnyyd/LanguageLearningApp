@@ -1,10 +1,14 @@
 // ignore_for_file: file_names
+import 'dart:async' show Timer;
 import 'dart:convert' show base64Encode, jsonDecode, jsonEncode, utf8;
 import 'dart:io' show File, Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:model_viewer_plus/model_viewer_plus.dart';
+import 'package:webview_flutter/webview_flutter.dart' show WebViewController;
 import 'package:flutter_unity_widget/flutter_unity_widget.dart';
 import '../../../../core/services/unity_bridge_service.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -45,6 +49,8 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
 
     // Cầu nối Unity 3D Engine & Trạng thái hoạt động
     UnityWidgetController? _unityController;
+    WebViewController? _webViewController;
+    Timer? _unityLipSyncTimer;
     final bool _useUnityEngine = !kIsWeb && false; // Mặc định dùng ModelViewer fallback trên Web hoặc cho đến khi thư viện Unity C# được dựng ở Phase 2
 
     bool get _isWebViewSupported {
@@ -60,10 +66,14 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
     void initState() {
         super.initState();
         _prepareModel();
+        if (widget.emotion == "talking") {
+            _startUnityLipSyncLoop();
+        }
     }
 
     @override
     void dispose() {
+        _unityLipSyncTimer?.cancel();
         _unityController?.dispose();
         super.dispose();
     }
@@ -81,9 +91,52 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
             }
         }
 
-        // Đồng bộ trạng thái cảm xúc (Emotions) sang Unity Engine khi thay đổi
-        if (widget.emotion != oldWidget.emotion && _unityController != null) {
-            _sendUnityCommand(UnityBridgeService.buildEmotionCommand(widget.emotion));
+        // Đồng bộ trạng thái cảm xúc (Emotions) & Lip-sync sang Unity Engine / ModelViewer khi thay đổi
+        if (widget.emotion != oldWidget.emotion) {
+            if (_unityController != null) {
+                _sendUnityCommand(UnityBridgeService.buildEmotionCommand(widget.emotion));
+                if (widget.emotion == "talking") {
+                    _startUnityLipSyncLoop();
+                } else {
+                    _stopUnityLipSyncLoop();
+                }
+            }
+            if (_webViewController != null) {
+                if (widget.emotion == "talking") {
+                    _webViewController!.runJavaScript("if (window.SenseiAvatar) window.SenseiAvatar.startSpeaking();");
+                } else {
+                    _webViewController!.runJavaScript("if (window.SenseiAvatar) window.SenseiAvatar.stopSpeaking();");
+                }
+            }
+        }
+    }
+
+    void _startUnityLipSyncLoop() {
+        _unityLipSyncTimer?.cancel();
+        final visemeSequence = [
+            VTuberViseme.mouthA,
+            VTuberViseme.mouthE,
+            VTuberViseme.mouthI,
+            VTuberViseme.mouthO,
+            VTuberViseme.mouthU,
+        ];
+        int idx = 0;
+        _unityLipSyncTimer = Timer.periodic(const Duration(milliseconds: 150), (timer) {
+            if (!mounted || widget.emotion != "talking") {
+                _stopUnityLipSyncLoop();
+                return;
+            }
+            final vis = visemeSequence[idx % visemeSequence.length];
+            _sendUnityCommand(UnityBridgeService.buildVisemeCommand(vis, weight: 0.82));
+            idx++;
+        });
+    }
+
+    void _stopUnityLipSyncLoop() {
+        _unityLipSyncTimer?.cancel();
+        _unityLipSyncTimer = null;
+        if (_unityController != null) {
+            _sendUnityCommand(UnityBridgeService.buildVisemeCommand(VTuberViseme.silence, weight: 0.0));
         }
     }
 
@@ -304,27 +357,52 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                 child: Stack(
                     children: [
                         // Universal 3D Avatar Loader (GLB/VRM or Desktop fallback)
-                        ClipRRect(
-                            borderRadius: BorderRadius.circular(26),
-                            child: _isPreparing
-                                ? const Center(
-                                    child: CircularProgressIndicator(color: AppColors.sakuraPink),
-                                  )
-                                : _useUnityEngine
-                                    ? _buildUnityAvatarView()
-                                    : _isWebViewSupported
-                                        ? ModelViewer(
-                                            key: ValueKey(_preparedModelUrl ?? effectiveModelUrl),
-                                            backgroundColor: const Color.fromARGB(0, 0, 0, 0),
-                                            src: _preparedModelUrl ?? effectiveModelUrl,
-                                            alt: "Grok Ani style 3D Sensei AI Tutor",
-                                            ar: false,
-                                            autoRotate: widget.emotion == "thinking" || widget.emotion == "idle" || widget.emotion == "listening",
-                                            autoPlay: true,
-                                            cameraControls: true,
-                                            animationName: _getAnimationName(widget.emotion),
-                                          )
-                                        : _buildDesktopFallbackAvatar(effectiveModelUrl),
+                        Positioned.fill(
+                            child: RepaintBoundary(
+                                child: SizedBox.expand(
+                                    child: ExcludeSemantics(
+                                        excluding: true,
+                                        child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(26),
+                                            child: _isPreparing
+                                                ? const Center(
+                                                    child: CircularProgressIndicator(color: AppColors.sakuraPink),
+                                                  )
+                                                : _useUnityEngine
+                                                    ? PlatformViewSemanticsCleaner(child: _buildUnityAvatarView())
+                                                    : _isWebViewSupported
+                                                        ? SizedBox.expand(
+                                                            child: PlatformViewSemanticsCleaner(
+                                                                child: ModelViewer(
+                                                                    key: ValueKey(_preparedModelUrl ?? effectiveModelUrl),
+                                                                    id: "sensei-viewer",
+                                                                    backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+                                                                    src: _preparedModelUrl ?? effectiveModelUrl,
+                                                                    alt: "Grok Ani style 3D Sensei AI Tutor",
+                                                                    ar: false,
+                                                                    autoRotate: widget.emotion == "thinking" || widget.emotion == "idle" || widget.emotion == "listening",
+                                                                    autoPlay: true,
+                                                                    cameraControls: true,
+                                                                    animationName: _getAnimationName(widget.emotion),
+                                                                    relatedJs: _getLipSyncJavascript(),
+                                                                    onWebViewCreated: (controller) {
+                                                                        _webViewController = controller;
+                                                                        if (widget.emotion == "talking") {
+                                                                            Future.delayed(const Duration(milliseconds: 600), () {
+                                                                                if (mounted && _webViewController != null && widget.emotion == "talking") {
+                                                                                    _webViewController!.runJavaScript("if (window.SenseiAvatar) window.SenseiAvatar.startSpeaking();");
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    },
+                                                                ),
+                                                            ),
+                                                          )
+                                                        : _buildDesktopFallbackAvatar(effectiveModelUrl),
+                                        ),
+                                    ),
+                                ),
+                            ),
                         ),
                         // Grok Ani VTuber Mode Header Badge (Top Left)
                         Positioned(
@@ -637,4 +715,277 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
             default: return widget.isVoiceCloned ? "Sẵn sàng (Anime VA)" : "Sẵn sàng";
         }
     }
+
+    String _getLipSyncJavascript() {
+        return '''
+window.SenseiAvatar = {
+  modelViewer: null,
+  isSpeaking: false,
+  visemeInterval: null,
+  currentViseme: 'silence',
+  blendshapeNames: [],
+  hasBlendshapes: false,
+  headBone: null,
+  jawBone: null,
+  initialHeadRotX: null,
+  initialJawRotX: null,
+  
+  init: function() {
+    this.modelViewer = document.getElementById('sensei-viewer');
+    if (!this.modelViewer) return;
+    
+    const self = this;
+    this.modelViewer.addEventListener('load', function() {
+      console.log('🟢 [SenseiLipSync] 3D Model loaded into ModelViewer.');
+      self.scanBlendshapesAndBones();
+    });
+  },
+  
+  getThreeScene: function() {
+    if (!this.modelViewer) return null;
+    return this.modelViewer[Symbol.for('threeModal')] || 
+           this.modelViewer[Symbol.for('scene')] || 
+           (this.modelViewer.model && this.modelViewer.model[Symbol.for('scene')]) ||
+           this.modelViewer.threeScene;
+  },
+
+  scanBlendshapesAndBones: function() {
+    if (!this.modelViewer) return;
+    try {
+      this.blendshapeNames = [];
+      if (this.modelViewer.availableMorphTargets && this.modelViewer.availableMorphTargets.length > 0) {
+        this.blendshapeNames = [...this.modelViewer.availableMorphTargets];
+      }
+      
+      const scene = this.getThreeScene();
+      if (scene && typeof scene.traverse === 'function') {
+        scene.traverse(node => {
+          if (node.isMesh && node.morphTargetDictionary) {
+            Object.keys(node.morphTargetDictionary).forEach(key => {
+              if (!this.blendshapeNames.includes(key)) this.blendshapeNames.push(key);
+            });
+          }
+          if (node.isBone || (node.type && node.type.toLowerCase().includes('bone'))) {
+            const name = (node.name || '').toLowerCase();
+            if (name.includes('jaw') || name.includes('mouth_bone')) {
+              this.jawBone = node;
+              if (this.initialJawRotX === null) this.initialJawRotX = node.rotation.x;
+            } else if (!this.headBone && (name === 'head' || name.endsWith('_head') || name.includes('head_bone'))) {
+              this.headBone = node;
+              if (this.initialHeadRotX === null) this.initialHeadRotX = node.rotation.x;
+            }
+          }
+        });
+      }
+
+      if (typeof this.modelViewer.model?.getMorphTargetNames === 'function') {
+        const names = this.modelViewer.model.getMorphTargetNames() || [];
+        names.forEach(n => { if (!this.blendshapeNames.includes(n)) this.blendshapeNames.push(n); });
+      }
+
+      if (this.blendshapeNames.length > 0) {
+        this.hasBlendshapes = true;
+        console.log('🟢 [SenseiLipSync] Found blendshapes:', this.blendshapeNames);
+      }
+      if (this.jawBone || this.headBone) {
+        console.log('🟢 [SenseiLipSync] Found bones - Jaw:', !!this.jawBone, 'Head:', !!this.headBone);
+      }
+    } catch (e) {
+      console.log('⚠️ [SenseiLipSync] Error scanning model:', e);
+    }
+  },
+
+  setViseme: function(visemeCode, weight) {
+    if (!this.modelViewer) return;
+    this.currentViseme = visemeCode;
+    
+    const targetAliases = {
+      'mouth_a': ['Viseme_A', 'mouth_a', 'jawOpen', 'A', 'vrc.v_aa', 'F_Talking_01', 'mouthOpen', 'Mouth_Open', 'open_mouth'],
+      'mouth_i': ['Viseme_I', 'mouth_i', 'I', 'vrc.v_ih', 'smile'],
+      'mouth_u': ['Viseme_U', 'mouth_u', 'U', 'vrc.v_ou', 'pout'],
+      'mouth_e': ['Viseme_E', 'mouth_e', 'E', 'vrc.v_e'],
+      'mouth_o': ['Viseme_O', 'mouth_o', 'O', 'vrc.v_oh', 'surprise'],
+      'silence': []
+    };
+    
+    const aliases = targetAliases[visemeCode] || [];
+    let applied = false;
+    
+    // 1. Thử qua API của ModelViewer (nếu hỗ trợ)
+    if (typeof this.modelViewer.model?.setMorphTargetInfluence === 'function') {
+      for (const key in targetAliases) {
+        targetAliases[key].forEach(alias => {
+          try { this.modelViewer.model.setMorphTargetInfluence(alias, 0.0); } catch(e){}
+        });
+      }
+      if (visemeCode !== 'silence') {
+        for (let i = 0; i < aliases.length; i++) {
+          try {
+            this.modelViewer.model.setMorphTargetInfluence(aliases[i], weight);
+            applied = true;
+            break;
+          } catch(e){}
+        }
+      }
+    }
+
+    // 2. Thử qua trực tiếp cây Three.js morphTargetInfluences
+    const scene = this.getThreeScene();
+    if (scene && typeof scene.traverse === 'function') {
+      scene.traverse(node => {
+        if (node.isMesh && node.morphTargetDictionary && node.morphTargetInfluences) {
+          for (const key in targetAliases) {
+            targetAliases[key].forEach(alias => {
+              if (alias in node.morphTargetDictionary) {
+                node.morphTargetInfluences[node.morphTargetDictionary[alias]] = 0.0;
+              }
+            });
+          }
+          if (visemeCode !== 'silence') {
+            for (let i = 0; i < aliases.length; i++) {
+              const alias = aliases[i];
+              if (alias in node.morphTargetDictionary) {
+                node.morphTargetInfluences[node.morphTargetDictionary[alias]] = weight;
+                applied = true;
+                break;
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // 3. Xử lý xoay xương hàm hoặc đầu nhẹ nhàng nếu không có morph target (loại bỏ hoàn toàn stretch dọc toàn thân scaleY)
+    if (!applied && visemeCode !== 'silence') {
+      this.applyBoneSpeechMotion(visemeCode, weight);
+    } else if (visemeCode === 'silence') {
+      this.resetBoneSpeechMotion();
+    }
+  },
+  
+  applyBoneSpeechMotion: function(visemeCode, weight) {
+    if (this.jawBone && this.initialJawRotX !== null) {
+      const angle = (visemeCode === 'mouth_a' ? 0.22 : 0.12) * weight;
+      this.jawBone.rotation.x = this.initialJawRotX + angle;
+    } else if (this.headBone && this.initialHeadRotX !== null) {
+      const nod = (visemeCode === 'mouth_a' ? 0.035 : 0.018) * weight;
+      this.headBone.rotation.x = this.initialHeadRotX + nod;
+    }
+  },
+  
+  resetBoneSpeechMotion: function() {
+    if (this.jawBone && this.initialJawRotX !== null) {
+      this.jawBone.rotation.x = this.initialJawRotX;
+    }
+    if (this.headBone && this.initialHeadRotX !== null) {
+      this.headBone.rotation.x = this.initialHeadRotX;
+    }
+  },
+
+  startSpeaking: function() {
+    this.isSpeaking = true;
+    const visemeSequence = ['mouth_a', 'mouth_e', 'mouth_i', 'mouth_o', 'mouth_u', 'mouth_a'];
+    let idx = 0;
+    const self = this;
+    if (this.visemeInterval) clearInterval(this.visemeInterval);
+    this.visemeInterval = setInterval(function() {
+      if (!self.isSpeaking) {
+        self.stopSpeaking();
+        return;
+      }
+      const vis = visemeSequence[idx % visemeSequence.length];
+      const randomWeight = 0.65 + Math.random() * 0.35;
+      self.setViseme(vis, randomWeight);
+      idx++;
+    }, 150);
+  },
+
+  stopSpeaking: function() {
+    this.isSpeaking = false;
+    if (this.visemeInterval) {
+      clearInterval(this.visemeInterval);
+      this.visemeInterval = null;
+    }
+    this.setViseme('silence', 0.0);
+  }
+};
+window.addEventListener('DOMContentLoaded', function() { if (window.SenseiAvatar) window.SenseiAvatar.init(); });
+setTimeout(function() { if (window.SenseiAvatar) window.SenseiAvatar.init(); }, 600);
+''';
+    }
 }
+
+/// Utility widget để triệt diệt lỗi assertion '!semantics.parentDataDirty'
+/// của Flutter khi nhúng PlatformView (AndroidView/WebView/ModelViewer)
+/// bên trong các layout động như SingleChildScrollView hoặc AnimatedContainer.
+class PlatformViewSemanticsCleaner extends SingleChildRenderObjectWidget {
+    const PlatformViewSemanticsCleaner({super.key, required super.child});
+
+    @override
+    RenderObject createRenderObject(BuildContext context) => _RenderPlatformViewSemanticsCleaner();
+}
+
+class _RenderPlatformViewSemanticsCleaner extends RenderProxyBox {
+    _RenderPlatformViewSemanticsCleaner();
+
+    void _cleanAllSemantics(RenderObject? node) {
+        if (node == null) return;
+        node.clearSemantics();
+        node.visitChildren(_cleanAllSemantics);
+    }
+
+    void _cleanChildSemantics() {
+        _cleanAllSemantics(child);
+    }
+
+    void _scheduleNextFrameClean() {
+        if (!attached) return;
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+            if (attached) {
+                markNeedsPaint();
+            }
+        });
+    }
+
+    @override
+    void setupParentData(RenderObject child) {
+        super.setupParentData(child);
+        _cleanChildSemantics();
+    }
+
+    @override
+    void attach(PipelineOwner owner) {
+        super.attach(owner);
+        _cleanChildSemantics();
+        _scheduleNextFrameClean();
+    }
+
+    @override
+    void performLayout() {
+        super.performLayout();
+        _cleanChildSemantics();
+    }
+
+    @override
+    void paint(PaintingContext context, Offset offset) {
+        super.paint(context, offset);
+        _cleanChildSemantics();
+        _scheduleNextFrameClean();
+    }
+
+    @override
+    void describeSemanticsConfiguration(SemanticsConfiguration config) {
+        super.describeSemanticsConfiguration(config);
+        config.isSemanticBoundary = true;
+        config.isBlockingSemanticsOfPreviouslyPaintedNodes = true;
+    }
+
+    @override
+    void visitChildrenForSemantics(RenderObjectVisitor visitor) {
+        _cleanChildSemantics();
+        // Cố tình KHÔNG gọi super.visitChildrenForSemantics(visitor) để ngăn cản PlatformView (AndroidView)
+        // khởi tạo node ngữ nghĩa, chặn hoàn toàn việc PlatformView gọi markNeedsSemanticsUpdate gây lỗi parentDataDirty
+    }
+}
+
+

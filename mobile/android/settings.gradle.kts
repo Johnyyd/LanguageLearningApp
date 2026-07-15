@@ -1,3 +1,5 @@
+apply(from = "fix_jcenter.gradle")
+
 pluginManagement {
     val flutterSdkPath =
         run {
@@ -24,3 +26,4 @@ plugins {
 }
 
 include(":app")
+include(":unityLibrary")

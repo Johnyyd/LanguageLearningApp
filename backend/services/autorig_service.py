@@ -174,6 +174,24 @@ class AutoRigService:
                 "enabled": auto_retarget,
                 "mecanim_avatar_type": "Humanoid",
                 "ready_for_unity": True
+            },
+            "facial_rigging": {
+                "supported": True,
+                "jaw_bone": "head",
+                "visemes": [
+                    {"code": "mouth_a", "target": "Viseme_A", "fallback_jaw_angle": 15.0},
+                    {"code": "mouth_i", "target": "Viseme_I", "fallback_jaw_angle": 6.0},
+                    {"code": "mouth_u", "target": "Viseme_U", "fallback_jaw_angle": 10.0},
+                    {"code": "mouth_e", "target": "Viseme_E", "fallback_jaw_angle": 8.0},
+                    {"code": "mouth_o", "target": "Viseme_O", "fallback_jaw_angle": 12.0},
+                ],
+                "blendshape_aliases": {
+                    "mouth_a": ["Viseme_A", "mouth_a", "jawOpen", "A", "F_Talking_01", "vrc.v_aa"],
+                    "mouth_i": ["Viseme_I", "mouth_i", "I", "vrc.v_ih"],
+                    "mouth_u": ["Viseme_U", "mouth_u", "U", "vrc.v_ou"],
+                    "mouth_e": ["Viseme_E", "mouth_e", "E", "vrc.v_e"],
+                    "mouth_o": ["Viseme_O", "mouth_o", "O", "vrc.v_oh"]
+                }
             }
         }
 
