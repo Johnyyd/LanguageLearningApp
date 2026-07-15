@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from models import init_db
-from routers import auth, ielts, chat, vocab, exercises
+from routers import auth, ielts, chat, vocab, exercises, autorig
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -31,6 +31,7 @@ app.include_router(ielts.router)
 app.include_router(chat.router)
 app.include_router(vocab.router)
 app.include_router(exercises.router)
+app.include_router(autorig.router)
 
 @app.get("/")
 def root():
