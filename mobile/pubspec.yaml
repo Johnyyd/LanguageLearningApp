@@ -25,8 +25,9 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   shared_preferences: ^2.2.2
 
-  # 3D Avatar & Graphics
+  # 3D Avatar & Graphics (Dual-Engine: Unity 3D Engine + Web ModelViewer Fallback)
   model_viewer_plus: ^1.7.0
+  flutter_unity_widget: ^2022.2.0
   flutter_svg: ^2.0.9
 
   # UI / UX Utilities & Animations

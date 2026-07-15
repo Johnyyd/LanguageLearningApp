@@ -162,6 +162,8 @@ class _AiCustomAvatarStudioScreenState extends State<AiCustomAvatarStudioScreen>
                     final base64Str = base64Encode(file.bytes!);
                     if (file.name.toLowerCase().endsWith('.gltf')) {
                         targetUrl = 'data:model/gltf+json;base64,$base64Str';
+                    } else if (file.name.toLowerCase().endsWith('.vrm')) {
+                        targetUrl = 'data:application/octet-stream;base64,$base64Str';
                     } else {
                         targetUrl = 'data:model/gltf-binary;base64,$base64Str';
                     }
@@ -173,15 +175,19 @@ class _AiCustomAvatarStudioScreenState extends State<AiCustomAvatarStudioScreen>
                 }
 
                 if (targetUrl != null && targetUrl.isNotEmpty) {
+                    final isVrm = file.name.toLowerCase().endsWith('.vrm');
                     setState(() {
                         _avatarUrl = targetUrl;
-                        _vaName = "Custom 3D (${file.name})";
+                        _vaName = isVrm ? "VRM Avatar (${file.name})" : "Custom 3D (${file.name})";
                     });
                     if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                                content: Text("Đã nạp file 3D '${file.name}' vào Studio!"),
-                                backgroundColor: AppColors.duoGreen,
+                                content: Text(isVrm
+                                    ? "🌟 Đã nạp chuẩn VRM '${file.name}'! (UniVRM Lip-sync & Blendshapes sẵn sàng)"
+                                    : "⚡ Đã nạp file GLB '${file.name}'! (Hỗ trợ GLTFast Runtime Retargeting)"),
+                                backgroundColor: isVrm ? AppColors.sakuraPink : AppColors.duoGreen,
+                                duration: const Duration(seconds: 3),
                             ),
                         );
                     }

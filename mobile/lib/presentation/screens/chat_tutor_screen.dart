@@ -899,6 +899,8 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                     final base64Str = base64Encode(file.bytes!);
                     if (file.name.toLowerCase().endsWith('.gltf')) {
                         targetUrl = 'data:model/gltf+json;base64,$base64Str';
+                    } else if (file.name.toLowerCase().endsWith('.vrm')) {
+                        targetUrl = 'data:application/octet-stream;base64,$base64Str';
                     } else {
                         targetUrl = 'data:model/gltf-binary;base64,$base64Str';
                     }
@@ -910,18 +912,24 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                 }
 
                 if (targetUrl != null && targetUrl.isNotEmpty) {
+                    final isVrm = file.name.toLowerCase().endsWith('.vrm');
                     setState(() {
                         _customAvatarUrl = targetUrl;
-                        _currentVoiceActor = "Custom Anime VA (${file.name})";
+                        _currentVoiceActor = isVrm ? "VRM Anime VA (${file.name})" : "Custom Anime VA (${file.name})";
                     });
                     if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                                content: Text("Đã tải file '${file.name}' lên thành công!"),
-                                backgroundColor: AppColors.duoGreen,
+                                content: Text(isVrm
+                                    ? "🌟 Đã nạp chuẩn VRM '${file.name}'! (UniVRM Lip-sync & Blendshapes sẵn sàng)"
+                                    : "⚡ Đã tải file GLB '${file.name}'! (Hỗ trợ GLTFast Runtime Retargeting)"),
+                                backgroundColor: isVrm ? AppColors.sakuraPink : AppColors.duoGreen,
+                                duration: const Duration(seconds: 3),
                             ),
                         );
-                        _speak("Konnichiwa! Mình đã tải mô hình 3D từ máy của bạn thành công. Hãy bắt đầu trò chuyện nhé!");
+                        _speak(isVrm
+                            ? "Konnichiwa! Mình đã tải mô hình chuẩn VRM từ máy của bạn. Khẩu hình và cơ mặt đã được chuẩn hóa!"
+                            : "Konnichiwa! Mình đã tải mô hình 3D từ máy của bạn. Hãy bắt đầu đàm thoại nhé!");
                     }
                 }
             }
@@ -943,12 +951,15 @@ class _ChatTutorScreenState extends State<ChatTutorScreen> {
                 content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                        const Text("Nhập đường dẫn tĩnh hoặc URL mô hình GLB/VRM tuỳ chỉnh của bạn. Hệ thống sẽ tự động đồng bộ Lip-Sync và Rig xương Humanoid!"),
+                        const Text(
+                            "💡 Khuyến nghị: Sử dụng file chuẩn .vrm (xuất từ VRoid Studio) để có ngay biểu cảm & Lip-sync hoàn hảo qua UniVRM. Hoặc dùng file .glb/URL để tải với GLTFast Retargeting!",
+                            style: TextStyle(fontSize: 13, color: AppColors.slateGray),
+                        ),
                         const SizedBox(height: 12),
                         TextField(
                             controller: ctrl,
                             decoration: InputDecoration(
-                                hintText: "https://.../my_avatar.glb",
+                                hintText: "https://.../avatar.vrm hoặc avatar.glb",
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                         ),

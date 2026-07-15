@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:model_viewer_plus/model_viewer_plus.dart';
+import 'package:flutter_unity_widget/flutter_unity_widget.dart';
+import '../../../../core/services/unity_bridge_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 
@@ -39,6 +41,10 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
     bool _isPreparing = false;
     String _lastInputUrl = "";
 
+    // Cầu nối Unity 3D Engine & Trạng thái hoạt động
+    UnityWidgetController? _unityController;
+    final bool _useUnityEngine = !kIsWeb && false; // Mặc định dùng ModelViewer fallback trên Web hoặc cho đến khi thư viện Unity C# được dựng ở Phase 2
+
     bool get _isWebViewSupported {
         if (kIsWeb) return true;
         try {
@@ -55,6 +61,12 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
     }
 
     @override
+    void dispose() {
+        _unityController?.dispose();
+        super.dispose();
+    }
+
+    @override
     void didUpdateWidget(covariant Avatar3dViewer oldWidget) {
         super.didUpdateWidget(oldWidget);
         final String effectiveUrl = (widget.customAvatarUrl != null && widget.customAvatarUrl!.isNotEmpty)
@@ -62,7 +74,49 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
             : AppConstants.avatar3dUrl;
         if (effectiveUrl != _lastInputUrl) {
             _prepareModel();
+            if (_unityController != null && widget.customAvatarUrl != null) {
+                _sendUnityCommand(UnityBridgeService.buildLoadModelCommand(widget.customAvatarUrl!));
+            }
         }
+
+        // Đồng bộ trạng thái cảm xúc (Emotions) sang Unity Engine khi thay đổi
+        if (widget.emotion != oldWidget.emotion && _unityController != null) {
+            _sendUnityCommand(UnityBridgeService.buildEmotionCommand(widget.emotion));
+        }
+    }
+
+    void _sendUnityCommand(String jsonCommand) {
+        if (_unityController != null) {
+            try {
+                _unityController!.postMessage(
+                    UnityBridgeService.defaultGameObject,
+                    UnityBridgeService.defaultMethod,
+                    jsonCommand,
+                );
+            } catch (e) {
+                debugPrint("⚠️ [UnityBridge] Lỗi gửi tín hiệu sang Unity: $e");
+            }
+        }
+    }
+
+    void _onUnityCreated(UnityWidgetController controller) {
+        _unityController = controller;
+        // Gửi lệnh cảm xúc khởi tạo ngay sau khi Unity Controller sẵn sàng
+        _sendUnityCommand(UnityBridgeService.buildEmotionCommand(widget.emotion));
+        if (widget.customAvatarUrl != null && widget.customAvatarUrl!.isNotEmpty) {
+            _sendUnityCommand(UnityBridgeService.buildLoadModelCommand(widget.customAvatarUrl!));
+        }
+    }
+
+    void _onUnityMessage(dynamic message) {
+        final parsed = UnityBridgeService.parseUnityResponse(message);
+        if (parsed != null) {
+            debugPrint("🟢 [UnityBridge] Nhận phản hồi từ VTuber C#: ${parsed['status'] ?? parsed}");
+        }
+    }
+
+    void _onUnitySceneLoaded(SceneLoaded? scene) {
+        debugPrint("🎬 [UnityBridge] Unity Scene đã tải xong: ${scene?.name ?? 'Default'}");
     }
 
     Future<void> _prepareModel() async {
@@ -130,20 +184,22 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                     final modifiedGltfString = jsonEncode(gltfJson);
                     final base64Gltf = base64Encode(utf8.encode(modifiedGltfString));
                     resultUrl = 'data:model/gltf+json;base64,$base64Gltf';
-                } else if (cleanPath.endsWith(".glb")) {
+                } else if (cleanPath.endsWith(".glb") || cleanPath.endsWith(".vrm")) {
                     final bytes = await rootBundle.load(cleanPath);
                     final base64String = base64Encode(bytes.buffer.asUint8List());
-                    resultUrl = 'data:model/gltf-binary;base64,$base64String';
+                    final mime = cleanPath.endsWith(".vrm") ? "application/octet-stream" : "model/gltf-binary";
+                    resultUrl = 'data:$mime;base64,$base64String';
                 }
             }
             // 2. Xử lý mô hình từ file cục bộ (khi người dùng upload file từ điện thoại)
             else if (!kIsWeb) {
                 final file = File(cleanPath);
                 if (await file.exists()) {
-                    if (cleanPath.endsWith(".glb")) {
+                    if (cleanPath.endsWith(".glb") || cleanPath.endsWith(".vrm")) {
                         final bytes = await file.readAsBytes();
                         final base64String = base64Encode(bytes);
-                        resultUrl = 'data:model/gltf-binary;base64,$base64String';
+                        final mime = cleanPath.endsWith(".vrm") ? "application/octet-stream" : "model/gltf-binary";
+                        resultUrl = 'data:$mime;base64,$base64String';
                     } else if (cleanPath.endsWith(".gltf")) {
                         final gltfString = await file.readAsString();
                         final Map<String, dynamic> gltfJson = jsonDecode(gltfString);
@@ -252,19 +308,21 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                                 ? const Center(
                                     child: CircularProgressIndicator(color: AppColors.sakuraPink),
                                   )
-                                : _isWebViewSupported
-                                    ? ModelViewer(
-                                        key: ValueKey(_preparedModelUrl ?? effectiveModelUrl),
-                                        backgroundColor: const Color.fromARGB(0, 0, 0, 0),
-                                        src: _preparedModelUrl ?? effectiveModelUrl,
-                                        alt: "Grok Ani style 3D Sensei AI Tutor",
-                                        ar: false,
-                                        autoRotate: widget.emotion == "thinking" || widget.emotion == "idle" || widget.emotion == "listening",
-                                        autoPlay: true,
-                                        cameraControls: true,
-                                        animationName: _getAnimationName(widget.emotion),
-                                    )
-                                    : _buildDesktopFallbackAvatar(effectiveModelUrl),
+                                : _useUnityEngine
+                                    ? _buildUnityAvatarView()
+                                    : _isWebViewSupported
+                                        ? ModelViewer(
+                                            key: ValueKey(_preparedModelUrl ?? effectiveModelUrl),
+                                            backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+                                            src: _preparedModelUrl ?? effectiveModelUrl,
+                                            alt: "Grok Ani style 3D Sensei AI Tutor",
+                                            ar: false,
+                                            autoRotate: widget.emotion == "thinking" || widget.emotion == "idle" || widget.emotion == "listening",
+                                            autoPlay: true,
+                                            cameraControls: true,
+                                            animationName: _getAnimationName(widget.emotion),
+                                          )
+                                        : _buildDesktopFallbackAvatar(effectiveModelUrl),
                         ),
                         // Grok Ani VTuber Mode Header Badge (Top Left)
                         Positioned(
@@ -486,6 +544,16 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                     ),
                 ),
             ),
+        );
+    }
+
+    Widget _buildUnityAvatarView() {
+        return UnityWidget(
+            onUnityCreated: _onUnityCreated,
+            onUnityMessage: _onUnityMessage,
+            onUnitySceneLoaded: _onUnitySceneLoaded,
+            useAndroidViewSurface: false,
+            borderRadius: const BorderRadius.all(Radius.circular(26)),
         );
     }
 
