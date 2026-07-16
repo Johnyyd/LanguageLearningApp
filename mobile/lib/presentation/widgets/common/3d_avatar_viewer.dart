@@ -5,7 +5,7 @@ import 'dart:io' show File, Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:flutter/scheduler.dart' show SchedulerBinding;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:model_viewer_plus/model_viewer_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart' show WebViewController;
@@ -51,7 +51,7 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
     UnityWidgetController? _unityController;
     WebViewController? _webViewController;
     Timer? _unityLipSyncTimer;
-    final bool _useUnityEngine = !kIsWeb && false; // Mặc định dùng ModelViewer fallback trên Web hoặc cho đến khi thư viện Unity C# được dựng ở Phase 2
+    final bool _useUnityEngine = !kIsWeb && true; // Sử dụng Unity 3D Engine (Virtual Display / Texture) trên Android/iOS theo yêu cầu để tránh xung đột Semantics của Hybrid Composition WebView
 
     bool get _isWebViewSupported {
         if (kIsWeb) return true;
@@ -360,46 +360,43 @@ class _Avatar3dViewerState extends State<Avatar3dViewer> {
                         Positioned.fill(
                             child: RepaintBoundary(
                                 child: SizedBox.expand(
-                                    child: ExcludeSemantics(
-                                        excluding: true,
-                                        child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(26),
-                                            child: _isPreparing
-                                                ? const Center(
-                                                    child: CircularProgressIndicator(color: AppColors.sakuraPink),
-                                                  )
-                                                : _useUnityEngine
-                                                    ? PlatformViewSemanticsCleaner(child: _buildUnityAvatarView())
-                                                    : _isWebViewSupported
-                                                        ? SizedBox.expand(
-                                                            child: PlatformViewSemanticsCleaner(
-                                                                child: ModelViewer(
-                                                                    key: ValueKey(_preparedModelUrl ?? effectiveModelUrl),
-                                                                    id: "sensei-viewer",
-                                                                    backgroundColor: const Color.fromARGB(0, 0, 0, 0),
-                                                                    src: _preparedModelUrl ?? effectiveModelUrl,
-                                                                    alt: "Grok Ani style 3D Sensei AI Tutor",
-                                                                    ar: false,
-                                                                    autoRotate: widget.emotion == "thinking" || widget.emotion == "idle" || widget.emotion == "listening",
-                                                                    autoPlay: true,
-                                                                    cameraControls: true,
-                                                                    animationName: _getAnimationName(widget.emotion),
-                                                                    relatedJs: _getLipSyncJavascript(),
-                                                                    onWebViewCreated: (controller) {
-                                                                        _webViewController = controller;
-                                                                        if (widget.emotion == "talking") {
-                                                                            Future.delayed(const Duration(milliseconds: 600), () {
-                                                                                if (mounted && _webViewController != null && widget.emotion == "talking") {
-                                                                                    _webViewController!.runJavaScript("if (window.SenseiAvatar) window.SenseiAvatar.startSpeaking();");
-                                                                                }
-                                                                            });
-                                                                        }
-                                                                    },
-                                                                ),
+                                    child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(26),
+                                        child: _isPreparing
+                                            ? const Center(
+                                                child: CircularProgressIndicator(color: AppColors.sakuraPink),
+                                              )
+                                            : _useUnityEngine
+                                                ? PlatformViewSemanticsCleaner(child: _buildUnityAvatarView())
+                                                : _isWebViewSupported
+                                                    ? SizedBox.expand(
+                                                        child: PlatformViewSemanticsCleaner(
+                                                            child: ModelViewer(
+                                                                key: ValueKey(_preparedModelUrl ?? effectiveModelUrl),
+                                                                id: "sensei-viewer",
+                                                                backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+                                                                src: _preparedModelUrl ?? effectiveModelUrl,
+                                                                alt: "Grok Ani style 3D Sensei AI Tutor",
+                                                                ar: false,
+                                                                autoRotate: widget.emotion == "thinking" || widget.emotion == "idle" || widget.emotion == "listening",
+                                                                autoPlay: true,
+                                                                cameraControls: true,
+                                                                animationName: _getAnimationName(widget.emotion),
+                                                                relatedJs: _getLipSyncJavascript(),
+                                                                onWebViewCreated: (controller) {
+                                                                    _webViewController = controller;
+                                                                    if (widget.emotion == "talking") {
+                                                                        Future.delayed(const Duration(milliseconds: 600), () {
+                                                                            if (mounted && _webViewController != null && widget.emotion == "talking") {
+                                                                                _webViewController!.runJavaScript("if (window.SenseiAvatar) window.SenseiAvatar.startSpeaking();");
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                },
                                                             ),
-                                                          )
-                                                        : _buildDesktopFallbackAvatar(effectiveModelUrl),
-                                        ),
+                                                        ),
+                                                      )
+                                                    : _buildDesktopFallbackAvatar(effectiveModelUrl),
                                     ),
                                 ),
                             ),
@@ -915,9 +912,8 @@ setTimeout(function() { if (window.SenseiAvatar) window.SenseiAvatar.init(); }, 
     }
 }
 
-/// Utility widget để triệt diệt lỗi assertion '!semantics.parentDataDirty'
-/// của Flutter khi nhúng PlatformView (AndroidView/WebView/ModelViewer)
-/// bên trong các layout động như SingleChildScrollView hoặc AnimatedContainer.
+/// Utility widget giúp bảo vệ và cách ly PlatformView (AndroidView/WebView/ModelViewer)
+/// khỏi lỗi assertion '!semantics.parentDataDirty' khi nhúng bên trong các layout động.
 class PlatformViewSemanticsCleaner extends SingleChildRenderObjectWidget {
     const PlatformViewSemanticsCleaner({super.key, required super.child});
 
@@ -928,63 +924,11 @@ class PlatformViewSemanticsCleaner extends SingleChildRenderObjectWidget {
 class _RenderPlatformViewSemanticsCleaner extends RenderProxyBox {
     _RenderPlatformViewSemanticsCleaner();
 
-    void _cleanAllSemantics(RenderObject? node) {
-        if (node == null) return;
-        node.clearSemantics();
-        node.visitChildren(_cleanAllSemantics);
-    }
-
-    void _cleanChildSemantics() {
-        _cleanAllSemantics(child);
-    }
-
-    void _scheduleNextFrameClean() {
-        if (!attached) return;
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-            if (attached) {
-                markNeedsPaint();
-            }
-        });
-    }
-
-    @override
-    void setupParentData(RenderObject child) {
-        super.setupParentData(child);
-        _cleanChildSemantics();
-    }
-
-    @override
-    void attach(PipelineOwner owner) {
-        super.attach(owner);
-        _cleanChildSemantics();
-        _scheduleNextFrameClean();
-    }
-
-    @override
-    void performLayout() {
-        super.performLayout();
-        _cleanChildSemantics();
-    }
-
-    @override
-    void paint(PaintingContext context, Offset offset) {
-        super.paint(context, offset);
-        _cleanChildSemantics();
-        _scheduleNextFrameClean();
-    }
-
     @override
     void describeSemanticsConfiguration(SemanticsConfiguration config) {
         super.describeSemanticsConfiguration(config);
         config.isSemanticBoundary = true;
         config.isBlockingSemanticsOfPreviouslyPaintedNodes = true;
-    }
-
-    @override
-    void visitChildrenForSemantics(RenderObjectVisitor visitor) {
-        _cleanChildSemantics();
-        // Cố tình KHÔNG gọi super.visitChildrenForSemantics(visitor) để ngăn cản PlatformView (AndroidView)
-        // khởi tạo node ngữ nghĩa, chặn hoàn toàn việc PlatformView gọi markNeedsSemanticsUpdate gây lỗi parentDataDirty
     }
 }
 
